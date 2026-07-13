@@ -1,0 +1,9 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import ContentPage from "../../components/content-page";
+import { getGuide, guides } from "@/lib/guides";
+
+type Props = { params: Promise<{ slug: string }> };
+export function generateStaticParams() { return guides.map(({ slug }) => ({ slug })); }
+export async function generateMetadata({ params }: Props): Promise<Metadata> { const guide = getGuide((await params).slug); if (!guide) return {}; return { title: `${guide.title} | Pullvio`, description: guide.description, alternates: { canonical: `/guides/${guide.slug}` }, openGraph: { type: "article", title: guide.title, description: guide.description } }; }
+export default async function GuidePage({ params }: Props) { const guide = getGuide((await params).slug); if (!guide) notFound(); const related = guides.filter((item) => item.slug !== guide.slug).map((item) => [item.title, `/guides/${item.slug}`] as [string, string]); const structuredData = { "@context": "https://schema.org", "@graph": [{ "@type": "Article", headline: guide.title, description: guide.description, datePublished: "2026-07-12", dateModified: "2026-07-12", author: { "@type": "Organization", name: "Pullvio", url: "https://pullvio.com/" }, publisher: { "@type": "Organization", name: "Pullvio", url: "https://pullvio.com/" }, mainEntityOfPage: `https://pullvio.com/guides/${guide.slug}` }, { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://pullvio.com/" }, { "@type": "ListItem", position: 2, name: "Guides", item: "https://pullvio.com/guides" }, { "@type": "ListItem", position: 3, name: guide.title }] }] }; return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><ContentPage eyebrow={guide.eyebrow} title={guide.title} description={guide.description} updated="July 12, 2026" links={related}>{guide.body}</ContentPage></>; }
