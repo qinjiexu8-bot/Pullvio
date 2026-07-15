@@ -24,6 +24,28 @@ export function localePath(locale: Locale, path = ""): string {
   return normalized === "/" ? `/${locale}` : `/${locale}${normalized}`;
 }
 
+const localizedRoutes = new Set([
+  "/",
+  "/about",
+  "/guides",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/account",
+]);
+
+/**
+ * Returns a real route for the selected language. Content and policy pages are
+ * English-only in the current beta, so switching language there goes to that
+ * language's homepage instead of manufacturing a URL that resolves to 404.
+ */
+export function languageSwitchPath(locale: Locale, currentPath: string): string {
+  const normalized = currentPath === "" ? "/" : currentPath.replace(/\/$/, "") || "/";
+  if (localizedRoutes.has(normalized) || normalized.startsWith("/guides/")) return localePath(locale, normalized);
+  return locale === "en" ? normalized : localePath(locale);
+}
+
 export function localeFromPathname(pathname: string): Locale {
   const segment = pathname.split("/").filter(Boolean)[0];
   return segment && isLocale(segment) ? segment : "en";
@@ -203,6 +225,7 @@ export const betaCopy = {
     panelLabel: "CURRENT STATUS", panelTitle: "Frontend preview is live.", panelCopy: "We are validating the interface, policies, and media workflow before connecting processing infrastructure.",
     panelItems: [["Interface", "Ready for review"], ["Guides & policies", "Published"], ["Media processing", "In development"], ["Pro billing", "Not available"]],
     panelButton: "Read the guides", planned: "PLANNED PRODUCT DIRECTION",
+    guideCta: "Read guide",
     plannedItems: ["Browser-based", "MP4 & MP3", "Source quality", "Temporary processing", "Free entry tier"],
     principlesKicker: "PRODUCT PRINCIPLES", principlesTitle: "Useful first. Honest at every stage.",
     principlesCopy: "A media tool earns trust by doing exactly what it says, explaining its limits, and respecting the people who created the source material.",
@@ -224,6 +247,7 @@ export const betaCopy = {
     panelLabel: "当前状态", panelTitle: "前端预览已经开放。", panelCopy: "我们正在验证界面、政策和媒体工作流，然后才会连接真实处理基础设施。",
     panelItems: [["响应式界面", "可供体验"], ["指南与政策", "已经发布"], ["媒体处理", "开发中"], ["Pro 付费", "尚未开放"]],
     panelButton: "阅读实用指南", planned: "计划中的产品方向",
+    guideCta: "阅读指南",
     plannedItems: ["浏览器直接使用", "MP4 与 MP3", "尊重源画质", "临时文件处理", "免费入门层"],
     principlesKicker: "产品原则", principlesTitle: "先做到有用，每个阶段都保持诚实。",
     principlesCopy: "媒体工具只有言行一致、解释限制并尊重内容创作者，才能获得长期信任。",
@@ -245,6 +269,7 @@ export const betaCopy = {
     panelLabel: "ESTADO ACTUAL", panelTitle: "La vista previa ya está disponible.", panelCopy: "Estamos validando la interfaz, las políticas y el flujo antes de conectar la infraestructura de procesamiento.",
     panelItems: [["Interfaz", "Lista para revisar"], ["Guías y políticas", "Publicadas"], ["Procesamiento", "En desarrollo"], ["Pagos Pro", "No disponibles"]],
     panelButton: "Leer las guías", planned: "DIRECCIÓN DEL PRODUCTO",
+    guideCta: "Leer guía",
     plannedItems: ["Desde el navegador", "MP4 y MP3", "Calidad de origen", "Procesamiento temporal", "Nivel gratuito"],
     principlesKicker: "PRINCIPIOS", principlesTitle: "Útil primero. Honesto siempre.", principlesCopy: "Una herramienta multimedia merece confianza cuando cumple lo que promete, explica sus límites y respeta a los creadores.",
     principles: [["Permiso antes de procesar", "Pullvio está pensado para tus archivos, obras de dominio público o con licencia abierta y contenido que tengas derecho a guardar."], ["Opciones de calidad claras", "El futuro flujo explicará resolución, tamaño, formato y extracción de audio sin códigos confusos."], ["Temporal por diseño", "Las reglas de procesamiento y retención se publicarán antes del lanzamiento y reflejarán la infraestructura real."]],

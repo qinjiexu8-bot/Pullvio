@@ -26,6 +26,7 @@ export function ThemeToggle() {
 
 export default function SiteHeader({ locale = "en", simple = false }: { locale?: Locale; simple?: boolean }) {
   const t = betaCopy[locale];
+  const navHref = (href: string) => href.startsWith("#") ? `${localePath(locale)}${href}` : localePath(locale, href);
   const [open, setOpen] = useState(false);
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -37,7 +38,7 @@ export default function SiteHeader({ locale = "en", simple = false }: { locale?:
       <div className="shell nav-shell">
         <Brand locale={locale} />
         <nav className="desktop-nav" aria-label="Main navigation">
-          {t.nav.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}
+          {t.nav.map(([label, href]) => <Link href={navHref(href)} key={href}>{label}</Link>)}
         </nav>
         <div className="nav-actions">
           <ThemeToggle /><LanguageMenu locale={locale} />
@@ -46,7 +47,7 @@ export default function SiteHeader({ locale = "en", simple = false }: { locale?:
         </div>
         <div className="mobile-header-actions"><LanguageMenu locale={locale} /><ThemeToggle /><button className="menu-button" type="button" aria-label={open ? "Close navigation" : "Open navigation"} onClick={() => setOpen((value) => !value)}>{open ? <X /> : <Menu />}</button></div>
       </div>
-      {open && <div className="mobile-panel"><nav>{t.nav.map(([label, href]) => <Link href={href} key={href} onClick={() => setOpen(false)}>{label}<ArrowRight size={18} /></Link>)}</nav><div className="mobile-actions"><Link href={localePath(locale, "/login")}>{t.signIn}</Link><Link className="pro-button" href={`${localePath(locale)}#beta-status`} onClick={() => setOpen(false)}>{t.statusCta}</Link></div></div>}
+      {open && <div className="mobile-panel"><nav>{t.nav.map(([label, href]) => <Link href={navHref(href)} key={href} onClick={() => setOpen(false)}>{label}<ArrowRight size={18} /></Link>)}</nav><div className="mobile-actions"><Link href={localePath(locale, "/login")}>{t.signIn}</Link><Link className="pro-button" href={`${localePath(locale)}#beta-status`} onClick={() => setOpen(false)}>{t.statusCta}</Link></div></div>}
     </header>
   );
 }

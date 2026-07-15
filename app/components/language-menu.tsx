@@ -3,7 +3,7 @@
 import { Check, ChevronDown, Globe2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { localeNames, localePath, locales, type Locale } from "@/lib/i18n";
+import { languageSwitchPath, localeNames, locales, type Locale } from "@/lib/i18n";
 
 function pathWithoutLocale(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);
@@ -43,7 +43,7 @@ export default function LanguageMenu({ locale }: { locale: Locale }) {
           <span>Language</span>
           {locales.map((item) => (
             <a
-              href={localePath(item, currentPath)}
+              href={languageSwitchPath(item, currentPath)}
               hrefLang={item === "zh-cn" ? "zh-CN" : item}
               lang={item === "zh-cn" ? "zh-CN" : item}
               role="menuitem"

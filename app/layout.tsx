@@ -66,7 +66,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const requestedLocale = (await headers()).get("x-pullvio-locale") || "en";
   const locale = isLocale(requestedLocale) ? requestedLocale : "en";
   return (
-    <html lang={htmlLang[locale]} suppressHydrationWarning>
+    <html lang={htmlLang[locale]} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
