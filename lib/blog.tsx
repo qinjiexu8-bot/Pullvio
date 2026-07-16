@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Locale } from "./i18n";
+import { technicalBlogPosts } from "./blog-posts-technical";
 
 export type BlogPostCopy = {
   eyebrow: string;
@@ -41,6 +42,7 @@ export const blogIndexCopy = {
 } satisfies Record<Locale, Record<string, string>>;
 
 export const blogPosts: BlogPost[] = [
+  ...technicalBlogPosts,
   {
     slug: "online-video-downloader-safety-checklist",
     published: "2026-07-16",
