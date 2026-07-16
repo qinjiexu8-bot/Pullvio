@@ -44,6 +44,15 @@ const clerkAppearance = {
     headerTitle: "pullvio-clerk-hidden",
     headerSubtitle: "pullvio-clerk-hidden",
     footer: "pullvio-clerk-footer",
+    formFieldRow: "pullvio-clerk-field-row",
+    formFieldLabel: "pullvio-clerk-label",
+    formFieldInput: "pullvio-clerk-input",
+    formButtonPrimary: "pullvio-clerk-primary",
+    socialButtonsBlockButton: "pullvio-clerk-social",
+    socialButtonsBlockButtonText: "pullvio-clerk-social-text",
+    dividerText: "pullvio-clerk-divider",
+    footerActionText: "pullvio-clerk-footer-text",
+    footerActionLink: "pullvio-clerk-footer-link",
   },
 } as const;
 
