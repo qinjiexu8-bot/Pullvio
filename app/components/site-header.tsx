@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { ArrowRight, Menu, Moon, Play, Sun, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -28,6 +29,7 @@ export default function SiteHeader({ locale = "en", simple = false, account = fa
   const t = homeContent[locale];
   const accountLabel = locale === "zh-cn" ? "个人中心" : locale === "es" ? "Cuenta" : "Account";
   const navHref = (href: string) => href.startsWith("#") ? `${localePath(locale)}${href}` : localePath(locale, href);
+  const { isLoaded, isSignedIn } = useAuth();
   const [open, setOpen] = useState(false);
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -43,12 +45,14 @@ export default function SiteHeader({ locale = "en", simple = false, account = fa
         </nav>
         <div className="nav-actions">
           <ThemeToggle /><LanguageMenu locale={locale} />
-          <Link className="sign-in" href={localePath(locale, account ? "/account" : "/login")}>{account ? accountLabel : t.signIn}</Link>
+          {account || (isLoaded && isSignedIn) ? (
+            <Link className="sign-in" href={localePath(locale, "/account")}>{accountLabel}</Link>
+          ) : isLoaded ? <Link className="sign-in" href={localePath(locale, "/login")}>{t.signIn}</Link> : null}
           <Link className="pro-button" href={`${localePath(locale)}#pricing`}>{t.getPro}<ArrowRight size={16} /></Link>
         </div>
         <div className="mobile-header-actions"><LanguageMenu locale={locale} /><ThemeToggle /><button className="menu-button" type="button" aria-label={open ? "Close navigation" : "Open navigation"} onClick={() => setOpen((value) => !value)}>{open ? <X /> : <Menu />}</button></div>
       </div>
-      {open && <div className="mobile-panel"><nav>{t.nav.map(([label, href]) => <Link href={navHref(href)} key={href} onClick={() => setOpen(false)}>{label}<ArrowRight size={18} /></Link>)}</nav><div className="mobile-actions"><Link href={localePath(locale, account ? "/account" : "/login")}>{account ? accountLabel : t.signIn}</Link><Link className="pro-button" href={`${localePath(locale)}#pricing`} onClick={() => setOpen(false)}>{t.getPro}</Link></div></div>}
+      {open && <div className="mobile-panel"><nav>{t.nav.map(([label, href]) => <Link href={navHref(href)} key={href} onClick={() => setOpen(false)}>{label}<ArrowRight size={18} /></Link>)}</nav><div className="mobile-actions">{account || (isLoaded && isSignedIn) ? <Link href={localePath(locale, "/account")} onClick={() => setOpen(false)}>{accountLabel}</Link> : isLoaded ? <Link href={localePath(locale, "/login")} onClick={() => setOpen(false)}>{t.signIn}</Link> : null}<Link className="pro-button" href={`${localePath(locale)}#pricing`} onClick={() => setOpen(false)}>{t.getPro}</Link></div></div>}
     </header>
   );
 }

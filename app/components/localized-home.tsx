@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import {
   ArrowDownToLine,
   ArrowRight,
@@ -189,7 +190,9 @@ function ThemeToggle() {
 
 function Header({ locale }: { locale: Locale }) {
   const t = homeContent[locale];
+  const accountLabel = locale === "zh-cn" ? "个人中心" : locale === "es" ? "Cuenta" : "Account";
   const navHref = (href: string) => href.startsWith("#") ? href : localePath(locale, href);
+  const { isLoaded, isSignedIn } = useAuth();
   const [open, setOpen] = useState(false);
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -205,7 +208,9 @@ function Header({ locale }: { locale: Locale }) {
         <div className="nav-actions">
           <ThemeToggle />
           <LanguageMenu locale={locale} />
-          <a className="sign-in" href={localePath(locale, "/login")}>{t.signIn}</a>
+          {isLoaded && (isSignedIn
+            ? <a className="sign-in" href={localePath(locale, "/account")}>{accountLabel}</a>
+            : <a className="sign-in" href={localePath(locale, "/login")}>{t.signIn}</a>)}
           <a className="pro-button" href="#pricing">{t.getPro} <ArrowRight size={16} /></a>
         </div>
         <div className="mobile-header-actions">
@@ -216,7 +221,12 @@ function Header({ locale }: { locale: Locale }) {
       {open && (
         <div className="mobile-panel">
           <nav>{t.nav.map(([label, href]) => <a href={navHref(href)} key={href} onClick={() => setOpen(false)}>{label}<ArrowRight size={18} /></a>)}</nav>
-          <div className="mobile-actions"><a href={localePath(locale, "/login")}>{t.signIn}</a><a className="pro-button" href="#pricing">{t.getPro}</a></div>
+          <div className="mobile-actions">
+            {isLoaded && (isSignedIn
+              ? <a href={localePath(locale, "/account")} onClick={() => setOpen(false)}>{accountLabel}</a>
+              : <a href={localePath(locale, "/login")} onClick={() => setOpen(false)}>{t.signIn}</a>)}
+            <a className="pro-button" href="#pricing" onClick={() => setOpen(false)}>{t.getPro}</a>
+          </div>
         </div>
       )}
     </header>
