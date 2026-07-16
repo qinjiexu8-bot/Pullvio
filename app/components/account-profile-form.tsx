@@ -3,7 +3,7 @@
 import { Check, LoaderCircle, UserRound } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@/lib/supabase/client";
 import { localePath, type Locale } from "@/lib/i18n";
 
 const copy = {
@@ -24,6 +24,7 @@ function applyTheme(theme: string) {
 
 export default function AccountProfileForm({ userId, email, initialName, initialLocale, initialTheme, locale, disabled }: { userId: string; email: string; initialName: string; initialLocale: Locale; initialTheme: string; locale: Locale; disabled: boolean }) {
   const t = copy[locale];
+  const supabase = useSupabaseClient();
   const router = useRouter();
   const [name, setName] = useState(initialName);
   const [language, setLanguage] = useState<Locale>(initialLocale);
@@ -36,7 +37,6 @@ export default function AccountProfileForm({ userId, email, initialName, initial
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    const supabase = createClient();
     if (!supabase || !userId) { setSuccess(false); setMessage(t.error); return; }
     setBusy(true); setMessage("");
     const { error } = await supabase.from("profiles").update({ display_name: name.trim() || null, locale: language, theme }).eq("id", userId);

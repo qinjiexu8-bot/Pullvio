@@ -1,4 +1,5 @@
 import { CalendarDays, CreditCard, Gauge, History, ShieldCheck, Sparkles } from "lucide-react";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -35,11 +36,11 @@ function formatDate(value: string | null, locale: Locale) {
 
 export default async function AccountPage({ locale }: { locale: Locale }) {
   const t = accountCopy[locale];
-  const supabase = await createClient();
-  const authResult = supabase ? await supabase.auth.getUser() : { data: { user: null } };
-  const user = authResult.data.user;
+  const { userId } = await auth();
+  if (!userId) redirect(localePath(locale, "/login"));
 
-  if (supabase && !user) redirect(localePath(locale, "/login"));
+  const clerkUser = await currentUser();
+  const supabase = await createClient();
 
   let profile = null;
   let subscription = null;
@@ -49,21 +50,32 @@ export default async function AccountPage({ locale }: { locale: Locale }) {
   }> = [];
   let hasDataError = false;
 
-  if (supabase && user) {
+  if (supabase) {
     const today = new Date().toISOString().slice(0, 10);
     const [profileResult, subscriptionResult, usageResult] = await Promise.all([
-      supabase.from("profiles").select("display_name, avatar_url, locale, theme").eq("id", user.id).maybeSingle(),
-      supabase.from("subscriptions").select("plan_code, status, current_period_end, cancel_at_period_end").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("usage_daily").select("quota_limit, jobs_started, jobs_succeeded, jobs_failed, bytes_output, processing_seconds").eq("user_id", user.id).eq("usage_date", today).maybeSingle(),
+      supabase.from("profiles").select("display_name, avatar_url, locale, theme").eq("id", userId).maybeSingle(),
+      supabase.from("subscriptions").select("plan_code, status, current_period_end, cancel_at_period_end").eq("user_id", userId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("usage_daily").select("quota_limit, jobs_started, jobs_succeeded, jobs_failed, bytes_output, processing_seconds").eq("user_id", userId).eq("usage_date", today).maybeSingle(),
     ]);
     profile = profileResult.data;
     subscription = subscriptionResult.data;
     usage = usageResult.data;
     hasDataError = Boolean(profileResult.error || subscriptionResult.error || usageResult.error);
 
+    if (!profile && !profileResult.error) {
+      const profileCreateResult = await supabase.from("profiles").upsert({
+        id: userId,
+        display_name: clerkUser?.fullName || null,
+        avatar_url: clerkUser?.imageUrl || null,
+        locale,
+      }, { onConflict: "id" }).select("display_name, avatar_url, locale, theme").single();
+      profile = profileCreateResult.data;
+      hasDataError ||= Boolean(profileCreateResult.error);
+    }
+
     const jobsResult = await supabase.from("download_jobs")
       .select("id, source_url, source_host, title, media_kind, requested_format, requested_quality, status, file_size_bytes, failure_code, created_at")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(20);
     recentJobs = jobsResult.data ?? [];
@@ -74,8 +86,8 @@ export default async function AccountPage({ locale }: { locale: Locale }) {
   const quota = usage?.quota_limit ?? (isPro ? null : 3);
   const used = usage?.jobs_started ?? 0;
   const remaining = quota === null ? t.fairUse : Math.max(quota - used, 0).toString();
-  const email = user?.email || t.pending;
-  const displayName = profile?.display_name || user?.user_metadata?.full_name || "";
+  const email = clerkUser?.primaryEmailAddress?.emailAddress || clerkUser?.emailAddresses[0]?.emailAddress || t.pending;
+  const displayName = profile?.display_name || clerkUser?.fullName || "";
   const subscriptionEnd = formatDate(subscription?.current_period_end ?? null, locale);
 
   return (
@@ -91,7 +103,7 @@ export default async function AccountPage({ locale }: { locale: Locale }) {
         {hasDataError && <div className="account-data-notice" role="status">{t.dataError}</div>}
 
         <div className="account-overview-grid">
-          <AccountProfileForm userId={user?.id ?? ""} email={email} initialName={displayName} initialLocale={(profile?.locale as Locale | undefined) ?? locale} initialTheme={profile?.theme ?? "system"} locale={locale} disabled={!user} />
+          <AccountProfileForm userId={userId} email={email} initialName={displayName} initialLocale={(profile?.locale as Locale | undefined) ?? locale} initialTheme={profile?.theme ?? "system"} locale={locale} disabled={!supabase} />
 
           <article className={`account-plan-card ${isPro ? "is-pro" : ""}`}>
             <div className="account-card-label"><Sparkles size={19} /><span>{t.plan}</span></div>

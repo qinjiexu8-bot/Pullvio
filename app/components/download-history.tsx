@@ -3,7 +3,7 @@
 import { Download, ExternalLink, LoaderCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@/lib/supabase/client";
 import { localePath, type Locale } from "@/lib/i18n";
 
 type DownloadJob = {
@@ -29,13 +29,13 @@ function formatBytes(bytes: number | null, locale: Locale) {
 }
 
 export default function DownloadHistory({ locale, initialJobs, copy }: { locale: Locale; initialJobs: DownloadJob[]; copy: { eyebrow: string; title: string; description: string; empty: string; emptyCopy: string; start: string; delete: string; deleteError: string } }) {
+  const supabase = useSupabaseClient();
   const [jobs, setJobs] = useState(initialJobs);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState("");
   const dateFormatter = new Intl.DateTimeFormat(locale === "zh-cn" ? "zh-CN" : locale, { dateStyle: "medium", timeStyle: "short" });
 
   async function remove(id: string) {
-    const supabase = createClient();
     if (!supabase) { setError(copy.deleteError); return; }
     setDeleting(id); setError("");
     const { error: deleteError } = await supabase.from("download_jobs").delete().eq("id", id);

@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import { esES, zhCN } from "@clerk/localizations";
 import { Manrope, Syne } from "next/font/google";
 import { headers } from "next/headers";
 import { htmlLang, isLocale } from "@/lib/i18n";
@@ -76,6 +78,18 @@ const schemaData = {
   }
 };
 
+const zhClerkLocalization = {
+  ...zhCN,
+  formFieldInputPlaceholder__password: "请输入密码",
+  formFieldInputPlaceholder__signUpPassword: "请创建密码",
+};
+
+const esClerkLocalization = {
+  ...esES,
+  formFieldInputPlaceholder__password: "Introduce tu contraseña",
+  formFieldInputPlaceholder__signUpPassword: "Crea una contraseña",
+};
+
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const requestedLocale = (await headers()).get("x-pullvio-locale") || "en";
   const locale = isLocale(requestedLocale) ? requestedLocale : "en";
@@ -85,7 +99,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
       </head>
-      <body className={`${manrope.variable} ${syne.variable}`}>{children}</body>
+      <body className={`${manrope.variable} ${syne.variable}`}>
+        <ClerkProvider localization={locale === "zh-cn" ? zhClerkLocalization : locale === "es" ? esClerkLocalization : undefined}>
+          {children}
+        </ClerkProvider>
+      </body>
     </html>
   );
 }
