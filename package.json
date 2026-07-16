@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "next start",
     "check:links": "node scripts/check-links.mjs",
+    "db:migrations": "supabase migration list",
+    "db:push": "supabase db push",
+    "db:push:dry": "supabase db push --dry-run",
+    "db:types": "supabase gen types typescript --linked > lib/database.types.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
@@ -24,6 +28,7 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "16.2.10",
+    "supabase": "^2.109.1",
     "typescript": "^5.9.0"
   }
 }

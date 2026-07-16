@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { isLocale } from "@/lib/i18n";
+import type { Database } from "@/lib/database.types";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return NextResponse.json({ ok: false }, { status: 503 });
 
-  const supabase = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+  const supabase = createClient<Database>(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
   const { error } = await supabase.from("waitlist_signups").insert({ email, locale, source: "get-media" });
   if (error && error.code !== "23505") {
     console.error("Waitlist insert failed", { code: error.code, message: error.message });

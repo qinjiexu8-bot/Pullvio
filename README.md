@@ -36,7 +36,32 @@ Supabase is optional for viewing the frontend. To enable authentication, configu
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_SITE_URL=https://pullvio.com
 ```
+
+For local development, `NEXT_PUBLIC_SITE_URL` can be omitted so authentication
+callbacks use the current localhost origin. Set it to `https://pullvio.com` in
+Vercel production and preview environments.
+
+## Database migrations
+
+The Supabase CLI is pinned as a development dependency. On a new machine, authenticate and link the hosted project once:
+
+```bash
+npx supabase login
+npx supabase link --project-ref jmofmwtdsyllvpjrvwav
+```
+
+Keep schema changes in `supabase/migrations` and review them before applying:
+
+```bash
+npm run db:migrations
+npm run db:push:dry
+npm run db:push
+npm run db:types
+```
+
+Never commit a Supabase access token, database password, or secret API key.
 
 ## Validation
 
