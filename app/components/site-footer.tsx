@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { Brand } from "./site-header";
-import { betaCopy, localePath, type Locale } from "@/lib/i18n";
+import { homeContent, localePath, type Locale } from "@/lib/i18n";
 
 export default function SiteFooter({ locale = "en" }: { locale?: Locale }) {
-  const t = betaCopy[locale];
-  const labels = locale === "zh-cn" ? { about: "关于我们", guides: "实用指南" } : locale === "es" ? { about: "Nosotros", guides: "Guías" } : { about: "About", guides: "Guides" };
-  return <footer><div className="shell footer-shell"><div><Brand locale={locale} /><p>{t.footer}</p></div><div className="footer-links"><Link href={localePath(locale, "/about")}>{labels.about}</Link><Link href="/contact">Contact</Link><Link href={localePath(locale, "/guides")}>{labels.guides}</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/copyright">Copyright</Link></div></div><div className="shell footer-bottom"><span>© 2026 Pullvio</span><span>{t.legal}</span></div></footer>;
+  const t = homeContent[locale];
+  const labels = locale === "zh-cn"
+    ? { product: "产品", how: "使用方法", features: "产品功能", pricing: "价格", faq: "常见问题", resources: "资源", guides: "实用指南", blog: "博客", company: "公司", about: "关于我们", contact: "联系我们", legalTitle: "法律", privacy: "隐私政策", terms: "服务条款", copyright: "版权政策", acceptable: "可接受使用政策", email: "产品与合作咨询" }
+    : locale === "es"
+      ? { product: "Producto", how: "Cómo funciona", features: "Funciones", pricing: "Precios", faq: "Preguntas", resources: "Recursos", guides: "Guías", blog: "Blog", company: "Empresa", about: "Nosotros", contact: "Contacto", legalTitle: "Legal", privacy: "Privacidad", terms: "Términos", copyright: "Derechos de autor", acceptable: "Uso aceptable", email: "Producto y colaboraciones" }
+      : { product: "Product", how: "How it works", features: "Features", pricing: "Pricing", faq: "FAQ", resources: "Resources", guides: "Guides", blog: "Blog", company: "Company", about: "About", contact: "Contact", legalTitle: "Legal", privacy: "Privacy", terms: "Terms", copyright: "Copyright", acceptable: "Acceptable use", email: "Product & partnerships" };
+  const home = localePath(locale);
+  return <footer><div className="shell footer-shell"><div className="footer-brand-block"><Brand locale={locale} /><p>{t.footer}</p><a href="mailto:hello@pullvio.com"><span>{labels.email}</span>hello@pullvio.com</a></div><nav className="footer-nav-grid" aria-label="Footer navigation"><div className="footer-column"><strong>{labels.product}</strong><Link href={`${home}#how`}>{labels.how}</Link><Link href={`${home}#features`}>{labels.features}</Link><Link href={`${home}#pricing`}>{labels.pricing}</Link><Link href={`${home}#faq`}>{labels.faq}</Link></div><div className="footer-column"><strong>{labels.resources}</strong><Link href={localePath(locale, "/guides")}>{labels.guides}</Link><Link href={localePath(locale, "/blog")}>{labels.blog}</Link></div><div className="footer-column"><strong>{labels.company}</strong><Link href={localePath(locale, "/about")}>{labels.about}</Link><Link href={localePath(locale, "/contact")}>{labels.contact}</Link></div><div className="footer-column"><strong>{labels.legalTitle}</strong><Link href={localePath(locale, "/terms")}>{labels.terms}</Link><Link href={localePath(locale, "/privacy")}>{labels.privacy}</Link><Link href={localePath(locale, "/copyright")}>{labels.copyright}</Link><Link href={localePath(locale, "/acceptable-use")}>{labels.acceptable}</Link></div></nav></div><div className="shell footer-bottom"><span>© 2026 Pullvio</span><span>{t.legal}</span></div></footer>;
 }

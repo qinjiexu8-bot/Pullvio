@@ -1,4 +1,4 @@
-import BetaHome from "./components/beta-home";
+import LocalizedHome from "./components/localized-home";
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -16,5 +16,5 @@ const structuredData = {
 };
 
 export default function Home() {
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><BetaHome locale="en" /></>;
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><LocalizedHome locale="en" /></>;
 }

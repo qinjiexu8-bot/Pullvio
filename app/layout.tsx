@@ -18,8 +18,8 @@ const syne = Syne({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pullvio.com"),
-  title: "Pullvio Private Beta | A Cleaner Online Media Tool",
-  description: "Follow the Pullvio private beta as we build a cleaner browser-based media tool for permitted media workflows. Explore practical MP4, MP3, quality, and permission guides.",
+  title: "Online Video Downloader – MP4, MP3 & 4K | Pullvio",
+  description: "Download permitted online videos as MP4, extract MP3 audio, and keep original quality up to 4K. Pullvio works directly in your browser on mobile and desktop.",
   alternates: {
     canonical: "/",
     languages: {
@@ -33,13 +33,13 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://pullvio.com/",
     siteName: "Pullvio",
-    title: "Pullvio Private Beta | A Cleaner Online Media Tool",
-    description: "A truthful frontend beta with practical media format, quality, and permission guides.",
+    title: "Online Video Downloader – MP4, MP3 & 4K | Pullvio",
+    description: "Download permitted online videos as MP4, extract MP3 audio, and keep original quality up to 4K—directly in your browser.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pullvio Private Beta | A Cleaner Online Media Tool",
-    description: "A truthful frontend beta with practical media format, quality, and permission guides.",
+    title: "Online Video Downloader – MP4, MP3 & 4K | Pullvio",
+    description: "Download permitted online videos as MP4, extract MP3 audio, and keep original quality up to 4K—directly in your browser.",
   },
 };
 

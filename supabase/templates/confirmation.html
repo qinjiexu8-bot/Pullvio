@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <title>Confirm your Pullvio email</title>
+  </head>
+  <body style="margin:0;background:#f1f6f3;color:#0b1817;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      Confirm your email to finish creating your Pullvio account.
+    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f1f6f3;">
+      <tr>
+        <td align="center" style="padding:44px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+            <tr>
+              <td style="padding:0 4px 22px;">
+                <a href="https://pullvio.com" style="display:inline-block;color:#0b1817;text-decoration:none;font-size:24px;font-weight:800;letter-spacing:-1px;">
+                  <span style="display:inline-block;width:31px;height:31px;margin-right:9px;border-radius:9px;background:#4ed9aa;color:#0b1817;font-size:14px;line-height:31px;text-align:center;vertical-align:3px;">▶</span>pullvio
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="overflow:hidden;border:1px solid #d7e1dc;border-radius:24px;background:#ffffff;box-shadow:0 18px 45px rgba(16,52,42,.08);">
+                <div style="height:6px;background:#4ed9aa;line-height:6px;font-size:6px;">&nbsp;</div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="padding:48px 48px 16px;">
+                      <p style="margin:0 0 18px;color:#248667;font-size:11px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase;">Pullvio account</p>
+
+                      {{ if eq .Data.locale "zh-cn" }}
+                        <h1 style="margin:0 0 18px;color:#0b1817;font-size:34px;line-height:1.15;letter-spacing:-1.2px;">确认您的邮箱</h1>
+                        <p style="margin:0;color:#5f706b;font-size:16px;line-height:1.7;">您离创建 Pullvio 账号只差一步。请确认 <strong style="color:#0b1817;">{{ .Email }}</strong> 是您的邮箱。</p>
+                      {{ else if eq .Data.locale "es" }}
+                        <h1 style="margin:0 0 18px;color:#0b1817;font-size:34px;line-height:1.15;letter-spacing:-1.2px;">Confirma tu correo</h1>
+                        <p style="margin:0;color:#5f706b;font-size:16px;line-height:1.7;">Solo falta un paso para crear tu cuenta de Pullvio. Confirma que <strong style="color:#0b1817;">{{ .Email }}</strong> es tu dirección de correo.</p>
+                      {{ else }}
+                        <h1 style="margin:0 0 18px;color:#0b1817;font-size:34px;line-height:1.15;letter-spacing:-1.2px;">Confirm your email</h1>
+                        <p style="margin:0;color:#5f706b;font-size:16px;line-height:1.7;">You are one step away from creating your Pullvio account. Confirm that <strong style="color:#0b1817;">{{ .Email }}</strong> is your email address.</p>
+                      {{ end }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:20px 48px 18px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td align="center" style="border-radius:14px;background:#4ed9aa;">
+                            <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:16px 27px;color:#071513;text-decoration:none;font-size:15px;font-weight:800;">
+                              {{ if eq .Data.locale "zh-cn" }}确认邮箱地址{{ else if eq .Data.locale "es" }}Confirmar correo{{ else }}Confirm email address{{ end }} &nbsp;→
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0 48px 44px;">
+                      {{ if eq .Data.locale "zh-cn" }}
+                        <p style="margin:0 0 18px;color:#74827e;font-size:13px;line-height:1.7;">为保障账号安全，请尽快使用此链接。如果您没有注册 Pullvio，可以放心忽略这封邮件。</p>
+                        <p style="margin:0;padding-top:20px;border-top:1px solid #e5ebe8;color:#8b9793;font-size:12px;line-height:1.7;">按钮无法打开？请将此链接复制到浏览器：<br /><a href="{{ .ConfirmationURL }}" style="color:#248667;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
+                      {{ else if eq .Data.locale "es" }}
+                        <p style="margin:0 0 18px;color:#74827e;font-size:13px;line-height:1.7;">Por seguridad, utiliza este enlace cuanto antes. Si no has creado una cuenta de Pullvio, puedes ignorar este correo.</p>
+                        <p style="margin:0;padding-top:20px;border-top:1px solid #e5ebe8;color:#8b9793;font-size:12px;line-height:1.7;">¿El botón no funciona? Copia este enlace en tu navegador:<br /><a href="{{ .ConfirmationURL }}" style="color:#248667;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
+                      {{ else }}
+                        <p style="margin:0 0 18px;color:#74827e;font-size:13px;line-height:1.7;">For your security, use this link promptly. If you did not create a Pullvio account, you can safely ignore this email.</p>
+                        <p style="margin:0;padding-top:20px;border-top:1px solid #e5ebe8;color:#8b9793;font-size:12px;line-height:1.7;">Button not working? Copy this link into your browser:<br /><a href="{{ .ConfirmationURL }}" style="color:#248667;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
+                      {{ end }}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:24px 18px 0;color:#7c8985;font-size:12px;line-height:1.7;">
+                <p style="margin:0 0 6px;">© 2026 Pullvio · A cleaner online media workspace.</p>
+                <p style="margin:0;"><a href="https://pullvio.com/privacy" style="color:#60706b;text-decoration:underline;">Privacy</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="https://pullvio.com/terms" style="color:#60706b;text-decoration:underline;">Terms</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="https://pullvio.com/contact" style="color:#60706b;text-decoration:underline;">Contact</a></p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

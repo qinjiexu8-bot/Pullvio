@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import BetaHome from "../components/beta-home";
-import { betaCopy, isLocale, localePath, seo, type Locale } from "@/lib/i18n";
+import LocalizedHome from "../components/localized-home";
+import { homeContent, isLocale, localePath, seo, type Locale } from "@/lib/i18n";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -25,6 +25,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LocalizedPage({ params }: Props) {
   const { locale } = await params;
-  if (!isLocale(locale) || locale === "en" || !(locale in betaCopy)) notFound();
-  return <BetaHome locale={locale as Locale} />;
+  if (!isLocale(locale) || locale === "en" || !(locale in homeContent)) notFound();
+  return <LocalizedHome locale={locale as Locale} />;
 }

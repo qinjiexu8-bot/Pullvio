@@ -3,7 +3,7 @@
 import { ArrowRight, Menu, Moon, Play, Sun, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { betaCopy, localePath, type Locale } from "@/lib/i18n";
+import { homeContent, localePath, type Locale } from "@/lib/i18n";
 import LanguageMenu from "./language-menu";
 
 export function Brand({ locale = "en" }: { locale?: Locale }) {
@@ -24,8 +24,9 @@ export function ThemeToggle() {
   return <button className="theme-toggle" type="button" aria-label="Toggle light and dark theme" onClick={toggleTheme}><Sun className="theme-sun" size={17} /><Moon className="theme-moon" size={17} /></button>;
 }
 
-export default function SiteHeader({ locale = "en", simple = false }: { locale?: Locale; simple?: boolean }) {
-  const t = betaCopy[locale];
+export default function SiteHeader({ locale = "en", simple = false, account = false }: { locale?: Locale; simple?: boolean; account?: boolean }) {
+  const t = homeContent[locale];
+  const accountLabel = locale === "zh-cn" ? "个人中心" : locale === "es" ? "Cuenta" : "Account";
   const navHref = (href: string) => href.startsWith("#") ? `${localePath(locale)}${href}` : localePath(locale, href);
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -42,12 +43,12 @@ export default function SiteHeader({ locale = "en", simple = false }: { locale?:
         </nav>
         <div className="nav-actions">
           <ThemeToggle /><LanguageMenu locale={locale} />
-          <Link className="sign-in" href={localePath(locale, "/login")}>{t.signIn}</Link>
-          <Link className="pro-button beta-button" href={`${localePath(locale)}#beta-status`}>{t.statusCta}<ArrowRight size={16} /></Link>
+          <Link className="sign-in" href={localePath(locale, account ? "/account" : "/login")}>{account ? accountLabel : t.signIn}</Link>
+          <Link className="pro-button" href={`${localePath(locale)}#pricing`}>{t.getPro}<ArrowRight size={16} /></Link>
         </div>
         <div className="mobile-header-actions"><LanguageMenu locale={locale} /><ThemeToggle /><button className="menu-button" type="button" aria-label={open ? "Close navigation" : "Open navigation"} onClick={() => setOpen((value) => !value)}>{open ? <X /> : <Menu />}</button></div>
       </div>
-      {open && <div className="mobile-panel"><nav>{t.nav.map(([label, href]) => <Link href={navHref(href)} key={href} onClick={() => setOpen(false)}>{label}<ArrowRight size={18} /></Link>)}</nav><div className="mobile-actions"><Link href={localePath(locale, "/login")}>{t.signIn}</Link><Link className="pro-button" href={`${localePath(locale)}#beta-status`} onClick={() => setOpen(false)}>{t.statusCta}</Link></div></div>}
+      {open && <div className="mobile-panel"><nav>{t.nav.map(([label, href]) => <Link href={navHref(href)} key={href} onClick={() => setOpen(false)}>{label}<ArrowRight size={18} /></Link>)}</nav><div className="mobile-actions"><Link href={localePath(locale, account ? "/account" : "/login")}>{account ? accountLabel : t.signIn}</Link><Link className="pro-button" href={`${localePath(locale)}#pricing`} onClick={() => setOpen(false)}>{t.getPro}</Link></div></div>}
     </header>
   );
 }

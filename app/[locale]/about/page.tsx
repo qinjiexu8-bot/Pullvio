@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!(locale in localizedContent)) return {};
   const language = locale as LocalizedLocale;
   const page = localizedAboutPages[language];
-  const titles = { "zh-cn": "关于 Pullvio | 产品原则与内测进展", es: "Sobre Pullvio | Principios y beta privada" };
+  const titles = { "zh-cn": "关于 Pullvio | 产品原则", es: "Sobre Pullvio | Principios del producto" };
   return {
     title: titles[language],
     description: page.description,

@@ -1,13 +1,13 @@
 # Pullvio
 
-Pullvio is a responsive, multilingual frontend for a cleaner online media workflow. The project is currently a **private beta content site**: media processing and paid subscriptions are intentionally not enabled yet.
+Pullvio is a responsive, multilingual frontend for a browser-based video and audio downloader with Free and Pro plans.
 
 ## Current scope
 
 - English, Simplified Chinese, and Spanish homepages
 - Light and dark themes
 - Mobile-first responsive interface
-- Private beta roadmap and product principles
+- Download workflow, product benefits, Free/Pro comparison, and FAQs
 - SEO-ready metadata, canonicals, `hreflang`, sitemap, and structured data
 - About, contact, privacy, terms, copyright, and acceptable-use pages
 - Original guides covering MP4 vs MP3, video resolution, and responsible media use
@@ -46,9 +46,9 @@ npm run typecheck
 npm run build
 ```
 
-## Beta notice
+## Implementation note
 
-This repository currently contains the frontend and SEO foundation. It does not yet provide media downloading, conversion, subscription billing, or guaranteed platform support. Those capabilities will be published only after a real end-to-end workflow is available.
+This repository contains the frontend and SEO foundation. Production deployments should connect the interface to the media-processing, authentication, billing, and observability services used by the environment.
 
 ## Responsible use
 
