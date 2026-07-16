@@ -194,7 +194,67 @@ a { color: inherit; text-decoration: none; }
 .platform-strip { margin-top: 102px; display: flex; align-items: center; justify-content: center; gap: 30px; position: relative; z-index: 2; color: #667875; }
 .platform-strip > span { font-size: var(--type-micro); font-weight: 800; text-transform: uppercase; letter-spacing: .16em; }
 .platform-strip > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 24px; }
-.platform-strip > div span { color: #9cadab; font: 650 var(--type-small) var(--font-display), sans-serif; }
+.platform-strip > div span, .platform-strip > div a { color: #9cadab; font: 650 var(--type-small) var(--font-display), sans-serif; }
+.platform-strip > div a { transition: color .2s ease; }
+.platform-strip > div a:hover { color: var(--mint); }
+
+/* Platform-specific downloader landing pages */
+.platform-tool-page { overflow: hidden; background: var(--canvas); }
+.platform-tool-hero { min-height: 860px; padding: 165px 0 105px; position: relative; overflow: hidden; background: radial-gradient(circle at 72% 38%, rgba(31,119,94,.16), transparent 34%), linear-gradient(180deg, #071012 0%, #091416 100%); }
+.platform-tool-hero-shell { display: grid; grid-template-columns: .76fr 1.24fr; grid-template-areas: "heading heading" "intro studio"; align-items: center; column-gap: 82px; row-gap: 58px; position: relative; z-index: 2; }
+.platform-tool-heading { grid-area: heading; }
+.platform-tool-heading .kicker { color: var(--mint); }
+.platform-tool-heading h1 { margin: 0; font: 700 clamp(54px, 5.1vw, 76px)/.96 var(--font-display), sans-serif; letter-spacing: -4.2px; text-wrap: balance; }
+.platform-tool-heading em { display: block; margin-top: 8px; color: var(--mint); font: 700 clamp(42px, 4.3vw, 66px)/1 var(--font-display), sans-serif; letter-spacing: -3.5px; font-style: normal; text-wrap: balance; }
+.platform-tool-intro { grid-area: intro; }
+.platform-tool-intro > p { margin: 0; color: #9dadab; font-size: 17px; line-height: 1.75; }
+.platform-tool-intro ul { margin: 26px 0 0; padding: 0; display: grid; gap: 11px; list-style: none; }
+.platform-tool-intro li { display: flex; align-items: center; gap: 9px; color: #b2c0bd; font-size: var(--type-small); }
+.platform-tool-intro li svg { color: var(--mint); }
+.platform-how-section, .platform-boundaries-section, .platform-discovery-section { padding: 125px 0; color: #0b1817; background: #edf2ef; }
+.platform-section-head { max-width: 820px; }
+.platform-section-head.centered { margin-inline: auto; text-align: center; }
+.platform-section-head h2, .platform-guide-card h2, .platform-related-card h2 { margin: 0; font: 700 clamp(37px, 4vw, 56px)/1.05 var(--font-display), sans-serif; letter-spacing: -2.6px; }
+.platform-section-head.split { max-width: none; display: grid; grid-template-columns: 1.08fr .92fr; align-items: end; gap: 80px; }
+.platform-section-head.split > p { margin: 0; color: #839590; line-height: 1.75; }
+.platform-step-grid { margin-top: 68px; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #cad8d2; }
+.platform-step-grid article { min-height: 310px; padding: 34px 31px; position: relative; border-right: 1px solid #cad8d2; }
+.platform-step-grid article:last-child { border-right: 0; }
+.platform-step-grid article > span { position: absolute; top: 19px; right: 21px; color: #9aa9a4; font-size: var(--type-caption); font-weight: 800; }
+.platform-step-grid article > svg { width: 52px; height: 52px; margin-bottom: 52px; padding: 13px; color: #0c513c; background: #c9f9e4; border-radius: 16px 16px 16px 5px; }
+.platform-step-grid h3, .platform-format-grid h3, .platform-boundary-grid h3 { margin: 0 0 13px; font: 700 22px/1.2 var(--font-display), sans-serif; letter-spacing: -.7px; }
+.platform-step-grid p, .platform-boundary-grid p { margin: 0; color: #61706c; font-size: var(--type-small); line-height: 1.72; }
+.platform-formats-section { padding: 125px 0; background: #0a1416; }
+.platform-formats-section .platform-section-head .kicker { color: var(--mint); }
+.platform-formats-section .platform-section-head h2 { color: #f2f7f5; }
+.platform-format-grid { margin-top: 66px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.platform-format-grid article { min-height: 300px; padding: 30px; position: relative; border: 1px solid rgba(255,255,255,.08); background: linear-gradient(150deg, #111f21, #0c181a); border-radius: 23px; overflow: hidden; }
+.platform-format-grid article::after { content: ""; width: 150px; height: 150px; position: absolute; top: -90px; right: -62px; border: 1px solid rgba(124,243,197,.12); border-radius: 50%; }
+.platform-format-grid article > div { display: flex; align-items: center; gap: 9px; color: var(--mint); }
+.platform-format-grid article > div b { font-size: var(--type-caption); letter-spacing: .12em; }
+.platform-format-grid h3 { margin-top: 75px; color: #f2f7f5; }
+.platform-format-grid p { margin: 0; color: #82938f; font-size: var(--type-small); line-height: 1.72; }
+.platform-boundaries-section { background: #f5f8f6; }
+.platform-boundary-grid { margin-top: 64px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.platform-boundary-grid article { min-height: 275px; padding: 30px; border: 1px solid #d4dfda; background: #edf3f0; border-radius: 22px; }
+.platform-boundary-grid article > svg { margin-bottom: 61px; color: #6b7c77; }
+.platform-boundary-grid article.positive > svg, .platform-boundary-grid article:last-child > svg { color: #15956a; }
+.platform-discovery-section { padding-top: 0; background: #f5f8f6; }
+.platform-discovery-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 15px; }
+.platform-guide-card, .platform-related-card { min-height: 370px; padding: 42px; display: flex; flex-direction: column; align-items: flex-start; border-radius: 26px; }
+.platform-guide-card { color: #f2f7f5; background: radial-gradient(circle at 85% 10%, rgba(124,243,197,.12), transparent 28%), #0a1517; }
+.platform-related-card { border: 1px solid #cbd8d2; background: #e9f0ec; }
+.platform-guide-card .kicker { color: var(--mint); }
+.platform-guide-card h2, .platform-related-card h2 { font-size: clamp(31px, 3.1vw, 44px); }
+.platform-guide-card p, .platform-related-card p { max-width: 620px; margin: 20px 0 28px; color: #859692; font-size: var(--type-small); line-height: 1.75; }
+.platform-related-card p { color: #61706c; }
+.platform-guide-card a, .platform-related-card a { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; color: var(--mint); font-size: var(--type-small); font-weight: 850; }
+.platform-related-card a { color: #0b9364; }
+.platform-faq-section { border-top: 1px solid rgba(255,255,255,.06); }
+
+:root[data-theme="light"] .platform-tool-hero { background: radial-gradient(circle at 72% 38%, rgba(40,196,141,.14), transparent 34%), linear-gradient(180deg, #f4f7f5 0%, #edf4f0 100%); }
+:root[data-theme="light"] .platform-tool-intro > p { color: #5d706a; }
+:root[data-theme="light"] .platform-tool-intro li { color: #536660; }
 
 .steps-section, .features-section, .faq-section { padding: 130px 0; }
 .steps-section { background: #edf2ef; color: #0b1817; }
@@ -483,6 +543,19 @@ footer { padding: 70px 0 25px; background: #060d0f; }
   .mobile-actions > a:first-child { padding: 13px; border: 1px solid var(--line); border-radius: 100px; }
   .hero { padding-top: 140px; }
   .hero-shell { grid-template-columns: 1fr; grid-template-areas: "heading" "support" "studio"; gap: 44px; }
+  .platform-tool-hero-shell { grid-template-columns: 1fr; grid-template-areas: "heading" "intro" "studio"; gap: 42px; }
+  .platform-tool-heading, .platform-tool-intro { text-align: center; }
+  .platform-tool-intro ul { width: fit-content; margin-inline: auto; text-align: left; }
+  .platform-section-head.split { grid-template-columns: 1fr; gap: 28px; }
+  .platform-step-grid, .platform-format-grid, .platform-boundary-grid, .platform-discovery-grid { grid-template-columns: 1fr; }
+  .platform-step-grid article { min-height: 235px; border-right: 0; border-bottom: 1px solid #cad8d2; }
+  .platform-step-grid article:last-child { border-bottom: 0; }
+  .platform-step-grid article > svg { margin-bottom: 32px; }
+  .platform-format-grid article { min-height: 255px; }
+  .platform-format-grid h3 { margin-top: 48px; }
+  .platform-boundary-grid article { min-height: 235px; }
+  .platform-boundary-grid article > svg { margin-bottom: 43px; }
+  .platform-guide-card, .platform-related-card { min-height: 320px; }
   .hero-copy { text-align: center; }
   .announcement, .trust-line { margin-inline: auto; }
   .hero-copy h1 > span, .hero-copy h1 > em { white-space: normal; }
@@ -516,6 +589,19 @@ footer { padding: 70px 0 25px; background: #060d0f; }
   .nav-shell { height: 68px; }
   .mobile-panel { inset: 68px 0 0; }
   .hero { min-height: auto; padding: 118px 0 34px; }
+  .platform-tool-hero { min-height: auto; padding: 118px 0 82px; }
+  .platform-tool-hero-shell { gap: 35px; }
+  .platform-tool-heading h1 { font-size: clamp(42px, 12.5vw, 58px); letter-spacing: -2.9px; }
+  .platform-tool-heading em { margin-top: 11px; font-size: clamp(34px, 10vw, 48px); letter-spacing: -2.4px; }
+  .platform-tool-intro > p { font-size: 15px; }
+  .platform-tool-intro li { align-items: flex-start; }
+  .platform-how-section, .platform-formats-section, .platform-boundaries-section, .platform-discovery-section { padding: 88px 0; }
+  .platform-section-head h2, .platform-guide-card h2, .platform-related-card h2 { font-size: 38px; letter-spacing: -2px; }
+  .platform-step-grid, .platform-format-grid, .platform-boundary-grid { margin-top: 43px; }
+  .platform-step-grid article { padding-inline: 18px; }
+  .platform-format-grid article, .platform-boundary-grid article { padding: 24px 21px; }
+  .platform-discovery-section { padding-top: 0; }
+  .platform-guide-card, .platform-related-card { min-height: 300px; padding: 28px 23px; }
   .hero-copy h1 { font-size: clamp(43px, 13vw, 60px); letter-spacing: -3px; }
   .hero-support > p { font-size: 15px; }
   .announcement { margin-bottom: 22px; }

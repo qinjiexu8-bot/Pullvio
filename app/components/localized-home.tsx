@@ -4,39 +4,40 @@ import { useAuth } from "@clerk/nextjs";
 import {
   ArrowDownToLine,
   ArrowRight,
-  BellRing,
   BookOpen,
   Check,
-  CircleCheck,
   FolderArchive,
   Gauge,
   Headphones,
   Layers3,
   Link2,
-  LoaderCircle,
-  LockKeyhole,
-  Mail,
   Menu,
   MonitorSmartphone,
   Moon,
   Music2,
   Play,
   ShieldCheck,
-  Sparkles,
   Sun,
   Video,
   WandSparkles,
   X,
   Zap,
 } from "lucide-react";
-import { FormEvent, RefObject, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 import { blogIndexCopy, blogPosts } from "@/lib/blog";
 import { homeContent, localePath, type Locale } from "@/lib/i18n";
 import LanguageMenu from "./language-menu";
+import MediaStudio from "./media-studio";
 import SiteFooter from "./site-footer";
 
-const platforms = ["YouTube", "TikTok", "Vimeo", "Twitch", "SoundCloud", "X / Twitter"];
+const platforms = [
+  ["YouTube", "/youtube-video-downloader"],
+  ["TikTok", "/tiktok-video-downloader"],
+  ["Vimeo", ""],
+  ["Twitch", ""],
+  ["SoundCloud", ""],
+  ["X / Twitter", ""],
+] as const;
 const stepIcons = [Link2, WandSparkles, ArrowDownToLine];
 const featureIcons = [ShieldCheck, Gauge, Layers3];
 const useCaseIcons = [MonitorSmartphone, Music2, FolderArchive];
@@ -115,57 +116,6 @@ const discoveryCopy = {
   },
 } as const;
 
-const waitlistCopy = {
-  en: {
-    eyebrow: "EARLY ACCESS",
-    title: "Media downloads are coming soon.",
-    copy: "We’re finishing the processing experience now. Leave your email and we’ll let you know as soon as it’s ready.",
-    email: "Email address",
-    placeholder: "you@example.com",
-    submit: "Notify me",
-    submitting: "Joining…",
-    successTitle: "You’re on the list.",
-    successCopy: "We’ll email you when Pullvio media downloads are ready.",
-    error: "We couldn’t save your email right now. Please try again.",
-    privacy: "We’ll only use your email for Pullvio product updates.",
-    privacyLink: "Privacy policy",
-    close: "Close",
-    done: "Done",
-  },
-  "zh-cn": {
-    eyebrow: "抢先体验",
-    title: "媒体下载功能即将上线。",
-    copy: "我们正在完成媒体处理体验。留下您的邮箱，功能开放后我们会第一时间通知您。",
-    email: "邮箱地址",
-    placeholder: "you@example.com",
-    submit: "上线时通知我",
-    submitting: "正在登记…",
-    successTitle: "登记成功。",
-    successCopy: "Pullvio 媒体下载功能开放后，我们会通过邮件通知您。",
-    error: "暂时无法保存您的邮箱，请稍后再试。",
-    privacy: "您的邮箱仅用于发送 Pullvio 产品上线通知。",
-    privacyLink: "隐私政策",
-    close: "关闭",
-    done: "完成",
-  },
-  es: {
-    eyebrow: "ACCESO ANTICIPADO",
-    title: "Las descargas multimedia llegarán pronto.",
-    copy: "Estamos terminando la experiencia de procesamiento. Déjanos tu correo y te avisaremos en cuanto esté disponible.",
-    email: "Correo electrónico",
-    placeholder: "tu@ejemplo.com",
-    submit: "Avisarme",
-    submitting: "Registrando…",
-    successTitle: "Ya estás en la lista.",
-    successCopy: "Te avisaremos por correo cuando las descargas de Pullvio estén disponibles.",
-    error: "No hemos podido guardar tu correo. Inténtalo de nuevo.",
-    privacy: "Solo usaremos tu correo para novedades del producto Pullvio.",
-    privacyLink: "Política de privacidad",
-    close: "Cerrar",
-    done: "Listo",
-  },
-} as const;
-
 function Brand({ locale }: { locale: Locale }) {
   return (
     <a className="brand" href={localePath(locale)} aria-label="Pullvio home">
@@ -233,98 +183,6 @@ function Header({ locale }: { locale: Locale }) {
   );
 }
 
-function WaitlistModal({ locale, onClose, triggerRef }: { locale: Locale; onClose: () => void; triggerRef: RefObject<HTMLButtonElement | null> }) {
-  const t = waitlistCopy[locale];
-  const emailRef = useRef<HTMLInputElement>(null);
-  const [email, setEmail] = useState("");
-  const [company, setCompany] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    const trigger = triggerRef.current;
-    document.body.style.overflow = "hidden";
-    emailRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-      trigger?.focus();
-    };
-  }, [onClose, triggerRef]);
-
-  async function joinWaitlist(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setStatus("submitting");
-    try {
-      const response = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, company, locale }),
-      });
-      if (!response.ok) throw new Error("Waitlist request failed");
-      setStatus("success");
-    } catch {
-      setStatus("error");
-    }
-  }
-
-  return (
-    <div className="waitlist-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <section className="waitlist-modal" role="dialog" aria-modal="true" aria-labelledby="waitlist-title">
-        <button className="waitlist-close" type="button" aria-label={t.close} onClick={onClose}><X size={18} /></button>
-        {status === "success" ? (
-          <div className="waitlist-success" role="status">
-            <span className="waitlist-icon success"><CircleCheck size={27} /></span>
-            <span className="waitlist-kicker">{t.eyebrow}</span>
-            <h2 id="waitlist-title">{t.successTitle}</h2>
-            <p>{t.successCopy}</p>
-            <button type="button" onClick={onClose}>{t.done}</button>
-          </div>
-        ) : (
-          <>
-            <span className="waitlist-icon"><BellRing size={25} /></span>
-            <span className="waitlist-kicker">{t.eyebrow}</span>
-            <h2 id="waitlist-title">{t.title}</h2>
-            <p>{t.copy}</p>
-            <form onSubmit={joinWaitlist}>
-              <label htmlFor="waitlist-email">{t.email}</label>
-              <div className="waitlist-field"><Mail size={18} /><input ref={emailRef} id="waitlist-email" type="email" inputMode="email" autoComplete="email" placeholder={t.placeholder} value={email} onChange={(event) => { setEmail(event.target.value); setStatus("idle"); }} required maxLength={320} /></div>
-              <label className="waitlist-honeypot" aria-hidden="true">Company<input name="company" aria-hidden="true" tabIndex={-1} autoComplete="off" value={company} onChange={(event) => setCompany(event.target.value)} /></label>
-              {status === "error" && <p className="waitlist-message" role="alert">{t.error}</p>}
-              <button className="waitlist-submit" type="submit" disabled={status === "submitting"}>{status === "submitting" ? <LoaderCircle className="spinner-icon" size={18} /> : <BellRing size={17} />}{status === "submitting" ? t.submitting : t.submit}</button>
-            </form>
-            <small>{t.privacy} <a href={localePath(locale, "/privacy")}>{t.privacyLink}</a></small>
-          </>
-        )}
-      </section>
-    </div>
-  );
-}
-
-function DownloadStudio({ locale }: { locale: Locale }) {
-  const t = homeContent[locale].studio;
-  const [url, setUrl] = useState("");
-  const [mode, setMode] = useState<"video" | "audio">("video");
-  const [waitlistOpen, setWaitlistOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    setWaitlistOpen(true);
-  }
-  return (
-    <><div className="studio-wrap"><div className="studio-glow" /><div className="studio">
-      <div className="studio-topline">
-        <div className="mode-switch"><button className={mode === "video" ? "active" : ""} onClick={() => setMode("video")} type="button"><Video size={16} />{t.video}</button><button className={mode === "audio" ? "active" : ""} onClick={() => setMode("audio")} type="button"><Headphones size={16} />{t.audio}</button></div>
-        <span className="quota"><span />{t.quota}</span>
-      </div>
-      <form onSubmit={submit} noValidate><label htmlFor="media-url">{t.label}</label><div className="url-field"><Link2 size={21} /><input id="media-url" inputMode="url" placeholder={t.placeholder} value={url} onChange={(event) => setUrl(event.target.value)} /><button ref={triggerRef} type="submit"><Sparkles size={18} /><span>{t.submit}</span></button></div></form>
-      <div className="studio-footer"><p><LockKeyhole size={15} />{t.legal}</p><div><span>MP4</span><span>MP3</span><span>4K <b>PRO</b></span></div></div>
-    </div></div>{waitlistOpen && createPortal(<WaitlistModal locale={locale} onClose={() => setWaitlistOpen(false)} triggerRef={triggerRef} />, document.body)}</>
-  );
-}
-
 export default function LocalizedHome({ locale }: { locale: Locale }) {
   const t = homeContent[locale];
   const d = discoveryCopy[locale];
@@ -341,7 +199,7 @@ export default function LocalizedHome({ locale }: { locale: Locale }) {
     <main id="top">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <Header locale={locale} />
-      <section className="hero localized-hero"><div className="hero-grid" /><div className="orb orb-one" /><div className="shell hero-shell"><div className="hero-copy"><div className="announcement"><span>NEW</span>{t.announcement}<ArrowRight size={14} /></div><h1><span>{t.heroTitle}</span><em>{t.heroAccent}</em></h1></div><div className="hero-support"><p>{t.heroCopy}</p><div className="trust-line"><div className="avatar-stack"><span>P</span><span>R</span><span>V</span></div><div><strong>{t.trustTitle}</strong><small>{t.trustCopy}</small></div></div></div><DownloadStudio locale={locale} /></div><div className="platform-strip shell"><span>{t.supported}</span><div>{platforms.map((item) => <span key={item}>{item}</span>)}</div></div></section>
+      <section className="hero localized-hero"><div className="hero-grid" /><div className="orb orb-one" /><div className="shell hero-shell"><div className="hero-copy"><div className="announcement"><span>NEW</span>{t.announcement}<ArrowRight size={14} /></div><h1><span>{t.heroTitle}</span><em>{t.heroAccent}</em></h1></div><div className="hero-support"><p>{t.heroCopy}</p><div className="trust-line"><div className="avatar-stack"><span>P</span><span>R</span><span>V</span></div><div><strong>{t.trustTitle}</strong><small>{t.trustCopy}</small></div></div></div><MediaStudio locale={locale} /></div><div className="platform-strip shell"><span>{t.supported}</span><div>{platforms.map(([name, path]) => path ? <a href={localePath(locale, path)} key={name}>{name}</a> : <span key={name}>{name}</span>)}</div></div></section>
       <section className="steps-section" id="how"><div className="shell"><div className="section-heading centered"><span className="kicker">{t.howKicker}</span><h2>{t.howTitle}</h2></div><div className="steps-grid">{t.steps.map(([title, copy], index) => { const Icon = stepIcons[index]; return <article className="step-card" key={title}><span className="step-number">0{index + 1}</span><div className="step-icon"><Icon size={24} /></div><h3>{title}</h3><p>{copy}</p></article>; })}</div></div></section>
       <section className="features-section" id="features"><div className="shell"><div className="feature-intro"><span className="kicker">{t.featureKicker}</span><h2>{t.featureTitle}</h2><p>{t.featureCopy}</p></div><div className="feature-grid">{t.features.map(([title, copy], index) => { const Icon = featureIcons[index]; return <article className="feature-card" key={title}><div className="feature-icon"><Icon size={24} /></div><span>0{index + 1}</span><h3>{title}</h3><p>{copy}</p></article>; })}</div></div></section>
       <section className="formats-section"><div className="shell"><div className="formats-intro"><div><span className="kicker">{d.formatsKicker}</span><h2>{d.formatsTitle}</h2></div><p>{d.formatsCopy}</p></div><div className="format-card-grid">{d.formats.map(([label, title, copy, note], index) => <article className={`format-card ${index === 1 ? "featured-format" : ""}`} key={label}><div className="format-label">{index === 0 ? <Video size={18} /> : index === 1 ? <Headphones size={18} /> : <Gauge size={18} />}<span>{label}</span></div><h3>{title}</h3><p>{copy}</p><small>{note}</small></article>)}</div><div className="quality-guide"><div className="quality-copy"><h3>{d.qualityTitle}</h3><p>{d.qualityCopy}</p><Link2 size={21} /></div><div className="resolution-list">{d.resolutions.map(([quality, use, badge], index) => <div className={index === 3 ? "pro-resolution" : ""} key={quality}><strong>{quality}</strong><span>{use}</span><b>{badge}</b></div>)}</div></div></div></section>
