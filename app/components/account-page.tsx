@@ -63,12 +63,12 @@ export default async function AccountPage({ locale }: { locale: Locale }) {
     hasDataError = Boolean(profileResult.error || subscriptionResult.error || usageResult.error);
 
     if (!profile && !profileResult.error) {
-      const profileCreateResult = await supabase.from("profiles").upsert({
+      const profileCreateResult = await supabase.from("profiles").insert({
         id: userId,
         display_name: clerkUser?.fullName || null,
         avatar_url: clerkUser?.imageUrl || null,
         locale,
-      }, { onConflict: "id" }).select("display_name, avatar_url, locale, theme").single();
+      }).select("display_name, avatar_url, locale, theme").single();
       profile = profileCreateResult.data;
       hasDataError ||= Boolean(profileCreateResult.error);
     }
