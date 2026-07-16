@@ -18,8 +18,9 @@ const syne = Syne({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pullvio.com"),
-  title: "Online Video Downloader – MP4, MP3 & 4K | Pullvio",
-  description: "Download permitted online videos as MP4, extract MP3 audio, and keep original quality up to 4K. Pullvio works directly in your browser on mobile and desktop.",
+  title: "Free Online Video Downloader - Download MP4 & MP3 | Pullvio",
+  description: "Easily download public videos from URLs to MP4, convert links to MP3, and keep original quality up to 4K. Pullvio works directly in your browser without any installation.",
+  keywords: ["online video downloader", "download video from link", "link to mp4 converter", "extract audio from video", "free video downloader"],
   alternates: {
     canonical: "/",
     languages: {
@@ -33,13 +34,13 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://pullvio.com/",
     siteName: "Pullvio",
-    title: "Online Video Downloader – MP4, MP3 & 4K | Pullvio",
-    description: "Download permitted online videos as MP4, extract MP3 audio, and keep original quality up to 4K—directly in your browser.",
+    title: "Free Online Video Downloader - Download MP4 & MP3 | Pullvio",
+    description: "Easily download public videos from URLs to MP4, convert links to MP3, and keep original quality up to 4K—directly in your browser.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Online Video Downloader – MP4, MP3 & 4K | Pullvio",
-    description: "Download permitted online videos as MP4, extract MP3 audio, and keep original quality up to 4K—directly in your browser.",
+    title: "Free Online Video Downloader - Download MP4 & MP3 | Pullvio",
+    description: "Easily download public videos from URLs to MP4, convert links to MP3, and keep original quality up to 4K—directly in your browser.",
   },
 };
 
@@ -62,6 +63,19 @@ const themeScript = `
   }
 `;
 
+const schemaData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Pullvio",
+  "operatingSystem": "All",
+  "applicationCategory": "MultimediaApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+};
+
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const requestedLocale = (await headers()).get("x-pullvio-locale") || "en";
   const locale = isLocale(requestedLocale) ? requestedLocale : "en";
@@ -69,6 +83,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang={htmlLang[locale]} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
       </head>
       <body className={`${manrope.variable} ${syne.variable}`}>{children}</body>
     </html>

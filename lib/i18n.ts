@@ -58,22 +58,22 @@ export function localeFromPathname(pathname: string): Locale {
 
 export const seo = {
   en: {
-    title: "Online Video Downloader – MP4, MP3 & 4K | Pullvio",
+    title: "Free Online Video Downloader - Download MP4 & MP3 | Pullvio",
     description:
-      "Download permitted online videos as MP4, extract MP3 audio, and keep original quality up to 4K. Pullvio works directly in your browser on mobile and desktop.",
-    keywords: ["online media tool", "online video downloader", "MP4 and MP3 guide", "video quality guide"],
+      "Easily download public videos from URLs to MP4, convert links to MP3, and keep original quality up to 4K. Pullvio works directly in your browser without any installation.",
+    keywords: ["online video downloader", "download video from link", "link to mp4 converter", "extract audio from video", "free video downloader"],
   },
   "zh-cn": {
-    title: "在线视频下载工具 – MP4、MP3 与 4K | Pullvio",
+    title: "在线视频下载器 - 网页视频链接转 MP4/MP3 工具 | Pullvio",
     description:
-      "使用 Pullvio 在线下载您有权保存的视频，导出 MP4 或提取 MP3 音频，并保留最高 4K 的原始画质。手机和电脑浏览器均可直接使用。",
-    keywords: ["在线媒体工具", "在线视频下载工具", "MP4 MP3 指南", "视频画质指南"],
+      "免费的网页视频在线下载工具。支持粘贴视频链接直接导出 MP4 视频或提取无损 MP3 音频，保留最高 4K 原始画质。手机与电脑浏览器即开即用。",
+    keywords: ["在线视频下载器", "网页视频下载", "视频链接下载", "视频转MP3", "链接转MP4", "在线视频提取"],
   },
   es: {
-    title: "Descargador de Videos Online – MP4, MP3 y 4K | Pullvio",
+    title: "Descargador de Videos Online Gratis - MP4 y MP3 | Pullvio",
     description:
-      "Descarga videos permitidos en MP4, extrae audio MP3 y conserva la calidad original hasta 4K. Pullvio funciona en el navegador, tanto en móvil como en ordenador.",
-    keywords: ["herramienta multimedia online", "descargador de videos online", "guía MP4 MP3", "calidad de video"],
+      "Descarga videos públicos desde un enlace a MP4, extrae audio MP3 y conserva la calidad original hasta 4K. Pullvio funciona gratis en tu navegador móvil y de escritorio.",
+    keywords: ["descargador de videos online", "bajar videos gratis", "convertir video a mp3", "descargar mp4 de enlace", "descargador de videos gratis"],
   },
 } satisfies Record<Locale, { title: string; description: string; keywords: string[] }>;
 
@@ -89,8 +89,8 @@ export const localizedContent = {
     signIn: "登录",
     getPro: "升级 Pro",
     announcement: "Pro 现已支持批量任务",
-    heroTitle: "在线下载视频。",
-    heroAccent: "保留原始画质。",
+    heroTitle: "在线视频下载与格式转换。",
+    heroAccent: "保留 4K 原始画质。",
     heroCopy:
       "粘贴公开视频链接，将您拥有或获得授权的内容下载为 MP4，或者提取为 MP3 音频。免费使用高清画质，升级 Pro 可解锁 4K、长视频和批量处理。",
     trustTitle: "快速、私密、浏览器直接使用",
@@ -118,7 +118,7 @@ export const localizedContent = {
       ["下载到您的设备", "Pullvio 完成处理后，文件将直接通过浏览器交付给您。"],
     ],
     featureKicker: "视频与音频下载器",
-    featureTitle: "一个清晰、可靠的在线媒体工作区。",
+    featureTitle: "更快速、纯净的浏览器在线视频下载器。",
     featureCopy: "Pullvio 负责格式、画质与文件交付，让手机和电脑上的下载过程保持简单。",
     features: [
       ["默认保护隐私", "临时处理文件会按计划自动删除，下载结果直接发送到您的设备。"],
@@ -246,8 +246,8 @@ export const homeContent = {
     signIn: "Sign in",
     getPro: "Get Pro",
     announcement: "Batch downloads are included with Pro",
-    heroTitle: "Download videos online.",
-    heroAccent: "Keep the original quality.",
+    heroTitle: "Free online video downloader.",
+    heroAccent: "Keep original quality up to 4K.",
     heroCopy: "Paste a public media link to save permitted content as MP4 or extract MP3 audio. Use HD for free, or unlock 4K, long-form media, and batch processing with Pro.",
     trustTitle: "Fast, private, and browser-based",
     trustCopy: "No install · no pop-ups · no fake buttons",
@@ -257,7 +257,7 @@ export const homeContent = {
     },
     howKicker: "HOW IT WORKS", howTitle: "Download online videos in three simple steps.",
     steps: [["Paste a public link", "Copy the URL of media you own or are allowed to save, then paste it into Pullvio."], ["Choose MP4 or MP3", "Select video or audio, then choose the available quality that fits your device and purpose."], ["Download to your device", "Pullvio prepares the file and delivers it directly through your browser."]],
-    featureKicker: "VIDEO & AUDIO DOWNLOADER", featureTitle: "A cleaner workspace for online media.", featureCopy: "Pullvio handles formats, quality, and file delivery so saving media stays simple on mobile and desktop.",
+    featureKicker: "VIDEO & AUDIO DOWNLOADER", featureTitle: "A fast & clean browser-based video downloader.", featureCopy: "Pullvio handles formats, quality, and file delivery so saving media stays simple on mobile and desktop.",
     features: [["Private by default", "Temporary processing files are deleted automatically and results are delivered to your device."], ["Original quality up to 4K", "When the source offers genuine 2K or 4K quality, Pro lets you select that resolution."], ["Simple MP4 and MP3", "Download video or extract audio without extensions, pop-ups, or confusing format codes."]],
     pricingKicker: "FREE & PRO", pricingTitle: "Start free. Upgrade when it becomes a workflow.", pricingCopy: "Free is designed for occasional saves. Pro adds 4K, long-form media, batch queues, and priority processing.",
     freeFor: "For occasional downloads", proFor: "For creators and frequent users", forever: "forever", monthly: "/ month", startFree: "Start free", popular: "MOST POPULAR",

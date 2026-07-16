@@ -17,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: content.title,
     description: content.description,
+    keywords: content.keywords,
     alternates: { canonical, languages: { en: "/", "zh-CN": "/zh-cn", es: "/es", "x-default": "/" } },
     openGraph: { type: "website", url: canonical, siteName: "Pullvio", locale: locale === "zh-cn" ? "zh_CN" : "es_ES", title: content.title, description: content.description },
     twitter: { card: "summary_large_image", title: content.title, description: content.description },
