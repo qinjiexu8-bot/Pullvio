@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import type { Locale } from "./i18n";
 import { technicalBlogPosts } from "./blog-posts-technical";
 
@@ -13,6 +14,7 @@ export type BlogPostCopy = {
 export type BlogPost = {
   slug: string;
   published: string;
+  modified?: string;
   category: Record<Locale, string>;
   copy: Record<Locale, BlogPostCopy>;
 };
@@ -42,6 +44,86 @@ export const blogIndexCopy = {
 } satisfies Record<Locale, Record<string, string>>;
 
 export const blogPosts: BlogPost[] = [
+  {
+    slug: "tiktok-video-quality-watermarks-and-formats",
+    published: "2026-07-17",
+    modified: "2026-07-17",
+    category: { en: "TikTok", "zh-cn": "TikTok", es: "TikTok" },
+    copy: {
+      en: {
+        eyebrow: "TIKTOK FORMAT GUIDE",
+        title: "TikTok video quality, watermarks, MP4, and MP3 explained.",
+        description: "Understand TikTok HD quality, watermark expectations, MP4 and MP3 choices, mobile downloads, and the limits of public post links.",
+        readingTime: "7 min read",
+        body: <>
+          <p>A TikTok download can differ from what you see inside the app. Resolution depends on the original upload and the stream that is publicly available, while watermarks and creator attribution depend on the source and download method. No downloader can honestly promise genuine HD or 4K when that detail is absent from the source.</p>
+          <div className="content-callout"><strong>Quick answer</strong><p>Choose MP4 when you need the vertical video and sound together. Choose MP3 only when you are authorized to use the audio and do not need the picture. Treat “HD” and “no watermark” as claims that must be checked against the actual result, not as automatic properties of every TikTok link.</p></div>
+          <h2>What determines TikTok video quality?</h2>
+          <p>The creator&apos;s upload is the ceiling. TikTok may prepare several renditions for different devices and connections, and a public link may expose only some of them. A label such as 1080p or 4K should describe pixels that genuinely exist in the available source—not a smaller image enlarged during processing.</p>
+          <p>Before keeping an important copy, check the dimensions, duration, audio, and file size after download. Compare a few frames with the post. Motion smearing, block artifacts, or soft text often point to compression in the available source rather than a problem that can be repaired by choosing a larger label.</p>
+          <h2>Why do some TikTok downloads have a watermark?</h2>
+          <p>TikTok&apos;s native Save Video option normally preserves a moving platform and username watermark. Other publicly available renditions can differ, but availability changes by post, region, and platform behavior. Pullvio does not promise to remove a watermark or creator attribution. The responsible goal is to prepare an authorized source as it is available, while keeping the creator and permission context with the file.</p>
+          <p>A file without a visible watermark does not become ownerless. Copyright, music rights, privacy rights, and attribution duties still apply. Do not describe someone else&apos;s clip as your own or remove credit where permission requires it.</p>
+          <h2>MP4 or MP3 for a TikTok link?</h2>
+          <p>MP4 keeps the vertical picture and audio together and is the practical choice for personal playback, an authorized editing project, or an archive of your own posts. MP3 removes the picture and produces a smaller audio-only file. It can suit an authorized voice note, interview, or original sound when visual content is unnecessary.</p>
+          <p>Extracting MP3 does not improve the source audio and does not grant permission to reuse music. TikTok videos often contain tracks licensed for playback inside the platform; reuse outside that context can require separate rights.</p>
+          <h2>Does it work on iPhone and Android?</h2>
+          <p>A browser-based workflow can run on both. On iPhone and iPad, Safari downloads usually appear in the Files app. On Android, Chrome commonly saves them in Downloads. Pullvio does not require a separate app or browser extension; see the <Link href="/blog/download-video-on-iphone-and-android">mobile download guide</Link> for exact file locations and storage tips.</p>
+          <h2>Which TikTok links are a good fit?</h2>
+          <p>Direct public video-post URLs are the clearest fit. Private accounts, friends-only posts, removed clips, photo-mode posts, Stories, active LIVE sessions, ads, login-only media, and restricted sources may not be available. Public access is also not the same as permission to download or republish.</p>
+          <p>When you own the clip or have the necessary permission, open the <Link href="/tiktok-video-downloader">TikTok video downloader</Link>. For a permission-first workflow, read the <Link href="/guides/save-tiktok-videos">TikTok saving guide</Link>.</p>
+        </>,
+      },
+      "zh-cn": {
+        eyebrow: "TIKTOK 格式指南",
+        title: "TikTok 视频画质、水印、MP4 与 MP3 详解。",
+        description: "了解 TikTok HD 画质、水印差异、MP4 与 MP3 选择、手机端下载位置，以及公开帖子链接的实际限制。",
+        readingTime: "约 7 分钟",
+        body: <>
+          <p>下载后的 TikTok 文件可能与 App 内看到的内容有所不同。分辨率取决于原始上传和公开可用的视频流，水印与创作者署名则取决于来源和保存方式。如果来源本身没有对应细节，任何工具都不应承诺真正的 HD 或 4K。</p>
+          <div className="content-callout"><strong>快速结论</strong><p>需要竖屏画面和声音时选择 MP4；只有在有权使用音频且不需要画面时选择 MP3。“HD”和“无水印”都应以实际结果为准，而不是默认适用于每一个 TikTok 链接。</p></div>
+          <h2>什么决定 TikTok 视频画质？</h2>
+          <p>创作者上传的原始文件决定画质上限。TikTok 可能为不同设备和网络生成多个版本，而公开链接不一定会提供全部版本。1080p 或 4K 标签应对应来源真实存在的像素，而不是处理时放大的低分辨率画面。</p>
+          <p>重要文件下载后，应检查尺寸、时长、音频和文件大小，并抽查几个画面与原帖子对比。运动模糊、色块和文字发虚通常来自可用来源的压缩，不是选择更大标签就能修复。</p>
+          <h2>为什么有些 TikTok 文件带水印？</h2>
+          <p>TikTok 原生“保存视频”通常会保留移动的平台和用户名水印。其他公开可用版本可能不同，但会受到帖子、地区和平台策略影响。Pullvio 不承诺移除水印或创作者署名，只会在来源可用且用户获得授权的前提下准备文件。</p>
+          <p>没有可见水印的文件也不代表没有权利人。版权、音乐权利、隐私和署名义务仍然存在，不应把他人的短视频描述为自己的作品，也不应在授权要求署名时删除相关信息。</p>
+          <h2>TikTok 链接应该选择 MP4 还是 MP3？</h2>
+          <p>MP4 会保留竖屏画面和声音，适合个人播放、获得授权的剪辑项目或归档自己的帖子。MP3 会移除画面并生成更小的纯音频文件，适合有权使用的语音、访谈或原创声音。</p>
+          <p>提取 MP3 不会提升来源音质，也不会自动获得音乐复用权。TikTok 内容经常包含只针对平台内播放获得许可的音乐，平台外使用可能需要单独授权。</p>
+          <h2>iPhone 和 Android 可以使用吗？</h2>
+          <p>浏览器流程可以在两者上使用。iPhone 和 iPad 的 Safari 文件通常位于“文件”App；Android Chrome 一般保存在 Downloads 目录。Pullvio 无需单独 App 或浏览器扩展，详细位置可参考<Link href="/zh-cn/blog/download-video-on-iphone-and-android">手机下载文件指南</Link>。</p>
+          <h2>哪些 TikTok 链接更适合处理？</h2>
+          <p>直接的公开视频帖子链接最明确。私人账户、仅好友可见、已删除、图片模式、Stories、仍在进行的 LIVE、广告、登录后内容和受限制来源可能不可用。公开可访问也不等于拥有下载或再次发布许可。</p>
+          <p>确认拥有短视频或获得许可后，可打开<Link href="/zh-cn/tiktok-video-downloader">TikTok 视频下载器</Link>；需要先判断授权时，请阅读<Link href="/zh-cn/guides/save-tiktok-videos">TikTok 保存指南</Link>。</p>
+        </>,
+      },
+      es: {
+        eyebrow: "GUÍA DE FORMATOS DE TIKTOK",
+        title: "Calidad, marcas de agua, MP4 y MP3 en TikTok.",
+        description: "Entiende la calidad HD de TikTok, las marcas de agua, MP4 y MP3, las descargas móviles y los límites de los enlaces públicos.",
+        readingTime: "7 min de lectura",
+        body: <>
+          <p>Un archivo de TikTok puede diferir de lo que ves en la aplicación. La resolución depende de la subida original y de la fuente pública disponible, mientras que la marca de agua y la atribución dependen del origen y del método. Ninguna herramienta puede prometer HD o 4K reales si ese detalle no existe.</p>
+          <div className="content-callout"><strong>Respuesta rápida</strong><p>Elige MP4 para conservar imagen vertical y sonido. Elige MP3 solo si puedes usar el audio y no necesitas imagen. Comprueba siempre las afirmaciones de “HD” o “sin marca de agua” en el resultado real.</p></div>
+          <h2>¿Qué determina la calidad de un video de TikTok?</h2>
+          <p>La subida del creador establece el límite. TikTok puede preparar varias versiones para dispositivos y conexiones diferentes, y un enlace público quizá solo exponga algunas. Una etiqueta 1080p o 4K debe describir píxeles presentes en la fuente, no una imagen pequeña ampliada.</p>
+          <p>Para una copia importante, revisa dimensiones, duración, audio y tamaño. Compara varios fotogramas con la publicación. Bloques, texto blando o movimiento borroso suelen proceder de la compresión de la fuente disponible.</p>
+          <h2>¿Por qué algunas descargas tienen marca de agua?</h2>
+          <p>La opción nativa Guardar video suele conservar una marca móvil con la plataforma y el usuario. Otras versiones públicas pueden variar según publicación, región y comportamiento de TikTok. Pullvio no promete eliminar marcas de agua ni atribución; prepara la fuente autorizada que esté disponible.</p>
+          <p>Un archivo sin marca visible no deja de tener autor. Siguen aplicándose derechos de autor, música, privacidad y atribución. No presentes el clip de otra persona como propio.</p>
+          <h2>¿MP4 o MP3 para un enlace de TikTok?</h2>
+          <p>MP4 conserva imagen vertical y audio para reproducción personal, edición autorizada o archivo de publicaciones propias. MP3 elimina la imagen y crea un archivo menor cuando solo necesitas un audio que puedes usar.</p>
+          <p>Extraer MP3 no mejora el audio ni concede derechos sobre la música. Muchas pistas tienen licencia para reproducirse dentro de TikTok y pueden requerir permiso separado fuera de la plataforma.</p>
+          <h2>¿Funciona en iPhone y Android?</h2>
+          <p>Sí, desde el navegador. En iPhone y iPad, Safari suele guardar en Archivos; Android Chrome normalmente utiliza Descargas. Pullvio no requiere app ni extensión. Consulta la <Link href="/es/blog/download-video-on-iphone-and-android">guía de descargas móviles</Link> para ubicar los archivos.</p>
+          <h2>¿Qué enlaces de TikTok son adecuados?</h2>
+          <p>Los enlaces directos de videos públicos son el caso más claro. Cuentas privadas, contenido para amigos, clips borrados, modo foto, Stories, LIVE activo, anuncios y medios con sesión o restricciones pueden no estar disponibles. Acceso público tampoco equivale a permiso.</p>
+          <p>Si el clip es tuyo o tienes autorización, abre el <Link href="/es/tiktok-video-downloader">descargador de TikTok</Link>. Para revisar permisos primero, lee la <Link href="/es/guides/save-tiktok-videos">guía para guardar TikTok</Link>.</p>
+        </>,
+      },
+    },
+  },
   ...technicalBlogPosts,
   {
     slug: "online-video-downloader-safety-checklist",

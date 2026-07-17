@@ -8,20 +8,20 @@ type Mode = "login" | "signup" | "forgot" | "reset";
 const copy = {
   en: {
     loginTitle: "Welcome back.", signupTitle: "Create your Pullvio account.", forgotTitle: "Reset your password.", resetTitle: "Choose a new password.",
-    loginCopy: "Sign in to manage Pro, saved links, and billing.", signupCopy: "Keep recent links, sync your account, and unlock Pro when you need it.", forgotCopy: "Use the secure recovery option in the sign-in form.", resetCopy: "Finish the secure recovery flow to choose a new password.",
-    home: "Home", benefits: ["Free downloads stay available without an account", "One account for history, billing, and Pro", "Cancel Pro from your account at any time"],
+    loginCopy: "Sign in to continue free downloads and manage your saved links.", signupCopy: "Create a free account for ongoing downloads and cross-device history.", forgotCopy: "Use the secure recovery option in the sign-in form.", resetCopy: "Finish the secure recovery flow to choose a new password.",
+    home: "Home", benefits: ["Complete five downloads without an account", "No fixed download cap with a free account", "Keep recent source links across devices"],
     secure: "Secure account access", secureCopy: "Clerk protects sign-in, email verification, sessions, and password recovery. Pullvio never stores your raw password.",
   },
   "zh-cn": {
     loginTitle: "欢迎回来。", signupTitle: "创建 Pullvio 账户。", forgotTitle: "重置密码。", resetTitle: "设置新密码。",
-    loginCopy: "登录后管理 Pro、保存记录与账单。", signupCopy: "同步最近链接，需要时即可升级 Pro。", forgotCopy: "请使用登录表单中的安全找回功能。", resetCopy: "完成安全验证后即可设置新密码。",
-    home: "首页", benefits: ["免费工具无需账户即可继续使用", "一个账户管理历史、账单与 Pro", "随时可以在账户中取消 Pro"],
+    loginCopy: "登录后可继续免费下载并管理已保存的链接。", signupCopy: "创建免费账号，在合理使用范围内继续下载并同步跨设备记录。", forgotCopy: "请使用登录表单中的安全找回功能。", resetCopy: "完成安全验证后即可设置新密码。",
+    home: "首页", benefits: ["无需账号可完成 5 次下载", "免费账号不设固定下载次数", "跨设备保留近期来源链接"],
     secure: "安全的账户访问", secureCopy: "Clerk 负责登录、邮箱验证、会话与密码找回。Pullvio 不会保存您的明文密码。",
   },
   es: {
     loginTitle: "Te damos la bienvenida.", signupTitle: "Crea tu cuenta de Pullvio.", forgotTitle: "Restablece tu contraseña.", resetTitle: "Elige una contraseña nueva.",
-    loginCopy: "Inicia sesión para gestionar Pro, tus enlaces y la facturación.", signupCopy: "Sincroniza tus enlaces y activa Pro cuando lo necesites.", forgotCopy: "Usa la opción de recuperación segura del formulario de acceso.", resetCopy: "Completa la recuperación segura para elegir una contraseña nueva.",
-    home: "Inicio", benefits: ["Las descargas gratis siguen disponibles sin cuenta", "Una cuenta para el historial, la facturación y Pro", "Cancela Pro desde tu cuenta cuando quieras"],
+    loginCopy: "Inicia sesión para seguir descargando gratis y gestionar tus enlaces.", signupCopy: "Crea una cuenta gratuita para continuar y conservar el historial entre dispositivos.", forgotCopy: "Usa la opción de recuperación segura del formulario de acceso.", resetCopy: "Completa la recuperación segura para elegir una contraseña nueva.",
+    home: "Inicio", benefits: ["Cinco descargas sin crear una cuenta", "Sin límite fijo con una cuenta gratuita", "Enlaces recientes disponibles entre dispositivos"],
     secure: "Acceso seguro", secureCopy: "Clerk protege el acceso, la verificación del correo, las sesiones y la recuperación. Pullvio nunca guarda tu contraseña original.",
   },
 } as const;

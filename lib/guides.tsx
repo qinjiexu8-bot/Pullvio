@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities -- Editorial JSX intentionally uses readable punctuation. */
 import type { ReactNode } from "react";
 
 export type Guide = { slug: string; title: string; description: string; eyebrow: string; readingTime: string; body: ReactNode };

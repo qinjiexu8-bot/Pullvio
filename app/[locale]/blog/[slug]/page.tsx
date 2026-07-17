@@ -11,6 +11,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = getBlogPost(slug);
   if (!post || !isLocale(locale) || locale === "en") return {};
   const copy = post.copy[locale];
-  return { title: `${copy.title} | Pullvio`, description: copy.description, alternates: { canonical: localePath(locale, `/blog/${slug}`), languages: { en: `/blog/${slug}`, "zh-CN": `/zh-cn/blog/${slug}`, es: `/es/blog/${slug}`, "x-default": `/blog/${slug}` } }, openGraph: { type: "article", title: copy.title, description: copy.description, publishedTime: post.published, url: localePath(locale, `/blog/${slug}`) } };
+  return { title: `${copy.title} | Pullvio`, description: copy.description, alternates: { canonical: localePath(locale, `/blog/${slug}`), languages: { en: `/blog/${slug}`, "zh-CN": `/zh-cn/blog/${slug}`, es: `/es/blog/${slug}`, "x-default": `/blog/${slug}` } }, openGraph: { type: "article", title: copy.title, description: copy.description, publishedTime: post.published, modifiedTime: post.modified ?? post.published, url: localePath(locale, `/blog/${slug}`) } };
 }
 export default async function LocalizedBlogPostPage({ params }: Props) { const { locale, slug } = await params; const post = getBlogPost(slug); if (!post || !isLocale(locale) || locale === "en") notFound(); return <BlogArticle post={post} locale={locale} />; }

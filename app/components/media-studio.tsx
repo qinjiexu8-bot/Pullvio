@@ -157,7 +157,7 @@ export default function MediaStudio({ locale, placeholder }: { locale: Locale; p
           <span className="quota"><span />{t.quota}</span>
         </div>
         <form onSubmit={submit} noValidate><label htmlFor="media-url">{t.label}</label><div className="url-field"><Link2 size={21} /><input id="media-url" inputMode="url" placeholder={placeholder ?? t.placeholder} value={url} onChange={(event) => setUrl(event.target.value)} /><button ref={triggerRef} type="submit"><Sparkles size={18} /><span>{t.submit}</span></button></div></form>
-        <div className="studio-footer"><p><LockKeyhole size={15} />{t.legal}</p><div><span>MP4</span><span>MP3</span><span>4K <b>PRO</b></span></div></div>
+        <div className="studio-footer"><p><LockKeyhole size={15} />{t.legal}</p><div><span>MP4</span><span>MP3</span><span>4K <b>SOURCE</b></span></div></div>
       </div></div>
       {waitlistOpen && createPortal(<WaitlistModal locale={locale} onClose={() => setWaitlistOpen(false)} triggerRef={triggerRef} />, document.body)}
     </>

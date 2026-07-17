@@ -3,7 +3,7 @@ import { blogPosts } from "@/lib/blog";
 import { guides } from "@/lib/guides";
 
 const baseUrl = "https://pullvio.com";
-const lastModified = new Date("2026-07-16");
+const lastModified = new Date("2026-07-17");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const homeLanguages = { en: `${baseUrl}/`, "zh-CN": `${baseUrl}/zh-cn`, es: `${baseUrl}/es`, "x-default": `${baseUrl}/` };
@@ -11,9 +11,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const localizedPaths = ["/about", "/youtube-video-downloader", "/tiktok-video-downloader", "/guides", ...guides.map(({ slug }) => `/guides/${slug}`), "/blog", ...blogPosts.map(({ slug }) => `/blog/${slug}`)];
   const localizedPages: MetadataRoute.Sitemap = localizedPaths.flatMap((path) => {
     const languages = { en: `${baseUrl}${path}`, "zh-CN": `${baseUrl}/zh-cn${path}`, es: `${baseUrl}/es${path}`, "x-default": `${baseUrl}${path}` };
+    const blogPost = path.startsWith("/blog/") ? blogPosts.find(({ slug }) => path === `/blog/${slug}`) : undefined;
     return ["", "/zh-cn", "/es"].map((locale) => ({
       url: `${baseUrl}${locale}${path}`,
-      lastModified,
+      lastModified: blogPost ? new Date(blogPost.modified ?? blogPost.published) : lastModified,
       changeFrequency: path === "/about" ? "yearly" as const : path === "/blog" || path.endsWith("-video-downloader") ? "weekly" as const : "monthly" as const,
       priority: path.endsWith("-video-downloader") ? 0.9 : path === "/guides" || path === "/blog" ? 0.8 : path === "/about" ? 0.4 : 0.75,
       alternates: { languages },

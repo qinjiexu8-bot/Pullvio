@@ -24,6 +24,7 @@ export function BlogIndex({ locale = "en" }: { locale?: Locale }) {
       headline: post.copy[locale].title,
       url: `https://pullvio.com${localePath(locale, `/blog/${post.slug}`)}`,
       datePublished: post.published,
+      dateModified: post.modified ?? post.published,
     })),
   };
 
@@ -47,15 +48,22 @@ export function BlogIndex({ locale = "en" }: { locale?: Locale }) {
 
 export function BlogArticle({ post, locale = "en" }: { post: BlogPost; locale?: Locale }) {
   const copy = post.copy[locale];
+  const modified = post.modified ?? post.published;
+  const editorial = locale === "zh-cn"
+    ? { by: "作者：Pullvio 编辑团队", method: "依据原始技术资料、产品边界与实际可验证行为审核", standards: "查看编辑规范" }
+    : locale === "es"
+      ? { by: "Por el equipo editorial de Pullvio", method: "Revisado con documentación primaria, límites del producto y comportamiento verificable", standards: "Ver normas editoriales" }
+      : { by: "By the Pullvio Editorial Team", method: "Reviewed against primary documentation, product limits, and verifiable behavior", standards: "Read our editorial standards" };
   const related = blogPosts.filter((item) => item.slug !== post.slug).map((item) => [item.copy[locale].title, localePath(locale, `/blog/${item.slug}`)] as [string, string]);
   const url = `https://pullvio.com${localePath(locale, `/blog/${post.slug}`)}`;
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "BlogPosting", headline: copy.title, description: copy.description, datePublished: post.published, dateModified: post.published, inLanguage: htmlLang[locale], mainEntityOfPage: url, author: { "@type": "Organization", name: "Pullvio", url: "https://pullvio.com/about" }, publisher: { "@type": "Organization", name: "Pullvio", url: "https://pullvio.com/" } },
+      { "@type": "BlogPosting", headline: copy.title, description: copy.description, datePublished: post.published, dateModified: modified, inLanguage: htmlLang[locale], mainEntityOfPage: url, author: { "@type": "Organization", name: "Pullvio Editorial Team", url: `https://pullvio.com${localePath(locale, "/about")}#editorial-standards` }, publisher: { "@type": "Organization", name: "Pullvio", url: "https://pullvio.com/" } },
       { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Pullvio", item: `https://pullvio.com${localePath(locale)}` }, { "@type": "ListItem", position: 2, name: blogIndexCopy[locale].eyebrow, item: `https://pullvio.com${localePath(locale, "/blog")}` }, { "@type": "ListItem", position: 3, name: copy.title }] },
     ],
   };
 
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><ContentPage eyebrow={`${post.category[locale]} · ${copy.readingTime}`} title={copy.title} description={copy.description} updated={formatDate(post.published, locale)} links={related} locale={locale}>{copy.body}</ContentPage></>;
+  const byline = <div className="article-byline"><div><strong>{editorial.by}</strong><span>{editorial.method}</span></div><Link href={`${localePath(locale, "/about")}#editorial-standards`}>{editorial.standards}<ArrowRight size={14} /></Link></div>;
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><ContentPage eyebrow={`${post.category[locale]} · ${copy.readingTime}`} title={copy.title} description={copy.description} updated={formatDate(modified, locale)} afterHeader={byline} links={related} locale={locale}>{copy.body}</ContentPage></>;
 }

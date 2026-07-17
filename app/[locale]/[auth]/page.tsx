@@ -38,5 +38,5 @@ export default async function LocalizedAuthPage({ params }: Props) {
   const links = language === "zh-cn"
     ? [["隐私政策", "/zh-cn/privacy"], ["服务条款", "/zh-cn/terms"], ["联系我们", "/zh-cn/contact"]] as Array<[string, string]>
     : [["Privacidad", "/es/privacy"], ["Términos", "/es/terms"], ["Contacto", "/es/contact"]] as Array<[string, string]>;
-  return <ContentPage {...page} locale={language} updated={language === "zh-cn" ? "2026 年 7 月 16 日" : "16 de julio de 2026"} links={links}>{page.body}</ContentPage>;
+  return <ContentPage {...page} locale={language} updated={language === "zh-cn" ? "2026 年 7 月 17 日" : "17 de julio de 2026"} links={links}>{page.body}</ContentPage>;
 }
