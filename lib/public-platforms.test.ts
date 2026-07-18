@@ -4,6 +4,7 @@ import { publicPlatforms } from "./public-platforms";
 describe("public platform catalog", () => {
   it("publishes only production-enabled platforms", () => {
     expect(publicPlatforms.map(({ platform }) => platform)).toEqual([
+      "YouTube",
       "TikTok",
       "Vimeo",
       "SoundCloud",
@@ -18,7 +19,7 @@ describe("public platform catalog", () => {
     ]);
   });
 
-  it("does not expose the disabled YouTube route", () => {
-    expect(publicPlatforms.some(({ slug }) => slug.includes("youtube"))).toBe(false);
+  it("exposes the production YouTube route", () => {
+    expect(publicPlatforms.some(({ slug }) => slug === "youtube-video-downloader")).toBe(true);
   });
 });

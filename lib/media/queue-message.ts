@@ -1,8 +1,9 @@
 export type MediaQueueMessage = {
-  schemaVersion: 1;
+  schemaVersion: 2;
+  action: "process";
   jobId: string;
 };
 
 export function buildMediaQueueMessage(jobId: string): MediaQueueMessage {
-  return { schemaVersion: 1, jobId };
+  return { schemaVersion: 2, action: "process", jobId };
 }

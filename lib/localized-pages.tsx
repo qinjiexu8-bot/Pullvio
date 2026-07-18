@@ -128,8 +128,8 @@ const allLocalizedGuides: Record<LocalizedLocale, Guide[]> = {
 };
 
 export const localizedGuides: Record<LocalizedLocale, Guide[]> = {
-  "zh-cn": allLocalizedGuides["zh-cn"].filter(({ slug }) => slug !== "save-youtube-videos"),
-  es: allLocalizedGuides.es.filter(({ slug }) => slug !== "save-youtube-videos"),
+  "zh-cn": allLocalizedGuides["zh-cn"],
+  es: allLocalizedGuides.es,
 };
 
 export function getLocalizedGuide(locale: LocalizedLocale, slug: string) {

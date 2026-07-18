@@ -31,6 +31,6 @@ const allGuides: Guide[] = [
   },
 ];
 
-export const guides = allGuides.filter(({ slug }) => slug !== "save-youtube-videos");
+export const guides = allGuides;
 
 export function getGuide(slug: string) { return guides.find((guide) => guide.slug === slug); }

@@ -6,6 +6,7 @@ import {
   deriveAnonymousSubject,
   deriveNetworkSubject,
   readAnonymousCookieValue,
+  YOUTUBE_CHALLENGE_COOKIE_NAME,
 } from "./identity";
 import type { MediaOwner } from "./repository";
 
@@ -102,6 +103,18 @@ export function attachAnonymousCookie(response: NextResponse, value: string | nu
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
+  });
+  return response;
+}
+
+export function attachYoutubeChallengeCookie(response: NextResponse, value: string | null) {
+  if (!value) return response;
+  response.cookies.set(YOUTUBE_CHALLENGE_COOKIE_NAME, value, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 10 * 60,
   });
   return response;
 }

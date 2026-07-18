@@ -63,3 +63,33 @@ export function deriveNetworkSubject(secret: string, forwardedIp: string | undef
 }
 
 export const ANONYMOUS_COOKIE_NAME = "pullvio_anon";
+export const YOUTUBE_CHALLENGE_COOKIE_NAME = "pullvio_yt_verified";
+
+export function createYoutubeChallengeCookieValue(
+  secret: string,
+  ownerKey: string,
+  now = Date.now(),
+) {
+  assertSecret(secret);
+  const expiresAt = Math.floor(now / 1000) + 10 * 60;
+  const payload = `v1.${expiresAt}`;
+  return `${payload}.${sign(secret, `${payload}:${ownerKey}`)}`;
+}
+
+export function readYoutubeChallengeCookieValue(
+  secret: string,
+  ownerKey: string,
+  value: string | undefined | null,
+  now = Date.now(),
+) {
+  if (!value) return false;
+  const parts = value.split(".");
+  if (parts.length !== 3 || parts[0] !== "v1" || !/^\d{10}$/.test(parts[1])) return false;
+  const expiresAt = Number(parts[1]);
+  const nowSeconds = Math.floor(now / 1000);
+  if (expiresAt <= nowSeconds || expiresAt > nowSeconds + 10 * 60) return false;
+  const payload = `${parts[0]}.${parts[1]}`;
+  const expected = Buffer.from(sign(secret, `${payload}:${ownerKey}`));
+  const received = Buffer.from(parts[2]);
+  return expected.length === received.length && timingSafeEqual(expected, received);
+}

@@ -23,7 +23,7 @@ export async function dispatchMediaJob(jobId: string) {
       QueueUrl: queueUrl,
       MessageBody: JSON.stringify(buildMediaQueueMessage(jobId)),
       MessageAttributes: {
-        schemaVersion: { DataType: "Number", StringValue: "1" },
+        schemaVersion: { DataType: "Number", StringValue: "2" },
       },
     }),
   );

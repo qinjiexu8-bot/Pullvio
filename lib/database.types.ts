@@ -233,6 +233,125 @@ export type Database = {
         }
         Relationships: []
       }
+      media_alert_outbox: {
+        Row: {
+          alert_type: string
+          attempt_count: number
+          created_at: string
+          delivered_at: string | null
+          id: number
+          incident_key: string
+          last_error: string | null
+          max_attempts: number
+          next_attempt_at: string
+          payload: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          alert_type: string
+          attempt_count?: number
+          created_at?: string
+          delivered_at?: string | null
+          id?: never
+          incident_key: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          payload?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: string
+          attempt_count?: number
+          created_at?: string
+          delivered_at?: string | null
+          id?: never
+          incident_key?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          payload?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      media_provider_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          estimated_cost_microusd: number
+          id: string
+          job_id: string
+          last_error_code: string | null
+          last_http_status: number | null
+          next_poll_at: string | null
+          poll_count: number
+          provider: string
+          provider_format: string
+          provider_info: Json
+          provider_job_id: string | null
+          provider_progress: number
+          result_url: string | null
+          status: string
+          submit_count: number
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          estimated_cost_microusd?: number
+          id?: string
+          job_id: string
+          last_error_code?: string | null
+          last_http_status?: number | null
+          next_poll_at?: string | null
+          poll_count?: number
+          provider?: string
+          provider_format: string
+          provider_info?: Json
+          provider_job_id?: string | null
+          provider_progress?: number
+          result_url?: string | null
+          status?: string
+          submit_count?: number
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          estimated_cost_microusd?: number
+          id?: string
+          job_id?: string
+          last_error_code?: string | null
+          last_http_status?: number | null
+          next_poll_at?: string | null
+          poll_count?: number
+          provider?: string
+          provider_format?: string
+          provider_info?: Json
+          provider_job_id?: string | null
+          provider_progress?: number
+          result_url?: string | null
+          status?: string
+          submit_count?: number
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_provider_runs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "download_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -382,6 +501,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      begin_media_provider_run: {
+        Args: {
+          p_job_id: string
+          p_provider_format: string
+          p_worker_id: string
+        }
+        Returns: {
+          provider_job_id: string | null
+          provider_progress: number
+          provider_run_id: string
+          provider_status: string
+          result_code: string
+          result_url: string | null
+        }[]
+      }
       claim_media_job: {
         Args: {
           p_job_id: string
@@ -401,6 +535,10 @@ export type Database = {
           source_url: string
         }[]
       }
+      claim_media_alert: {
+        Args: Record<PropertyKey, never>
+        Returns: { alert_id: number; alert_type: string; payload: Json }[]
+      }
       complete_media_job: {
         Args: {
           p_artifact_expires_at: string
@@ -417,6 +555,10 @@ export type Database = {
           p_title: string
           p_worker_id: string
         }
+        Returns: boolean
+      }
+      complete_media_alert: {
+        Args: { p_alert_id: number; p_error: string | null; p_success: boolean }
         Returns: boolean
       }
       complete_media_job_v2: {
@@ -441,6 +583,10 @@ export type Database = {
         }
         Returns: string
       }
+      fail_youtube_provider_balance: {
+        Args: { p_job_id: string; p_worker_id: string }
+        Returns: boolean
+      }
       fail_undispatched_media_job: {
         Args: { p_job_id: string }
         Returns: boolean
@@ -455,6 +601,10 @@ export type Database = {
       }
       mark_media_job_dispatched: {
         Args: { p_job_id: string }
+        Returns: boolean
+      }
+      mark_media_provider_submission_started: {
+        Args: { p_run_id: string; p_worker_id: string }
         Returns: boolean
       }
       media_job_should_cancel: {
@@ -486,6 +636,38 @@ export type Database = {
       }
       reuse_cached_media_job: {
         Args: { p_job_id: string }
+        Returns: boolean
+      }
+      resolve_youtube_provider_balance_incident: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      youtube_challenge_required: {
+        Args: {
+          p_anonymous_subject: string | null
+          p_network_subject: string | null
+          p_user_id: string | null
+        }
+        Returns: boolean
+      }
+      record_media_provider_progress: {
+        Args: {
+          p_next_poll_seconds?: number
+          p_progress: number
+          p_provider_info: Json
+          p_result_url: string | null
+          p_run_id: string
+          p_worker_id: string
+        }
+        Returns: boolean
+      }
+      record_media_provider_submission: {
+        Args: {
+          p_provider_info: Json
+          p_provider_job_id: string
+          p_run_id: string
+          p_worker_id: string
+        }
         Returns: boolean
       }
     }

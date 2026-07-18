@@ -16,6 +16,7 @@ import {
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { homeContent, localePath, type Locale } from "@/lib/i18n";
 import { needsDownloadDetails } from "@/lib/media/client-job";
+import TurnstileWidget from "./turnstile-widget";
 
 type JobStatus = "idle" | "submitting" | "queued" | "processing" | "ready" | "failed" | "canceled";
 
@@ -43,6 +44,7 @@ const jobCopy = {
     cancel: "Cancel",
     retry: "Try another link",
     signIn: "Sign in to continue",
+    challenge: "Please complete the security check, then submit the YouTube link again.",
     errors: {
       INVALID_URL: "Paste a complete HTTPS media link.",
       UNSUPPORTED_SOURCE: "Pullvio currently supports public TikTok, Vimeo, and SoundCloud links.",
@@ -50,6 +52,8 @@ const jobCopy = {
       QUOTA_EXCEEDED: "You’ve used five guest downloads in the last 24 hours.",
       ACTIVE_JOB_LIMIT: "Wait for your current job to finish before starting another.",
       RATE_LIMITED: "Too many requests were submitted. Wait a moment and try again.",
+      CHALLENGE_REQUIRED: "Complete the security check before trying this YouTube link again.",
+      PROVIDER_BALANCE_EXHAUSTED: "YouTube downloads are temporarily unavailable. Our team has been notified; please try again later.",
       SERVICE_DISABLED: "Media processing is temporarily unavailable while we finish production checks.",
       SOURCE_DISABLED: "This media source is temporarily unavailable while we prepare a reliable connection.",
       SOURCE_UNAVAILABLE: "The source is unavailable, restricted, or no longer public.",
@@ -71,6 +75,7 @@ const jobCopy = {
     cancel: "取消任务",
     retry: "尝试其他链接",
     signIn: "登录后继续",
+    challenge: "请先完成人机验证，然后重新提交 YouTube 链接。",
     errors: {
       INVALID_URL: "请粘贴完整的 HTTPS 媒体链接。",
       UNSUPPORTED_SOURCE: "Pullvio 目前支持公开的 TikTok、Vimeo 和 SoundCloud 链接。",
@@ -78,6 +83,8 @@ const jobCopy = {
       QUOTA_EXCEEDED: "过去 24 小时内，访客的 5 次下载额度已用完。",
       ACTIVE_JOB_LIMIT: "请等待当前任务完成后再提交新任务。",
       RATE_LIMITED: "提交过于频繁，请稍后再试。",
+      CHALLENGE_REQUIRED: "请完成人机验证后，再次提交这个 YouTube 链接。",
+      PROVIDER_BALANCE_EXHAUSTED: "YouTube 下载服务暂时不可用，我们已收到通知，请稍后再试。",
       SERVICE_DISABLED: "媒体处理正在完成生产检查，暂时不可用。",
       SOURCE_DISABLED: "该媒体来源暂时不可用，我们正在准备稳定的处理线路。",
       SOURCE_UNAVAILABLE: "来源不可用、受限或已不再公开。",
@@ -99,6 +106,7 @@ const jobCopy = {
     cancel: "Cancelar",
     retry: "Probar otro enlace",
     signIn: "Inicia sesión para continuar",
+    challenge: "Completa la verificación de seguridad y vuelve a enviar el enlace de YouTube.",
     errors: {
       INVALID_URL: "Pega un enlace multimedia HTTPS completo.",
       UNSUPPORTED_SOURCE: "Pullvio admite enlaces públicos de TikTok, Vimeo y SoundCloud.",
@@ -106,6 +114,8 @@ const jobCopy = {
       QUOTA_EXCEEDED: "Has usado las cinco descargas de invitado en las últimas 24 horas.",
       ACTIVE_JOB_LIMIT: "Espera a que termine la tarea actual antes de iniciar otra.",
       RATE_LIMITED: "Se han enviado demasiadas solicitudes. Espera un momento.",
+      CHALLENGE_REQUIRED: "Completa la verificación antes de volver a enviar el enlace de YouTube.",
+      PROVIDER_BALANCE_EXHAUSTED: "Las descargas de YouTube no están disponibles temporalmente. Ya hemos avisado al equipo; inténtalo más tarde.",
       SERVICE_DISABLED: "El procesamiento no está disponible mientras terminamos las comprobaciones de producción.",
       SOURCE_DISABLED: "Esta fuente no está disponible temporalmente mientras preparamos una conexión estable.",
       SOURCE_UNAVAILABLE: "La fuente no está disponible, está restringida o ya no es pública.",
@@ -125,6 +135,9 @@ export default function MediaStudio({ locale, placeholder, audioOnly = false }: 
   const [job, setJob] = useState<MediaJob | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [quality, setQuality] = useState("1080p");
+  const [challengeRequired, setChallengeRequired] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const pollAttempts = useRef(0);
   const activeJobId = job?.id;
   const activeJobStatus = job?.status;
@@ -186,16 +199,25 @@ export default function MediaStudio({ locale, placeholder, audioOnly = false }: 
           sourceUrl: url.trim(),
           mediaKind: mode,
           format: mode === "video" ? "mp4" : "mp3",
-          quality: "best",
+          quality: mode === "video" ? quality : "1080p",
           idempotencyKey,
+          turnstileToken,
         }),
       });
       const payload = (await response.json()) as {
         job?: MediaJob;
         quota?: { remaining?: number | null };
         error?: { code?: string };
+        challengeRequired?: boolean;
       };
       if (!response.ok || !payload.job) {
+        if (payload.challengeRequired || payload.error?.code === "CHALLENGE_REQUIRED") {
+          setChallengeRequired(true);
+          setTurnstileToken(null);
+          setStatus("idle");
+          setErrorCode("CHALLENGE_REQUIRED");
+          return;
+        }
         setStatus("failed");
         setErrorCode(payload.error?.code ?? "default");
         return;
@@ -216,6 +238,8 @@ export default function MediaStudio({ locale, placeholder, audioOnly = false }: 
       setRemaining(payload.quota?.remaining ?? null);
       setJob(submittedJob);
       setStatus(submittedJob.status);
+      setChallengeRequired(false);
+      setTurnstileToken(null);
     } catch {
       setStatus("failed");
       setErrorCode("default");
@@ -262,12 +286,30 @@ export default function MediaStudio({ locale, placeholder, audioOnly = false }: 
           <div className={`url-field ${status === "failed" ? "has-error" : ""}`}>
             <Link2 size={21} />
             <input id="media-url" inputMode="url" autoComplete="url" placeholder={placeholder ?? t.placeholder} value={url} onChange={(event) => { setUrl(event.target.value); if (status === "failed" && !job) { setStatus("idle"); setErrorCode(null); } }} disabled={status === "submitting" || status === "queued" || status === "processing"} />
-            <button type="submit" disabled={status === "submitting" || status === "queued" || status === "processing"}>
+            <button type="submit" disabled={status === "submitting" || status === "queued" || status === "processing" || (challengeRequired && !turnstileToken)}>
               {status === "submitting" ? <LoaderCircle className="spinner-icon" size={18} /> : <Sparkles size={18} />}
               <span>{status === "submitting" ? t.loading : t.submit}</span>
             </button>
           </div>
+          {mode === "video" && (
+            <div className="quality-field">
+              <label htmlFor="media-quality">{locale === "zh-cn" ? "视频清晰度" : locale === "es" ? "Calidad de vídeo" : "Video quality"}</label>
+              <select id="media-quality" value={quality} onChange={(event) => setQuality(event.target.value)} disabled={status === "submitting" || status === "queued" || status === "processing"}>
+                <option value="720p">720p</option>
+                <option value="1080p">1080p</option>
+                <option value="1440p">1440p (2K)</option>
+                <option value="2160p">2160p (4K)</option>
+              </select>
+            </div>
+          )}
         </form>
+
+        {challengeRequired && (
+          <div className="media-challenge" role="status">
+            <p>{copy.challenge}</p>
+            <TurnstileWidget onToken={setTurnstileToken} />
+          </div>
+        )}
 
         {status !== "idle" && status !== "submitting" && (
           <div className={`media-job-status is-${status}`} role="status" aria-live="polite">

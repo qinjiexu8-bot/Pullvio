@@ -65,6 +65,7 @@ class WorkerError(RuntimeError):
 class QueueMessage:
     job_id: str
     schema_version: int = 1
+    action: str = "process"
 
 
 @dataclass(frozen=True)
@@ -120,12 +121,20 @@ def parse_queue_message(body: str) -> QueueMessage:
         value = json.loads(body)
     except json.JSONDecodeError as exc:
         raise WorkerError("INVALID_MESSAGE", "SQS body is not JSON") from exc
-    if not isinstance(value, dict) or value.get("schemaVersion") != 1:
+    if not isinstance(value, dict) or value.get("schemaVersion") not in {1, 2}:
         raise WorkerError("INVALID_MESSAGE", "Unsupported SQS message schema")
+    schema_version = value["schemaVersion"]
+    action = "process" if schema_version == 1 else value.get("action")
+    if action != "process":
+        raise WorkerError("INVALID_MESSAGE", "Unsupported SQS message action")
     job_id = value.get("jobId")
     if not isinstance(job_id, str) or not UUID_PATTERN.fullmatch(job_id):
         raise WorkerError("INVALID_MESSAGE", "SQS job ID is invalid")
-    return QueueMessage(job_id=job_id.lower())
+    return QueueMessage(
+        job_id=job_id.lower(),
+        schema_version=schema_version,
+        action=action,
+    )
 
 
 def normalize_source_url(value: str, expected_host: str, expected_platform: str | None = None) -> str:
@@ -327,6 +336,22 @@ def derive_audio_command(video: Path, output: Path) -> list[str]:
         "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
         "-i", str(video), "-map", "0:a:0", "-vn",
         "-codec:a", "libmp3lame", "-q:a", "0", "-y", str(output),
+    ]
+
+
+def derive_thumbnail_command(video: Path, output: Path) -> list[str]:
+    return [
+        "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
+        "-ss", "0", "-i", str(video), "-frames:v", "1",
+        "-vf", "scale='min(1280,iw)':-2", "-q:v", "3", "-y", str(output),
+    ]
+
+
+def normalize_video_command(source: Path, output: Path) -> list[str]:
+    return [
+        "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
+        "-i", str(source), "-map", "0:v:0", "-map", "0:a:0?",
+        "-c", "copy", "-movflags", "+faststart", "-y", str(output),
     ]
 
 

@@ -1,4 +1,5 @@
 export const publicPlatforms = [
+  { platform: "YouTube", slug: "youtube-video-downloader", media: "video" },
   { platform: "TikTok", slug: "tiktok-video-downloader", media: "video" },
   { platform: "Vimeo", slug: "vimeo-video-downloader", media: "video" },
   { platform: "SoundCloud", slug: "soundcloud-downloader", media: "audio" },

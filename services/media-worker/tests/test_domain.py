@@ -7,8 +7,10 @@ from pullvio_worker.domain import (
     WorkerError,
     classify_yt_dlp_failure,
     derive_audio_command,
+    derive_thumbnail_command,
     download_command,
     metadata_command,
+    normalize_video_command,
     normalize_source_url,
     parse_queue_message,
     safe_content_disposition,
@@ -32,9 +34,27 @@ class DomainTests(unittest.TestCase):
         message = parse_queue_message(json.dumps({"schemaVersion": 1, "jobId": JOB_ID}))
         self.assertEqual(message.job_id, JOB_ID)
 
+    def test_parses_v2_process_queue_message(self):
+        message = parse_queue_message(json.dumps({
+            "schemaVersion": 2,
+            "action": "process",
+            "jobId": JOB_ID,
+        }))
+        self.assertEqual(message.job_id, JOB_ID)
+        self.assertEqual(message.schema_version, 2)
+        self.assertEqual(message.action, "process")
+
     def test_rejects_unknown_queue_schema(self):
         with self.assertRaises(WorkerError):
-            parse_queue_message(json.dumps({"schemaVersion": 2, "jobId": JOB_ID}))
+            parse_queue_message(json.dumps({"schemaVersion": 3, "jobId": JOB_ID}))
+
+    def test_rejects_unknown_v2_queue_action(self):
+        with self.assertRaises(WorkerError):
+            parse_queue_message(json.dumps({
+                "schemaVersion": 2,
+                "action": "delete",
+                "jobId": JOB_ID,
+            }))
 
     def test_worker_repeats_source_allowlist(self):
         self.assertEqual(
@@ -177,6 +197,18 @@ class DomainTests(unittest.TestCase):
         self.assertEqual(command[0], "ffmpeg")
         self.assertIn("0:a:0", command)
         self.assertEqual(command[-1], "/work/audio.mp3")
+
+    def test_builds_thumbnail_derivative_command_without_a_shell(self):
+        command = derive_thumbnail_command(Path("/work/video.mp4"), Path("/work/cover.jpg"))
+        self.assertEqual(command[0], "ffmpeg")
+        self.assertIn("-frames:v", command)
+        self.assertEqual(command[-1], "/work/cover.jpg")
+
+    def test_builds_video_normalization_command_without_a_shell(self):
+        command = normalize_video_command(Path("/work/provider-result"), Path("/work/video.mp4"))
+        self.assertEqual(command[0], "ffmpeg")
+        self.assertIn("+faststart", command)
+        self.assertEqual(command[-1], "/work/video.mp4")
 
     def test_youtube_policy_validates_proxy_url(self):
         # Valid proxies should not raise ValueError

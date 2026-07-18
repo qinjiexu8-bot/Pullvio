@@ -4,6 +4,8 @@ import {
   deriveAnonymousSubject,
   deriveNetworkSubject,
   readAnonymousCookieValue,
+  createYoutubeChallengeCookieValue,
+  readYoutubeChallengeCookieValue,
 } from "./identity";
 
 const secret = "a-development-secret-that-is-at-least-32-bytes-long";
@@ -43,5 +45,15 @@ describe("anonymous identity", () => {
   it("returns null when no valid client IP is available", () => {
     expect(deriveNetworkSubject(secret, undefined)).toBeNull();
     expect(deriveNetworkSubject(secret, "not-an-ip")).toBeNull();
+  });
+});
+
+describe("YouTube challenge cookie", () => {
+  it("is bound to the owner and expires after ten minutes", () => {
+    const now = 1_800_000_000_000;
+    const value = createYoutubeChallengeCookieValue(secret, "owner-a", now);
+    expect(readYoutubeChallengeCookieValue(secret, "owner-a", value, now + 599_000)).toBe(true);
+    expect(readYoutubeChallengeCookieValue(secret, "owner-b", value, now)).toBe(false);
+    expect(readYoutubeChallengeCookieValue(secret, "owner-a", value, now + 601_000)).toBe(false);
   });
 });

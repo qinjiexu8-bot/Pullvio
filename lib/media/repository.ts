@@ -49,6 +49,16 @@ export async function reserveMediaJob(
   };
 }
 
+export async function youtubeChallengeRequired(owner: MediaOwner, networkSubject: string | null) {
+  const { data, error } = await createAdminClient().rpc("youtube_challenge_required", {
+    p_user_id: owner.kind === "user" ? owner.userId : null,
+    p_anonymous_subject: owner.kind === "anonymous" ? owner.anonymousSubject : null,
+    p_network_subject: networkSubject,
+  });
+  if (error) throw new Error(`Could not evaluate YouTube challenge: ${error.code}`);
+  return data === true;
+}
+
 export async function markMediaJobDispatched(jobId: string) {
   const { data, error } = await createAdminClient().rpc("mark_media_job_dispatched", {
     p_job_id: jobId,

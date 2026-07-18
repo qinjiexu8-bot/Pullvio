@@ -15,19 +15,29 @@ from pathlib import Path
 
 import boto3
 
-from .clients import SupabaseRpcClient, load_proxy_url, load_supabase_credentials
+from .clients import (
+    SupabaseRpcClient,
+    load_proxy_url,
+    load_feishu_webhook_url,
+    send_feishu_provider_alert,
+    load_supabase_credentials,
+    load_visolix_api_key,
+)
 from .domain import (
     WorkerError,
     YtDlpPolicy,
     classify_yt_dlp_failure,
     content_type_for,
     derive_audio_command,
+    derive_thumbnail_command,
     download_command,
     metadata_command,
     normalize_source_url,
+    normalize_video_command,
     parse_queue_message,
     safe_content_disposition,
 )
+from .visolix import VisolixClient, download_provider_result, provider_format_for
 
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
@@ -42,6 +52,8 @@ class Config:
     bucket: str
     secret_arn: str
     bilibili_proxy_secret_arn: str | None
+    visolix_secret_arn: str | None
+    feishu_secret_arn: str | None
     worker_id: str
     temp_root: str
     max_duration_seconds: int
@@ -67,6 +79,8 @@ class Config:
             bucket=os.getenv("PULLVIO_S3_BUCKET", "pullvio"),
             secret_arn=required["PULLVIO_SUPABASE_SECRET_ARN"] or "",
             bilibili_proxy_secret_arn=os.getenv("PULLVIO_BILIBILI_PROXY_SECRET_ARN") or None,
+            visolix_secret_arn=os.getenv("PULLVIO_VISOLIX_SECRET_ARN") or None,
+            feishu_secret_arn=os.getenv("PULLVIO_FEISHU_SECRET_ARN") or None,
             worker_id=worker_id[:200],
             temp_root=os.getenv("PULLVIO_TMP_ROOT", "/work"),
             max_duration_seconds=int(os.getenv("PULLVIO_MAX_DURATION_SECONDS", "7200")),
@@ -108,6 +122,16 @@ class MediaWorker:
         self.config = config
         credentials = load_supabase_credentials(config.secret_arn, config.region)
         self.database = SupabaseRpcClient(credentials)
+        self.visolix = (
+            VisolixClient(load_visolix_api_key(config.visolix_secret_arn, config.region))
+            if config.visolix_secret_arn
+            else None
+        )
+        self.feishu_webhook_url = (
+            load_feishu_webhook_url(config.feishu_secret_arn, config.region)
+            if config.feishu_secret_arn
+            else None
+        )
         self.sqs = boto3.client("sqs", region_name=config.region)
         self.s3 = boto3.client("s3", region_name=config.region)
         self._last_source_started_at = 0.0
@@ -126,6 +150,7 @@ class MediaWorker:
             )
             for message in response.get("Messages", []):
                 self.handle_message(message)
+            self._deliver_pending_alert()
         LOGGER.info("worker_stopped worker_id=%s", self.config.worker_id)
 
     def handle_message(self, message: dict):
@@ -167,13 +192,18 @@ class MediaWorker:
             )
             with tempfile.TemporaryDirectory(prefix=f"{job_id}-", dir=self.config.temp_root) as workdir:
                 self._wait_for_source_slot()
-                metadata = self._probe(job_id, receipt, source_url)
-                duration = int(metadata.get("duration") or 0)
-                allows_unknown_duration = claim["source_platform"] in {"imgur", "dropbox"}
-                if duration > self.config.max_duration_seconds or (duration <= 0 and not allows_unknown_duration):
-                    raise WorkerError("DURATION_LIMIT", "Media duration is outside the supported range")
-
-                artifacts = self._download_artifacts(job_id, receipt, claim, source_url, Path(workdir))
+                if claim["source_platform"] == "youtube":
+                    metadata, artifacts = self._download_youtube_artifacts(
+                        job_id, receipt, claim, source_url, Path(workdir)
+                    )
+                    duration = int(metadata.get("duration") or 0)
+                else:
+                    metadata = self._probe(job_id, receipt, source_url)
+                    duration = int(metadata.get("duration") or 0)
+                    allows_unknown_duration = claim["source_platform"] in {"imgur", "dropbox"}
+                    if duration > self.config.max_duration_seconds or (duration <= 0 and not allows_unknown_duration):
+                        raise WorkerError("DURATION_LIMIT", "Media duration is outside the supported range")
+                    artifacts = self._download_artifacts(job_id, receipt, claim, source_url, Path(workdir))
                 committed_artifacts = []
                 for artifact_kind, artifact in artifacts.items():
                     size = artifact.stat().st_size
@@ -257,6 +287,135 @@ class MediaWorker:
             raise WorkerError("METADATA_ERROR", "Metadata response was invalid", retryable=True)
         return value
 
+    def _download_youtube_artifacts(
+        self,
+        job_id: str,
+        receipt: str,
+        claim: dict,
+        source_url: str,
+        workdir: Path,
+    ) -> tuple[dict, dict[str, Path]]:
+        if self.visolix is None:
+            raise WorkerError(
+                "PROVIDER_NOT_CONFIGURED",
+                "YouTube provider is not configured",
+                retryable=False,
+            )
+        provider_format = provider_format_for(claim["requested_quality"])
+        rows = self.database.rpc(
+            "begin_media_provider_run",
+            {
+                "p_job_id": job_id,
+                "p_worker_id": self.config.worker_id,
+                "p_provider_format": provider_format,
+            },
+        )
+        run = rows[0] if rows else {"result_code": "INVALID_JOB"}
+        decision = run.get("result_code")
+        run_id = run.get("provider_run_id")
+        provider_job_id = run.get("provider_job_id")
+        if decision == "SUBMIT":
+            started = self.database.rpc(
+                "mark_media_provider_submission_started",
+                {"p_run_id": run_id, "p_worker_id": self.config.worker_id},
+            )
+            if started is not True:
+                raise WorkerError("PROVIDER_STATE_CONFLICT", "Provider submission state changed", retryable=True)
+            submission = self.visolix.submit(source_url, provider_format)
+            recorded = self.database.rpc(
+                "record_media_provider_submission",
+                {
+                    "p_run_id": run_id,
+                    "p_worker_id": self.config.worker_id,
+                    "p_provider_job_id": submission.provider_job_id,
+                    "p_provider_info": submission.info,
+                },
+            )
+            if recorded is not True:
+                raise WorkerError(
+                    "PROVIDER_SUBMISSION_AMBIGUOUS",
+                    "Provider accepted the job but local state could not be committed",
+                    retryable=False,
+                )
+            provider_job_id = submission.provider_job_id
+            metadata = submission.info
+        elif decision == "RESUME" and provider_job_id:
+            metadata = {}
+        elif decision == "AMBIGUOUS":
+            raise WorkerError(
+                "PROVIDER_SUBMISSION_AMBIGUOUS",
+                "Provider submission outcome is unknown; automatic resubmission is disabled",
+                retryable=False,
+            )
+        else:
+            raise WorkerError("PROVIDER_STATE_CONFLICT", "Provider run is not processable", retryable=False)
+
+        deadline = time.monotonic() + self.config.command_timeout_seconds
+        while True:
+            if STOP or time.monotonic() >= deadline:
+                raise WorkerError("PROCESSING_TIMEOUT", "YouTube provider exceeded its time limit", retryable=True)
+            progress = self.visolix.progress(provider_job_id)
+            metadata = {**metadata, **progress.info}
+            recorded = self.database.rpc(
+                "record_media_provider_progress",
+                {
+                    "p_run_id": run_id,
+                    "p_worker_id": self.config.worker_id,
+                    "p_progress": progress.progress,
+                    "p_result_url": progress.download_url,
+                    "p_provider_info": metadata,
+                    "p_next_poll_seconds": 5,
+                },
+            )
+            if recorded is not True:
+                raise WorkerError("PROVIDER_STATE_CONFLICT", "Provider progress could not be committed")
+            if progress.completed and progress.download_url:
+                break
+            self._heartbeat(job_id, receipt)
+            self._sleep(5)
+
+        duration = int(metadata.get("duration") or 0)
+        if duration > self.config.max_duration_seconds:
+            raise WorkerError("DURATION_LIMIT", "Media duration is outside the supported range")
+
+        provider_result = workdir / "provider-result"
+        download_provider_result(
+            progress.download_url,
+            provider_result,
+            self.config.max_output_bytes,
+        )
+        video = workdir / "artifact-video.mp4"
+        self._run(
+            job_id,
+            receipt,
+            normalize_video_command(provider_result, video),
+            timeout=min(self.config.command_timeout_seconds, 600),
+        )
+        provider_result.unlink(missing_ok=True)
+        artifacts: dict[str, Path] = {"video": video}
+        audio = workdir / "artifact-audio.mp3"
+        self._run(
+            job_id,
+            receipt,
+            derive_audio_command(video, audio),
+            timeout=min(self.config.command_timeout_seconds, 600),
+        )
+        artifacts["audio"] = audio
+        cover = workdir / "artifact-cover.jpg"
+        try:
+            self._run(
+                job_id,
+                receipt,
+                derive_thumbnail_command(video, cover),
+                timeout=min(self.config.command_timeout_seconds, 180),
+            )
+            if cover.is_file() and cover.stat().st_size > 0:
+                artifacts["thumbnail"] = cover
+        except WorkerError as exc:
+            LOGGER.warning("optional_thumbnail_derivative_failed job_id=%s code=%s", job_id, exc.code)
+            cover.unlink(missing_ok=True)
+        return metadata, artifacts
+
     def _download_artifacts(self, job_id: str, receipt: str, claim: dict, source_url: str, workdir: Path) -> dict[str, Path]:
         template = str(workdir / "artifact.%(ext)s")
         command = download_command(
@@ -317,31 +476,39 @@ class MediaWorker:
                 self._stop_process(process)
                 raise WorkerError("PROCESSING_TIMEOUT", "Media command exceeded its time limit", retryable=True)
             if time.monotonic() >= next_heartbeat:
-                should_cancel = self.database.rpc(
-                    "media_job_should_cancel",
-                    {"p_job_id": job_id, "p_worker_id": self.config.worker_id},
-                )
-                if should_cancel is True:
+                try:
+                    self._heartbeat(job_id, receipt)
+                except WorkerError:
                     self._stop_process(process)
-                    raise WorkerError("CANCELED", "Job was canceled")
-                self.database.rpc(
-                    "heartbeat_media_job",
-                    {
-                        "p_job_id": job_id,
-                        "p_worker_id": self.config.worker_id,
-                        "p_lease_seconds": self.config.lease_seconds,
-                    },
-                )
-                self.sqs.change_message_visibility(
-                    QueueUrl=self.config.queue_url,
-                    ReceiptHandle=receipt,
-                    VisibilityTimeout=self.config.lease_seconds,
-                )
+                    raise
                 next_heartbeat = time.monotonic() + 30
 
         if process.returncode != 0:
             raise classify_yt_dlp_failure(stderr, process.returncode)
         return stdout
+
+    def _heartbeat(self, job_id: str, receipt: str):
+        should_cancel = self.database.rpc(
+            "media_job_should_cancel",
+            {"p_job_id": job_id, "p_worker_id": self.config.worker_id},
+        )
+        if should_cancel is True:
+            raise WorkerError("CANCELED", "Job was canceled")
+        renewed = self.database.rpc(
+            "heartbeat_media_job",
+            {
+                "p_job_id": job_id,
+                "p_worker_id": self.config.worker_id,
+                "p_lease_seconds": self.config.lease_seconds,
+            },
+        )
+        if renewed is not True:
+            raise WorkerError("LEASE_LOST", "Media job lease could not be renewed", retryable=True)
+        self.sqs.change_message_visibility(
+            QueueUrl=self.config.queue_url,
+            ReceiptHandle=receipt,
+            VisibilityTimeout=self.config.lease_seconds,
+        )
 
     @staticmethod
     def _stop_process(process: subprocess.Popen[str]):
@@ -371,6 +538,16 @@ class MediaWorker:
 
     def _handle_failure(self, job_id: str, receipt: str, error: WorkerError, seconds: int, uploaded_keys: list[str]):
         self._delete_uploaded_artifacts(job_id, uploaded_keys)
+        if error.code == "PROVIDER_BALANCE_EXHAUSTED":
+            handled = self.database.rpc(
+                "fail_youtube_provider_balance",
+                {"p_job_id": job_id, "p_worker_id": self.config.worker_id},
+            )
+            LOGGER.error("youtube_provider_balance_exhausted job_id=%s handled=%s", job_id, handled)
+            if handled is True:
+                self._deliver_pending_alert()
+                self._delete(receipt)
+                return
         result = self.database.rpc(
             "fail_media_job",
             {
@@ -393,6 +570,38 @@ class MediaWorker:
 
     def _delete(self, receipt: str):
         self.sqs.delete_message(QueueUrl=self.config.queue_url, ReceiptHandle=receipt)
+
+    def _deliver_pending_alert(self):
+        if not self.feishu_webhook_url:
+            return
+        try:
+            rows = self.database.rpc("claim_media_alert", {})
+            if not rows:
+                return
+            alert = rows[0]
+            send_feishu_provider_alert(
+                self.feishu_webhook_url,
+                alert["alert_type"],
+                alert.get("payload") or {},
+            )
+            self.database.rpc(
+                "complete_media_alert",
+                {"p_alert_id": alert["alert_id"], "p_success": True, "p_error": None},
+            )
+        except Exception as exc:
+            LOGGER.warning("media_alert_delivery_failed error=%s", type(exc).__name__)
+            if "alert" in locals():
+                try:
+                    self.database.rpc(
+                        "complete_media_alert",
+                        {
+                            "p_alert_id": alert["alert_id"],
+                            "p_success": False,
+                            "p_error": type(exc).__name__,
+                        },
+                    )
+                except Exception:
+                    LOGGER.exception("media_alert_state_update_failed")
 
     @staticmethod
     def _sha256(path: Path) -> str:

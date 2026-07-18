@@ -3,6 +3,7 @@ import { parseSubmitJobBody } from "@/lib/media/contracts";
 import {
   assertSameOrigin,
   attachAnonymousCookie,
+  attachYoutubeChallengeCookie,
   jsonNoStore,
   mediaErrorResponse,
   readSmallJson,
@@ -14,7 +15,14 @@ import {
   markMediaJobDispatched,
   reserveMediaJob,
   reuseCachedMediaJob,
+  youtubeChallengeRequired,
 } from "@/lib/media/repository";
+import { verifyTurnstileToken } from "@/lib/media/turnstile";
+import {
+  createYoutubeChallengeCookieValue,
+  readYoutubeChallengeCookieValue,
+  YOUTUBE_CHALLENGE_COOKIE_NAME,
+} from "@/lib/media/identity";
 
 export const runtime = "nodejs";
 
@@ -30,9 +38,48 @@ const DECISION_STATUS: Record<string, number> = {
 export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
-    const input = parseSubmitJobBody(await readSmallJson(request));
+    const rawBody = await readSmallJson(request);
+    const input = parseSubmitJobBody(rawBody);
     const identity = await resolveMediaIdentity(request, { createAnonymous: true });
     if (!identity) throw new Error("Could not establish an anonymous browser identity.");
+    let challengeCookieValue: string | null = null;
+
+    if (
+      input.sourcePlatform === "youtube"
+      && await youtubeChallengeRequired(identity.owner, identity.networkSubject)
+    ) {
+      const anonymousSecret = process.env.PULLVIO_ANONYMOUS_SECRET;
+      if (!anonymousSecret) throw new Error("PULLVIO_ANONYMOUS_SECRET is not configured.");
+      const ownerKey = identity.owner.kind === "user"
+        ? identity.owner.userId
+        : identity.owner.anonymousSubject;
+      const hasChallengePass = readYoutubeChallengeCookieValue(
+        anonymousSecret,
+        ownerKey,
+        request.cookies.get(YOUTUBE_CHALLENGE_COOKIE_NAME)?.value,
+      );
+      const token = rawBody && typeof rawBody === "object" && !Array.isArray(rawBody)
+        ? (rawBody as Record<string, unknown>).turnstileToken
+        : null;
+      const remoteIp = (request.headers.get("x-vercel-forwarded-for")
+        ?? request.headers.get("x-forwarded-for"))?.split(",", 1)[0]?.trim() ?? null;
+      if (!hasChallengePass && !await verifyTurnstileToken(token, remoteIp)) {
+        const response = jsonNoStore(
+          {
+            error: {
+              code: "CHALLENGE_REQUIRED",
+              message: "Complete the security check before submitting another YouTube link.",
+            },
+            challengeRequired: true,
+          },
+          { status: 403 },
+        );
+        return attachAnonymousCookie(response, identity.anonymousCookieValue);
+      }
+      if (!hasChallengePass) {
+        challengeCookieValue = createYoutubeChallengeCookieValue(anonymousSecret, ownerKey);
+      }
+    }
 
     const reservation = await reserveMediaJob(identity.owner, identity.networkSubject, input);
     if (reservation.resultCode !== "ACCEPTED" || !reservation.jobId) {
@@ -40,7 +87,10 @@ export async function POST(request: NextRequest) {
         { error: { code: reservation.resultCode, message: decisionMessage(reservation.resultCode) } },
         { status: DECISION_STATUS[reservation.resultCode] ?? 400 },
       );
-      return attachAnonymousCookie(response, identity.anonymousCookieValue);
+      return attachYoutubeChallengeCookie(
+        attachAnonymousCookie(response, identity.anonymousCookieValue),
+        challengeCookieValue,
+      );
     }
 
     let cacheHit = false;
@@ -58,7 +108,10 @@ export async function POST(request: NextRequest) {
           { error: { code: "QUEUE_UNAVAILABLE", message: "The processing queue is temporarily unavailable." } },
           { status: 503 },
         );
-        return attachAnonymousCookie(response, identity.anonymousCookieValue);
+        return attachYoutubeChallengeCookie(
+          attachAnonymousCookie(response, identity.anonymousCookieValue),
+          challengeCookieValue,
+        );
       }
     }
 
@@ -78,7 +131,10 @@ export async function POST(request: NextRequest) {
       },
       { status: 202 },
     );
-    return attachAnonymousCookie(response, identity.anonymousCookieValue);
+    return attachYoutubeChallengeCookie(
+      attachAnonymousCookie(response, identity.anonymousCookieValue),
+      challengeCookieValue,
+    );
   } catch (error) {
     return mediaErrorResponse(error);
   }
