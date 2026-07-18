@@ -51,6 +51,12 @@ export function parseSubmitJobBody(value: unknown): SubmitJobInput {
   }
 
   const source = normalizeSourceUrl(typeof body.sourceUrl === "string" ? body.sourceUrl : "");
+  if (source.platform === "soundcloud" && mediaKind !== "audio") {
+    throw new MediaInputError(
+      "AUDIO_ONLY_SOURCE",
+      "SoundCloud links are supported in Audio mode only.",
+    );
+  }
   return {
     sourceUrl: source.url,
     sourceHost: source.host,

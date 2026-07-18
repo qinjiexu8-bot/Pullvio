@@ -139,18 +139,18 @@ Pullvio. The current distinction is:
 | YouTube | yes | yes | rejected by YouTube on AWS egress | disabled |
 | Bilibili / BiliIntl | yes | no | HTTP 412 from US AWS egress | disabled |
 | Douyin | yes | no | requires fresh cookies; rejected by current security model | disabled |
-| Vimeo | yes | no | not tested | disabled |
+| Vimeo | yes | yes | CC BY single video parsed successfully | global gate off; web pending deployment |
 | Instagram | yes; some sub-extractors currently broken | no | not tested | disabled |
 | Facebook | yes | no | not tested | disabled |
-| X / Twitter | yes | no | not tested | disabled |
-| SoundCloud | yes | no | not tested | disabled |
-| Reddit | yes | no | not tested | disabled |
+| X / Twitter | yes | no | official samples failed at platform endpoints | disabled |
+| SoundCloud | yes | yes, audio only | CC BY single track parsed successfully | global gate off; web pending deployment |
+| Reddit | yes | no | requires account cookies | disabled |
 
-Strict product status: only YouTube and TikTok are integrated; only TikTok has
-passed an EC2 extraction probe; no platform is publicly downloadable while the
-global production gate remains off. Bilibili and Douyin were each probed once at
-low frequency but did not pass the integration gate; they remain engine
-capabilities, not current Pullvio product support.
+Strict product status: YouTube, TikTok, Vimeo, and SoundCloud are integrated in
+backend code. TikTok, Vimeo, and SoundCloud have passed EC2 metadata probes. No
+platform is publicly downloadable while the global production gate remains off.
+Bilibili, Douyin, Reddit, and X/Twitter were probed at low frequency but did not
+pass the integration gate.
 
 ### Bilibili and Douyin probe results
 
@@ -175,11 +175,29 @@ The application and worker both enforce the same explicit allowlist:
 - YouTube: `youtube.com`, `www.youtube.com`, `m.youtube.com`,
   `music.youtube.com`, `youtu.be`;
 - TikTok: `tiktok.com`, `www.tiktok.com`, `m.tiktok.com`, `vm.tiktok.com`,
-  `vt.tiktok.com`.
+  `vt.tiktok.com`;
+- Vimeo single videos: `vimeo.com`, `www.vimeo.com`, `player.vimeo.com`;
+- SoundCloud single tracks, audio only: `soundcloud.com`,
+  `www.soundcloud.com`, `m.soundcloud.com`, `on.soundcloud.com`.
 
-All other hosts are rejected before queueing. HTTPS is required. Embedded
-credentials, custom ports, private/reserved targets, and untrusted redirect
-targets are rejected.
+All other hosts are rejected before queueing. Vimeo collections and SoundCloud
+profiles/playlists are also rejected. HTTPS is required. Embedded credentials,
+custom ports, private/reserved targets, and untrusted redirect targets are
+rejected.
+
+### Vimeo, SoundCloud, Reddit, and X/Twitter probes
+
+On 2026-07-18, metadata-only probes produced these results without creating jobs
+or writing to S3:
+
+- Vimeo: a CC BY single video parsed at 1080p and was added as a single-video source;
+- SoundCloud: a CC BY single track parsed and was added as an audio-only source;
+- Reddit: public post extraction required account cookies, so it remains disabled;
+- X/Twitter: official public samples failed at platform endpoints, so it remains disabled.
+
+The database platform constraint and EC2 Worker image
+`pullvio/media-worker:2026-07-18` are deployed. The Vercel API changes still need
+the repository's next web deployment. The production job gate remains disabled.
 
 ### Quotas and concurrency
 

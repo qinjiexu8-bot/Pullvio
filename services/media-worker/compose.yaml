@@ -27,7 +27,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: pullvio/media-worker:2026-07-17
+    image: pullvio/media-worker:2026-07-18
     container_name: pullvio-media-worker
     depends_on:
       - pot-provider
@@ -58,7 +58,6 @@ services:
       PULLVIO_YTDLP_SLEEP_REQUESTS_SECONDS: "1"
       PULLVIO_YTDLP_SLEEP_INTERVAL_SECONDS: "8"
       PULLVIO_YTDLP_MAX_SLEEP_INTERVAL_SECONDS: "15"
-      PULLVIO_YOUTUBE_PROXY: "${PULLVIO_YOUTUBE_PROXY:-}"
     mem_limit: 3g
     cpus: 2.0
     stop_grace_period: 30s

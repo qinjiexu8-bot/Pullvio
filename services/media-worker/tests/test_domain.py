@@ -43,6 +43,22 @@ class DomainTests(unittest.TestCase):
         with self.assertRaises(WorkerError):
             normalize_source_url("https://youtube.com.evil.example/abc", "youtube.com.evil.example")
 
+        self.assertEqual(
+            normalize_source_url("https://vimeo.com/777912896", "vimeo.com"),
+            "https://vimeo.com/777912896",
+        )
+        self.assertEqual(
+            normalize_source_url(
+                "https://soundcloud.com/scottbuckley/simplicity-cc-by",
+                "soundcloud.com",
+            ),
+            "https://soundcloud.com/scottbuckley/simplicity-cc-by",
+        )
+        with self.assertRaises(WorkerError):
+            normalize_source_url("https://vimeo.com/channels/creativecommons", "vimeo.com")
+        with self.assertRaises(WorkerError):
+            normalize_source_url("https://soundcloud.com/artist/sets/playlist", "soundcloud.com")
+
     def test_builds_video_command_as_an_argument_array(self):
         command = download_command(
             "https://youtu.be/abc",
@@ -57,6 +73,27 @@ class DomainTests(unittest.TestCase):
         self.assertIn("youtube:player_client=mweb", command)
         self.assertIn("youtubepot-bgutilhttp:base_url=http://pot-provider:4416", command)
         self.assertEqual(command[-1], "https://youtu.be/abc")
+
+    def test_soundcloud_is_audio_only(self):
+        source_url = "https://soundcloud.com/scottbuckley/simplicity-cc-by"
+        command = download_command(
+            source_url,
+            "audio",
+            "best",
+            "/work/artifact.%(ext)s",
+            2_147_483_648,
+            self.policy,
+        )
+        self.assertIn("--extract-audio", command)
+        with self.assertRaises(WorkerError):
+            download_command(
+                source_url,
+                "video",
+                "best",
+                "/work/artifact.%(ext)s",
+                2_147_483_648,
+                self.policy,
+            )
 
     def test_youtube_metadata_command_uses_provider_and_request_pacing(self):
         command = metadata_command("https://www.youtube.com/watch?v=abc", self.policy)

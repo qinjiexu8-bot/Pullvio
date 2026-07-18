@@ -19,6 +19,13 @@ ALLOWED_HOSTS = {
     "m.tiktok.com": "tiktok",
     "vm.tiktok.com": "tiktok",
     "vt.tiktok.com": "tiktok",
+    "vimeo.com": "vimeo",
+    "www.vimeo.com": "vimeo",
+    "player.vimeo.com": "vimeo",
+    "soundcloud.com": "soundcloud",
+    "www.soundcloud.com": "soundcloud",
+    "m.soundcloud.com": "soundcloud",
+    "on.soundcloud.com": "soundcloud",
 }
 UUID_PATTERN = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -106,6 +113,23 @@ def normalize_source_url(value: str, expected_host: str) -> str:
         or host != expected_host
     ):
         raise WorkerError("INVALID_SOURCE", "Source URL failed the worker allowlist")
+    segments = [segment for segment in parsed.path.split("/") if segment]
+    platform = ALLOWED_HOSTS[host]
+    if platform == "vimeo":
+        is_public_video = (
+            len(segments) == 2 and segments[0] == "video" and segments[1].isdigit()
+            if host == "player.vimeo.com"
+            else len(segments) == 1 and segments[0].isdigit()
+        )
+        if not is_public_video:
+            raise WorkerError("INVALID_SOURCE", "Vimeo URL is not a single public video")
+    if platform == "soundcloud":
+        is_short_link = host == "on.soundcloud.com" and len(segments) == 1
+        is_public_track = len(segments) == 2 and segments[0] not in {
+            "discover", "popular", "search", "sets", "stream", "you"
+        }
+        if not is_short_link and not is_public_track:
+            raise WorkerError("INVALID_SOURCE", "SoundCloud URL is not a single public track")
     return urlunsplit(("https", host, parsed.path, parsed.query, ""))
 
 
@@ -154,6 +178,9 @@ def download_command(
     max_output_bytes: int,
     policy: YtDlpPolicy,
 ) -> list[str]:
+    host = (urlsplit(source_url).hostname or "").lower().rstrip(".")
+    if ALLOWED_HOSTS.get(host) == "soundcloud" and media_kind != "audio":
+        raise WorkerError("INVALID_OPTIONS", "SoundCloud is supported in audio mode only")
     base = [
         "yt-dlp",
         "--no-playlist",

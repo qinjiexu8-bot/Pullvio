@@ -32,4 +32,28 @@ describe("parseSubmitJobBody", () => {
   ])("rejects malformed input", (input) => {
     expect(() => parseSubmitJobBody(input)).toThrow(MediaInputError);
   });
+
+  it("accepts SoundCloud in audio mode", () => {
+    expect(
+      parseSubmitJobBody({
+        sourceUrl: "https://soundcloud.com/scottbuckley/simplicity-cc-by",
+        mediaKind: "audio",
+        format: "mp3",
+        quality: "best",
+        idempotencyKey: "7a3fc784-77f1-48f3-a601-718a0357bf49",
+      }),
+    ).toMatchObject({ sourcePlatform: "soundcloud", mediaKind: "audio" });
+  });
+
+  it("rejects SoundCloud in video mode", () => {
+    expect(() =>
+      parseSubmitJobBody({
+        sourceUrl: "https://soundcloud.com/scottbuckley/simplicity-cc-by",
+        mediaKind: "video",
+        format: "mp4",
+        quality: "best",
+        idempotencyKey: "7a3fc784-77f1-48f3-a601-718a0357bf49",
+      }),
+    ).toThrowError(expect.objectContaining({ code: "AUDIO_ONLY_SOURCE" }));
+  });
 });

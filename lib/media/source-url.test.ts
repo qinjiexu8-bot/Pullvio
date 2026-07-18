@@ -8,6 +8,10 @@ describe("normalizeSourceUrl", () => {
     ["https://m.youtube.com/shorts/abc", "youtube", "m.youtube.com"],
     ["https://www.tiktok.com/@owner/video/123", "tiktok", "www.tiktok.com"],
     ["https://vm.tiktok.com/ZM123/", "tiktok", "vm.tiktok.com"],
+    ["https://vimeo.com/777912896", "vimeo", "vimeo.com"],
+    ["https://player.vimeo.com/video/777912896", "vimeo", "player.vimeo.com"],
+    ["https://soundcloud.com/scottbuckley/simplicity-cc-by", "soundcloud", "soundcloud.com"],
+    ["https://on.soundcloud.com/AbCdEf", "soundcloud", "on.soundcloud.com"],
   ])("accepts an allowed public source", (sourceUrl, platform, host) => {
     expect(normalizeSourceUrl(sourceUrl)).toMatchObject({ platform, host });
   });
@@ -19,6 +23,10 @@ describe("normalizeSourceUrl", () => {
     "https://youtube.com.evil.example/watch?v=abc",
     "https://127.0.0.1/video",
     "https://example.com/video",
+    "https://vimeo.com/channels/creativecommons",
+    "https://player.vimeo.com/777912896",
+    "https://soundcloud.com/scottbuckley/sets/creative-commons",
+    "https://soundcloud.com/scottbuckley",
   ])("rejects an unsafe or unsupported source: %s", (sourceUrl) => {
     expect(() => normalizeSourceUrl(sourceUrl)).toThrow(MediaInputError);
   });

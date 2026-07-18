@@ -41,7 +41,8 @@ const jobCopy = {
     signIn: "Sign in to continue",
     errors: {
       INVALID_URL: "Paste a complete HTTPS media link.",
-      UNSUPPORTED_SOURCE: "Pullvio currently supports public YouTube and TikTok links.",
+      UNSUPPORTED_SOURCE: "Pullvio currently supports public YouTube, TikTok, Vimeo, and SoundCloud links.",
+      AUDIO_ONLY_SOURCE: "SoundCloud links are available in Audio mode. Select Audio and try again.",
       QUOTA_EXCEEDED: "You’ve used five guest downloads in the last 24 hours.",
       ACTIVE_JOB_LIMIT: "Wait for your current job to finish before starting another.",
       RATE_LIMITED: "Too many requests were submitted. Wait a moment and try again.",
@@ -66,7 +67,8 @@ const jobCopy = {
     signIn: "登录后继续",
     errors: {
       INVALID_URL: "请粘贴完整的 HTTPS 媒体链接。",
-      UNSUPPORTED_SOURCE: "Pullvio 目前支持公开的 YouTube 和 TikTok 链接。",
+      UNSUPPORTED_SOURCE: "Pullvio 目前支持公开的 YouTube、TikTok、Vimeo 和 SoundCloud 链接。",
+      AUDIO_ONLY_SOURCE: "SoundCloud 链接仅支持音频模式，请选择“音频”后重试。",
       QUOTA_EXCEEDED: "过去 24 小时内，访客的 5 次下载额度已用完。",
       ACTIVE_JOB_LIMIT: "请等待当前任务完成后再提交新任务。",
       RATE_LIMITED: "提交过于频繁，请稍后再试。",
@@ -91,7 +93,8 @@ const jobCopy = {
     signIn: "Inicia sesión para continuar",
     errors: {
       INVALID_URL: "Pega un enlace multimedia HTTPS completo.",
-      UNSUPPORTED_SOURCE: "Pullvio admite actualmente enlaces públicos de YouTube y TikTok.",
+      UNSUPPORTED_SOURCE: "Pullvio admite enlaces públicos de YouTube, TikTok, Vimeo y SoundCloud.",
+      AUDIO_ONLY_SOURCE: "Los enlaces de SoundCloud solo están disponibles en el modo Audio.",
       QUOTA_EXCEEDED: "Has usado las cinco descargas de invitado en las últimas 24 horas.",
       ACTIVE_JOB_LIMIT: "Espera a que termine la tarea actual antes de iniciar otra.",
       RATE_LIMITED: "Se han enviado demasiadas solicitudes. Espera un momento.",

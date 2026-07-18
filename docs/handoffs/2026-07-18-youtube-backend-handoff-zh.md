@@ -119,19 +119,19 @@ yt-dlp 包含某个平台的 Extractor，不等于 Pullvio 已经支持该平台
 | YouTube | 是 | 是 | AWS 网络被 YouTube 拒绝 | 否 |
 | Bilibili / 哔哩哔哩 | 是，`BiliBili` / `BiliIntl` | 否 | 美国 AWS 出口返回 HTTP 412 | 否 |
 | 抖音 / Douyin | 是，`Douyin` | 否 | 要求新鲜 Cookie，当前安全模型不接受 | 否 |
-| Vimeo | 是 | 否 | 未测试 | 否 |
+| Vimeo | 是 | 是 | CC BY 单视频解析成功 | 否，总开关关闭且 Web 待部署 |
 | Instagram | 是，部分子 Extractor 当前损坏 | 否 | 未测试 | 否 |
 | Facebook | 是 | 否 | 未测试 | 否 |
-| X / Twitter | 是 | 否 | 未测试 | 否 |
-| SoundCloud | 是 | 否 | 未测试 | 否 |
-| Reddit | 是 | 否 | 未测试 | 否 |
+| X / Twitter | 是 | 否 | 官方样本链路返回服务端错误 | 否 |
+| SoundCloud | 是 | 是，仅 Audio | CC BY 单曲解析成功 | 否，总开关关闭且 Web 待部署 |
+| Reddit | 是 | 否 | 要求账号 Cookie | 否 |
 
 因此，严格按产品口径：
 
-- **已完成后端接入：只有 YouTube 和 TikTok；**
-- **当前底层实测可解析：只有 TikTok；**
+- **已完成后端代码接入：YouTube、TikTok、Vimeo 和 SoundCloud；**
+- **当前底层实测可解析：TikTok、Vimeo 和 SoundCloud；**
 - **当前线上用户实际可下载：没有，因为生产总开关仍然关闭；**
-- **Bilibili 和抖音只是 yt-dlp 引擎具备 Extractor；两者已经做过低频元数据测试，但都未达到接入门槛。**
+- **Bilibili、抖音、Reddit 和 X/Twitter 已做低频元数据测试，但未达到接入门槛。**
 
 ### 2. 当前产品白名单
 
@@ -153,7 +153,20 @@ TikTok：
 - `vm.tiktok.com`
 - `vt.tiktok.com`
 
-其他网站目前不会进入处理流程。URL 必须是 HTTPS，不能包含用户名、密码、自定义端口，也不能指向内网、保留地址或 AWS Metadata。
+Vimeo 单视频：
+
+- `vimeo.com`
+- `www.vimeo.com`
+- `player.vimeo.com`
+
+SoundCloud 单曲（仅 Audio / MP3）：
+
+- `soundcloud.com`
+- `www.soundcloud.com`
+- `m.soundcloud.com`
+- `on.soundcloud.com`
+
+其他网站目前不会进入处理流程。Vimeo 频道、合集和非单视频页面，以及 SoundCloud 播放列表、主页和搜索页也会被拒绝。URL 必须是 HTTPS，不能包含用户名、密码、自定义端口，也不能指向内网、保留地址或 AWS Metadata。
 
 ### 3. 使用额度
 
@@ -301,7 +314,18 @@ Fresh cookies (not necessarily logged in) are needed
 
 Pullvio 当前明确不接收用户浏览器 Cookie、登录态 Cookie 或第三方平台账号凭据，因此不能直接按这个条件上线。若以后研究隔离的一次性访客会话，需要重新完成安全、隐私与平台政策评审。
 
-结论：Bilibili 与抖音当前均不属于 Pullvio 已支持平台，不应在前端或 SEO 页面中宣称可下载。产品口径仍然是 TikTok 已通过解析探测、YouTube 已接入但受 AWS 出口阻塞，其余平台尚未接入。
+结论：Bilibili 与抖音当前均不属于 Pullvio 已支持平台，不应在前端或 SEO 页面中宣称可下载。
+
+## 七之二、Vimeo、SoundCloud、Reddit 与 X/Twitter 验证结果
+
+2026-07-18 使用公开样本做了低频、仅元数据验证，没有创建下载任务或写入 S3：
+
+- Vimeo：CC BY 单视频 `https://vimeo.com/777912896` 成功解析到 1080p，已按“单视频 URL”范围接入；
+- SoundCloud：CC BY 单曲 `https://soundcloud.com/scottbuckley/simplicity-cc-by` 成功解析，已按“单曲且仅 Audio / MP3”范围接入；
+- Reddit：公开帖子仍要求账号 Cookie，与当前无第三方登录态安全模型冲突，未接入；
+- X/Twitter：两个官方公开样本分别出现无视频和服务端域名错误，未达到稳定接入门槛。
+
+数据库平台约束已经扩展，EC2 Worker 镜像 `pullvio/media-worker:2026-07-18` 已部署且运行正常。Vercel 端 API 代码需要随本仓库下一次发布上线；生产接单总开关仍保持关闭。
 
 ## 八、对开源项目和竞品的调研结论
 
