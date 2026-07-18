@@ -221,7 +221,7 @@ export const platformTools: Record<PlatformSlug, PlatformDefinition> = {
         keywords: ["TikTok视频下载", "TikTok下载器", "TikTok转MP4", "TikTok转MP3", "抖音国际版视频下载"],
         eyebrow: "TIKTOK 视频下载器",
         h1: "在线下载 TikTok 视频。",
-        accent: "将获得授权的短视频保存为 HD MP4 或 MP3。",
+        accent: "将短视频保存为 HD MP4 或 MP3。",
         intro: "Pullvio 是面向公开视频的免费 TikTok 视频下载器。粘贴您自己创作或已获得保存许可的帖子链接，选择 MP4 视频或 MP3 音频，即可在 iPhone、Android、Mac 或 Windows 浏览器中使用，无需安装 App。",
         placeholder: "粘贴公开的 TikTok 视频链接",
         benefits: ["TikTok 转 HD MP4 与 MP3", "适用于直接的公开帖子链接", "iPhone、Android、Mac 与 Windows 无需安装"],

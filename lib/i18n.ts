@@ -93,7 +93,7 @@ export const localizedContent = {
     getPro: "开始下载",
     accountCta: "创建免费账号",
     announcement: "登录免费账号后，不设固定下载次数",
-    heroTitle: "在线视频下载与格式转换。",
+    heroTitle: "免费在线视频下载。",
     heroAccent: "下载高清与 4K 视频。",
     heroCopy:
       "粘贴公开视频链接，将您拥有或获得授权的内容下载为 MP4，或者提取为 MP3 音频。无需登录可完成 5 次下载；登录免费账号后可在合理使用范围内继续下载。",
