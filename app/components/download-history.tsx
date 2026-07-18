@@ -1,13 +1,13 @@
 "use client";
 
-import { Download, ExternalLink, LoaderCircle, Trash2 } from "lucide-react";
+import { Clock3, Download, ExternalLink, LoaderCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import { localePath, type Locale } from "@/lib/i18n";
 
 type DownloadJob = {
-  id: string; source_url: string; source_host: string; title: string | null; media_kind: string; requested_format: string; requested_quality: string; status: string; file_size_bytes: number | null; failure_code: string | null; created_at: string;
+  id: string; source_url: string; source_host: string; title: string | null; media_kind: string; requested_format: string; requested_quality: string; status: string; file_size_bytes: number | null; failure_code: string | null; created_at: string; artifacts?: Array<{ kind: string; contentType: string; fileSizeBytes: number; expiresAt: string | null; downloadUrl: string }>;
 };
 
 const statusCopy = {
@@ -28,7 +28,7 @@ function formatBytes(bytes: number | null, locale: Locale) {
   return `${new Intl.NumberFormat(locale === "zh-cn" ? "zh-CN" : locale, { maximumFractionDigits: 1 }).format(value)} ${unit}`;
 }
 
-export default function DownloadHistory({ locale, initialJobs, copy }: { locale: Locale; initialJobs: DownloadJob[]; copy: { eyebrow: string; title: string; description: string; empty: string; emptyCopy: string; start: string; delete: string; deleteError: string } }) {
+export default function DownloadHistory({ locale, initialJobs, copy }: { locale: Locale; initialJobs: DownloadJob[]; copy: { eyebrow: string; title: string; description: string; empty: string; emptyCopy: string; start: string; delete: string; deleteError: string; retention: string; artifact: Record<string, string> } }) {
   const supabase = useSupabaseClient();
   const [jobs, setJobs] = useState(initialJobs);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -47,11 +47,12 @@ export default function DownloadHistory({ locale, initialJobs, copy }: { locale:
   return (
     <section className="account-history-card">
       <div className="account-history-heading"><div><div className="account-card-label"><Download size={19} /><span>{copy.eyebrow}</span></div><h2>{copy.title}</h2><p>{copy.description}</p></div><Link href={localePath(locale)}>{copy.start}</Link></div>
+      <p className="account-retention-notice"><Clock3 size={17} />{copy.retention}</p>
       {error && <p className="account-inline-error" role="alert">{error}</p>}
       {jobs.length === 0 ? <div className="account-history-empty"><Download size={25} /><strong>{copy.empty}</strong><span>{copy.emptyCopy}</span></div> : <div className="account-history-list">{jobs.map((job) => {
         const label = statusCopy[locale][job.status as keyof typeof statusCopy.en] ?? job.status;
         const size = formatBytes(job.file_size_bytes, locale);
-        return <article key={job.id} className="account-history-row"><div className="account-history-main"><span className={`account-job-status status-${job.status}`}>{label}</span><div><a href={job.source_url} target="_blank" rel="noopener noreferrer nofollow"><strong>{job.title || job.source_host}</strong><ExternalLink size={13} /></a><span>{job.source_host} · {job.requested_format.toUpperCase()} · {job.requested_quality}{size ? ` · ${size}` : ""}</span></div></div><div className="account-history-actions"><time dateTime={job.created_at}>{dateFormatter.format(new Date(job.created_at))}</time>{deletableStatuses.has(job.status) && <button type="button" onClick={() => remove(job.id)} disabled={deleting === job.id} aria-label={copy.delete} title={copy.delete}>{deleting === job.id ? <LoaderCircle className="spinner-icon" size={16} /> : <Trash2 size={16} />}</button>}</div></article>;
+        return <article key={job.id} className="account-history-row"><div className="account-history-main"><span className={`account-job-status status-${job.status}`}>{label}</span><div><a href={job.source_url} target="_blank" rel="noopener noreferrer nofollow"><strong>{job.title || job.source_host}</strong><ExternalLink size={13} /></a><span>{job.source_host} · {job.requested_format.toUpperCase()} · {job.requested_quality}{size ? ` · ${size}` : ""}</span>{job.artifacts && job.artifacts.length > 0 && <div className="account-artifact-links">{job.artifacts.map((artifact) => <a key={artifact.kind} href={artifact.downloadUrl}><Download size={14} />{copy.artifact[artifact.kind] ?? artifact.kind}<small>{formatBytes(artifact.fileSizeBytes, locale)}</small></a>)}</div>}</div></div><div className="account-history-actions"><time dateTime={job.created_at}>{dateFormatter.format(new Date(job.created_at))}</time>{deletableStatuses.has(job.status) && <button type="button" onClick={() => remove(job.id)} disabled={deleting === job.id} aria-label={copy.delete} title={copy.delete}>{deleting === job.id ? <LoaderCircle className="spinner-icon" size={16} /> : <Trash2 size={16} />}</button>}</div></article>;
       })}</div>}
     </section>
   );

@@ -84,14 +84,14 @@ export async function getOwnedMediaJob(owner: MediaOwner, jobId: string) {
   return data;
 }
 
-export async function getMediaArtifact(jobId: string) {
+export async function getMediaArtifacts(jobId: string) {
   const { data, error } = await createAdminClient()
     .from("download_artifacts")
-    .select("storage_path,expires_at")
+    .select("artifact_kind,storage_path,content_type,file_size_bytes,expires_at")
     .eq("job_id", jobId)
-    .maybeSingle();
-  if (error) throw new Error(`Could not read media artifact: ${error.code}`);
-  return data;
+    .order("artifact_kind", { ascending: true });
+  if (error) throw new Error(`Could not read media artifacts: ${error.code}`);
+  return data ?? [];
 }
 
 export async function cancelOwnedMediaJob(owner: MediaOwner, jobId: string) {

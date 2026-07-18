@@ -24,6 +24,8 @@ type MediaJob = {
   title?: string | null;
   failureCode?: string | null;
   downloadUrl?: string | null;
+  expiresAt?: string | null;
+  artifacts?: Array<{ kind: "video" | "audio" | "thumbnail"; contentType: string; fileSizeBytes: number; expiresAt: string | null; downloadUrl: string }>;
 };
 
 const jobCopy = {
@@ -33,7 +35,8 @@ const jobCopy = {
     processing: "Preparing your media…",
     processingCopy: "Pullvio is checking the source, format, and output file.",
     ready: "Your download is ready.",
-    readyCopy: "The private download link remains available for a limited time.",
+    readyCopy: "Files are kept for 24 hours only. Download them now before they are automatically deleted.",
+    artifact: { video: "Download video", audio: "Download audio", thumbnail: "Download cover" },
     failed: "We couldn’t prepare this media.",
     canceled: "This media job was canceled.",
     cancel: "Cancel",
@@ -60,7 +63,8 @@ const jobCopy = {
     processing: "正在准备媒体文件…",
     processingCopy: "Pullvio 正在检查来源、格式并生成文件。",
     ready: "文件已准备好。",
-    readyCopy: "私密下载链接将在有限时间内有效。",
+    readyCopy: "文件仅保留 24 小时，之后会自动删除，请尽快下载。",
+    artifact: { video: "下载视频", audio: "下载音频", thumbnail: "下载封面" },
     failed: "暂时无法处理这个媒体。",
     canceled: "该媒体任务已取消。",
     cancel: "取消任务",
@@ -87,7 +91,8 @@ const jobCopy = {
     processing: "Preparando el archivo…",
     processingCopy: "Pullvio está comprobando la fuente, el formato y el resultado.",
     ready: "La descarga está lista.",
-    readyCopy: "El enlace privado estará disponible durante un tiempo limitado.",
+    readyCopy: "Los archivos se conservan solo 24 horas. Descárgalos antes de que se eliminen automáticamente.",
+    artifact: { video: "Descargar vídeo", audio: "Descargar audio", thumbnail: "Descargar portada" },
     failed: "No hemos podido preparar este contenido.",
     canceled: "La tarea se ha cancelado.",
     cancel: "Cancelar",
@@ -265,7 +270,8 @@ export default function MediaStudio({ locale, placeholder, audioOnly = false }: 
             </div>
             <div className="media-job-actions">
               {(status === "queued" || status === "processing") && <button type="button" className="secondary" onClick={cancel}>{copy.cancel}</button>}
-              {status === "ready" && job?.downloadUrl && <a href={job.downloadUrl}><Download size={17} />{t.download}</a>}
+              {status === "ready" && job?.artifacts?.map((artifact) => <a key={artifact.kind} href={artifact.downloadUrl}><Download size={17} />{copy.artifact[artifact.kind]}</a>)}
+              {status === "ready" && !job?.artifacts?.length && job?.downloadUrl && <a href={job.downloadUrl}><Download size={17} />{t.download}</a>}
               {(status === "failed" || status === "canceled" || (status === "ready" && !job?.downloadUrl)) && <button type="button" onClick={reset}><RotateCcw size={17} />{copy.retry}</button>}
               {status === "failed" && errorCode === "QUOTA_EXCEEDED" && <a href={localePath(locale, "/auth/sign-in")}>{copy.signIn}</a>}
             </div>

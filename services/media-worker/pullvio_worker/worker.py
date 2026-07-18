@@ -21,6 +21,7 @@ from .domain import (
     YtDlpPolicy,
     classify_yt_dlp_failure,
     content_type_for,
+    derive_audio_command,
     download_command,
     metadata_command,
     normalize_source_url,
@@ -131,7 +132,7 @@ class MediaWorker:
 
         job_id = queue_message.job_id
         started = time.monotonic()
-        uploaded_key: str | None = None
+        uploaded_keys: list[str] = []
         claimed = False
         try:
             claim_rows = self.database.rpc(
@@ -159,54 +160,57 @@ class MediaWorker:
                 if duration <= 0 or duration > self.config.max_duration_seconds:
                     raise WorkerError("DURATION_LIMIT", "Media duration is outside the supported range")
 
-                artifact = self._download(job_id, receipt, claim, source_url, Path(workdir))
-                size = artifact.stat().st_size
-                if size <= 0 or size > self.config.max_output_bytes:
-                    raise WorkerError("OUTPUT_SIZE_LIMIT", "Output exceeds the supported size")
-
-                digest = self._sha256(artifact)
-                content_type = content_type_for(artifact)
-                disposition = safe_content_disposition(job_id, artifact)
-                uploaded_key = f"outputs/{job_id}/{uuid.uuid4().hex}{artifact.suffix.lower()}"
-                self.s3.upload_file(
-                    str(artifact),
-                    self.config.bucket,
-                    uploaded_key,
-                    ExtraArgs={
-                        "ContentType": content_type,
-                        "ContentDisposition": disposition,
-                        "ServerSideEncryption": "AES256",
-                        "Metadata": {"job-id": job_id},
-                    },
-                )
+                artifacts = self._download_artifacts(job_id, receipt, claim, source_url, Path(workdir))
+                committed_artifacts = []
+                for artifact_kind, artifact in artifacts.items():
+                    size = artifact.stat().st_size
+                    if size <= 0 or size > self.config.max_output_bytes:
+                        raise WorkerError("OUTPUT_SIZE_LIMIT", "Output exceeds the supported size")
+                    digest = self._sha256(artifact)
+                    content_type = content_type_for(artifact)
+                    disposition = safe_content_disposition(job_id, artifact_kind, artifact)
+                    uploaded_key = f"outputs/{job_id}/{uuid.uuid4().hex}{artifact.suffix.lower()}"
+                    self.s3.upload_file(
+                        str(artifact), self.config.bucket, uploaded_key,
+                        ExtraArgs={
+                            "ContentType": content_type,
+                            "ContentDisposition": disposition,
+                            "ServerSideEncryption": "AES256",
+                            "Metadata": {"job-id": job_id, "artifact-kind": artifact_kind},
+                        },
+                    )
+                    uploaded_keys.append(uploaded_key)
+                    committed_artifacts.append({
+                        "kind": artifact_kind,
+                        "storageBucket": self.config.bucket,
+                        "storagePath": uploaded_key,
+                        "contentType": content_type,
+                        "contentDisposition": disposition,
+                        "checksumSha256": digest,
+                        "fileSizeBytes": size,
+                    })
 
                 completed = self.database.rpc(
-                    "complete_media_job",
+                    "complete_media_job_v2",
                     {
                         "p_job_id": job_id,
                         "p_worker_id": self.config.worker_id,
-                        "p_storage_bucket": self.config.bucket,
-                        "p_storage_path": uploaded_key,
-                        "p_content_type": content_type,
-                        "p_content_disposition": disposition,
-                        "p_checksum_sha256": digest,
+                        "p_artifacts": committed_artifacts,
                         "p_title": str(metadata.get("title") or "Untitled media")[:500],
                         "p_thumbnail_url": metadata.get("thumbnail"),
                         "p_duration_seconds": duration,
-                        "p_file_size_bytes": size,
                         "p_processing_seconds": int(time.monotonic() - started),
-                        "p_artifact_expires_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() + 6 * 3600)),
                     },
                 )
                 if completed is not True:
-                    self.s3.delete_object(Bucket=self.config.bucket, Key=uploaded_key)
-                    uploaded_key = None
+                    self._delete_uploaded_artifacts(job_id, uploaded_keys)
+                    uploaded_keys = []
                     raise WorkerError("COMMIT_CONFLICT", "Job could not be committed", retryable=True)
 
             self._delete(receipt)
             LOGGER.info("job_ready job_id=%s", job_id)
         except WorkerError as exc:
-            self._handle_failure(job_id, receipt, exc, int(time.monotonic() - started), uploaded_key)
+            self._handle_failure(job_id, receipt, exc, int(time.monotonic() - started), uploaded_keys)
         except Exception:
             LOGGER.exception("job_unexpected_error job_id=%s", job_id)
             if not claimed:
@@ -222,7 +226,7 @@ class MediaWorker:
                 receipt,
                 WorkerError("PROCESSING_ERROR", "Unexpected processing error", retryable=True),
                 int(time.monotonic() - started),
-                uploaded_key,
+                uploaded_keys,
             )
 
     def _probe(self, job_id: str, receipt: str, source_url: str) -> dict:
@@ -240,7 +244,7 @@ class MediaWorker:
             raise WorkerError("METADATA_ERROR", "Metadata response was invalid", retryable=True)
         return value
 
-    def _download(self, job_id: str, receipt: str, claim: dict, source_url: str, workdir: Path) -> Path:
+    def _download_artifacts(self, job_id: str, receipt: str, claim: dict, source_url: str, workdir: Path) -> dict[str, Path]:
         template = str(workdir / "artifact.%(ext)s")
         command = download_command(
             source_url,
@@ -255,9 +259,29 @@ class MediaWorker:
             path for path in workdir.iterdir()
             if path.is_file() and path.suffix.lower() in {".mp4", ".mp3"}
         ]
-        if len(outputs) != 1:
+        expected_extension = ".mp3" if claim["media_kind"] == "audio" else ".mp4"
+        primary = [path for path in outputs if path.suffix.lower() == expected_extension]
+        if len(primary) != 1:
             raise WorkerError("OUTPUT_MISSING", "Expected one completed media output", retryable=True)
-        return outputs[0]
+        artifacts = {claim["media_kind"]: primary[0]}
+        thumbnails = [path for path in workdir.iterdir() if path.is_file() and path.suffix.lower() in {".jpg", ".jpeg"}]
+        if thumbnails:
+            thumbnail = thumbnails[0]
+            if thumbnail.suffix.lower() == ".jpeg":
+                normalized = workdir / "artifact-cover.jpg"
+                thumbnail.rename(normalized)
+                thumbnail = normalized
+            artifacts["thumbnail"] = thumbnail
+        if claim["media_kind"] == "video":
+            derived_audio = workdir / "artifact-audio.mp3"
+            try:
+                self._run(job_id, receipt, derive_audio_command(primary[0], derived_audio), timeout=min(self.config.command_timeout_seconds, 600))
+                if derived_audio.is_file() and derived_audio.stat().st_size > 0:
+                    artifacts["audio"] = derived_audio
+            except WorkerError as exc:
+                LOGGER.warning("optional_audio_derivative_failed job_id=%s code=%s", job_id, exc.code)
+                derived_audio.unlink(missing_ok=True)
+        return artifacts
 
     def _run(self, job_id: str, receipt: str, command: list[str], timeout: int) -> str:
         process = subprocess.Popen(
@@ -325,12 +349,15 @@ class MediaWorker:
             now = self._monotonic()
         self._last_source_started_at = now
 
-    def _handle_failure(self, job_id: str, receipt: str, error: WorkerError, seconds: int, uploaded_key: str | None):
-        if uploaded_key:
+    def _delete_uploaded_artifacts(self, job_id: str, uploaded_keys: list[str]):
+        for uploaded_key in uploaded_keys:
             try:
                 self.s3.delete_object(Bucket=self.config.bucket, Key=uploaded_key)
             except Exception:
-                LOGGER.exception("artifact_cleanup_failed job_id=%s", job_id)
+                LOGGER.exception("artifact_cleanup_failed job_id=%s key=%s", job_id, uploaded_key)
+
+    def _handle_failure(self, job_id: str, receipt: str, error: WorkerError, seconds: int, uploaded_keys: list[str]):
+        self._delete_uploaded_artifacts(job_id, uploaded_keys)
         result = self.database.rpc(
             "fail_media_job",
             {

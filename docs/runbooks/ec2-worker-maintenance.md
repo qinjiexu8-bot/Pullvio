@@ -237,6 +237,23 @@ SSM and install a replacement public key.
 CloudFront currently remains on the Free plan. Upgrade is an operational and
 cost decision, not a prerequisite for private backend development.
 
+## Download retention
+
+Completed MP4, MP3, and cover artifacts are private and application-accessible
+for 24 hours from the atomic completion transaction. Supabase owns the hard
+expiry timestamp and Vercel never signs a CloudFront URL beyond it. The S3
+`outputs/` lifecycle rule is the physical cleanup layer and must remain enabled
+with a one-day expiration policy. Because S3 lifecycle execution is asynchronous,
+objects may remain internally for a short period after the user-facing access
+window closes, but they must not become downloadable again.
+
+After changing storage policy, verify both layers:
+
+1. `download_artifacts.expires_at` is approximately 24 hours after completion;
+2. signed delivery stops at that timestamp;
+3. the S3 lifecycle rule remains enabled for the `outputs/` prefix;
+4. direct S3 and unsigned CloudFront requests continue to return `403`.
+
 ## Backend implementation status
 
 The AWS foundation, database lifecycle, Vercel control API, and worker are

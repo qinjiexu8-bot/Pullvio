@@ -27,7 +27,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: pullvio/media-worker:2026-07-18
+    image: pullvio/media-worker:2026-07-18-multi-asset
     container_name: pullvio-media-worker
     depends_on:
       - pot-provider

@@ -6,7 +6,7 @@ import {
   resolveMediaIdentity,
 } from "@/lib/media/http";
 import { createArtifactDownloadUrl } from "@/lib/media/delivery";
-import { cancelOwnedMediaJob, getMediaArtifact, getOwnedMediaJob } from "@/lib/media/repository";
+import { cancelOwnedMediaJob, getMediaArtifacts, getOwnedMediaJob } from "@/lib/media/repository";
 
 export const runtime = "nodejs";
 
@@ -22,12 +22,18 @@ export async function GET(request: NextRequest, context: Context) {
     if (!identity) return notFound();
     const job = await getOwnedMediaJob(identity.owner, jobId);
     if (!job) return notFound();
-    let downloadUrl: string | null = null;
+    let artifacts: SerializedArtifact[] = [];
     if (job.status === "ready") {
-      const artifact = await getMediaArtifact(jobId);
-      if (artifact) downloadUrl = await createArtifactDownloadUrl(artifact.storage_path, artifact.expires_at);
+      const rows = await getMediaArtifacts(jobId);
+      artifacts = (await Promise.all(rows.map(async (artifact) => ({
+        kind: artifact.artifact_kind,
+        contentType: artifact.content_type,
+        fileSizeBytes: artifact.file_size_bytes,
+        expiresAt: artifact.expires_at,
+        downloadUrl: await createArtifactDownloadUrl(artifact.storage_path, artifact.expires_at),
+      })))).filter((artifact) => Boolean(artifact.downloadUrl));
     }
-    return jsonNoStore({ job: serializeJob(job, downloadUrl) });
+    return jsonNoStore({ job: serializeJob(job, artifacts) });
   } catch (error) {
     return mediaErrorResponse(error);
   }
@@ -41,7 +47,7 @@ export async function DELETE(request: NextRequest, context: Context) {
     const identity = await resolveMediaIdentity(request, { createAnonymous: false });
     if (!identity) return notFound();
     const job = await cancelOwnedMediaJob(identity.owner, jobId);
-    return job ? jsonNoStore({ job: serializeJob(job, null) }) : notFound();
+    return job ? jsonNoStore({ job: serializeJob(job, []) }) : notFound();
   } catch (error) {
     return mediaErrorResponse(error);
   }
@@ -54,7 +60,17 @@ function notFound() {
   );
 }
 
-function serializeJob(job: Record<string, unknown>, downloadUrl: string | null) {
+type SerializedArtifact = {
+  kind: string;
+  contentType: string;
+  fileSizeBytes: number;
+  expiresAt: string | null;
+  downloadUrl: string | null;
+};
+
+function serializeJob(job: Record<string, unknown>, artifacts: SerializedArtifact[]) {
+  const primary = artifacts.find((artifact) => artifact.kind === job.media_kind);
+  const thumbnail = artifacts.find((artifact) => artifact.kind === "thumbnail");
   return {
     id: job.id,
     status: job.status,
@@ -63,7 +79,7 @@ function serializeJob(job: Record<string, unknown>, downloadUrl: string | null) 
     quality: job.requested_quality,
     platform: job.source_platform,
     title: job.title,
-    thumbnailUrl: job.thumbnail_url,
+    thumbnailUrl: thumbnail?.downloadUrl ?? null,
     fileSizeBytes: job.file_size_bytes,
     failureCode: job.failure_code,
     cancellationRequested: Boolean(job.cancellation_requested_at),
@@ -71,6 +87,8 @@ function serializeJob(job: Record<string, unknown>, downloadUrl: string | null) 
     startedAt: job.started_at,
     completedAt: job.completed_at,
     updatedAt: job.updated_at,
-    downloadUrl,
+    expiresAt: primary?.expiresAt ?? null,
+    downloadUrl: primary?.downloadUrl ?? null,
+    artifacts,
   };
 }

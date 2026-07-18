@@ -41,33 +41,42 @@ export type Database = {
     Tables: {
       download_artifacts: {
         Row: {
+          artifact_kind: string
           checksum_sha256: string | null
           content_disposition: string | null
           content_type: string
           created_at: string
-          expires_at: string | null
+          expires_at: string
+          file_size_bytes: number
+          id: number
           job_id: string
           storage_bucket: string
           storage_path: string
           updated_at: string
         }
         Insert: {
+          artifact_kind: string
           checksum_sha256?: string | null
           content_disposition?: string | null
           content_type: string
           created_at?: string
-          expires_at?: string | null
+          expires_at: string
+          file_size_bytes: number
+          id?: number
           job_id: string
           storage_bucket: string
           storage_path: string
           updated_at?: string
         }
         Update: {
+          artifact_kind?: string
           checksum_sha256?: string | null
           content_disposition?: string | null
           content_type?: string
           created_at?: string
-          expires_at?: string | null
+          expires_at?: string
+          file_size_bytes?: number
+          id?: number
           job_id?: string
           storage_bucket?: string
           storage_path?: string
@@ -77,7 +86,7 @@ export type Database = {
           {
             foreignKeyName: "download_artifacts_job_id_fkey"
             columns: ["job_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "download_jobs"
             referencedColumns: ["id"]
           },
@@ -404,6 +413,18 @@ export type Database = {
           p_processing_seconds: number
           p_storage_bucket: string
           p_storage_path: string
+          p_thumbnail_url: string
+          p_title: string
+          p_worker_id: string
+        }
+        Returns: boolean
+      }
+      complete_media_job_v2: {
+        Args: {
+          p_artifacts: Json
+          p_duration_seconds: number
+          p_job_id: string
+          p_processing_seconds: number
           p_thumbnail_url: string
           p_title: string
           p_worker_id: string

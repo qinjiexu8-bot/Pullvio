@@ -6,6 +6,7 @@ from pullvio_worker.domain import (
     YtDlpPolicy,
     WorkerError,
     classify_yt_dlp_failure,
+    derive_audio_command,
     download_command,
     metadata_command,
     normalize_source_url,
@@ -72,6 +73,8 @@ class DomainTests(unittest.TestCase):
         self.assertIn("bestvideo*[height<=1080]+bestaudio/best[height<=1080]", command)
         self.assertIn("youtube:player_client=mweb", command)
         self.assertIn("youtubepot-bgutilhttp:base_url=http://pot-provider:4416", command)
+        self.assertIn("--write-thumbnail", command)
+        self.assertIn("--convert-thumbnails", command)
         self.assertEqual(command[-1], "https://youtu.be/abc")
 
     def test_soundcloud_is_audio_only(self):
@@ -124,8 +127,14 @@ class DomainTests(unittest.TestCase):
         self.assertFalse(error.retryable)
 
     def test_content_disposition_never_uses_source_title(self):
-        disposition = safe_content_disposition(JOB_ID, Path('/work/evil\".mp4'))
-        self.assertEqual(disposition, f'attachment; filename="pullvio-{JOB_ID}.mp4"')
+        disposition = safe_content_disposition(JOB_ID, "video", Path('/work/evil\".mp4'))
+        self.assertEqual(disposition, f'attachment; filename="pullvio-{JOB_ID}-video.mp4"')
+
+    def test_builds_audio_derivative_command_without_a_shell(self):
+        command = derive_audio_command(Path("/work/video.mp4"), Path("/work/audio.mp3"))
+        self.assertEqual(command[0], "ffmpeg")
+        self.assertIn("0:a:0", command)
+        self.assertEqual(command[-1], "/work/audio.mp3")
 
     def test_youtube_policy_validates_proxy_url(self):
         # Valid proxies should not raise ValueError

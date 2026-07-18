@@ -192,6 +192,9 @@ def download_command(
         "2",
         "--max-filesize",
         str(max_output_bytes),
+        "--write-thumbnail",
+        "--convert-thumbnails",
+        "jpg",
         "--output",
         output_template,
         *_source_policy_arguments(source_url, policy),
@@ -208,7 +211,15 @@ def download_command(
         selector = f"bestvideo*[height<={height}]+bestaudio/best[height<={height}]"
     else:
         raise WorkerError("INVALID_OPTIONS", "Unsupported media quality")
-    return base + ["--format", selector, "--merge-output-format", "mp4", source_url]
+    return base + ["--format", selector, "--merge-output-format", "mp4", "--remux-video", "mp4", source_url]
+
+
+def derive_audio_command(video: Path, output: Path) -> list[str]:
+    return [
+        "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
+        "-i", str(video), "-map", "0:a:0", "-vn",
+        "-codec:a", "libmp3lame", "-q:a", "0", "-y", str(output),
+    ]
 
 
 def classify_yt_dlp_failure(stderr: str, returncode: int = 1) -> WorkerError:
@@ -230,11 +241,13 @@ def classify_yt_dlp_failure(stderr: str, returncode: int = 1) -> WorkerError:
     return WorkerError("PROCESSING_ERROR", "The media command failed", retryable=True)
 
 
-def safe_content_disposition(job_id: str, artifact: Path) -> str:
+def safe_content_disposition(job_id: str, artifact_kind: str, artifact: Path) -> str:
     extension = artifact.suffix.lower()
-    if extension not in {".mp4", ".mp3"}:
+    expected = {"video": ".mp4", "audio": ".mp3", "thumbnail": ".jpg"}
+    if expected.get(artifact_kind) != extension:
         raise WorkerError("INVALID_OUTPUT", "Unexpected output extension")
-    return f'attachment; filename="pullvio-{job_id}{extension}"'
+    label = "cover" if artifact_kind == "thumbnail" else artifact_kind
+    return f'attachment; filename="pullvio-{job_id}-{label}{extension}"'
 
 
 def content_type_for(artifact: Path) -> str:
@@ -242,4 +255,6 @@ def content_type_for(artifact: Path) -> str:
         return "video/mp4"
     if artifact.suffix.lower() == ".mp3":
         return "audio/mpeg"
+    if artifact.suffix.lower() == ".jpg":
+        return "image/jpeg"
     return mimetypes.guess_type(artifact.name)[0] or "application/octet-stream"
