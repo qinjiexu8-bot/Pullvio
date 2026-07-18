@@ -9,3 +9,4 @@ links back to the earlier decision instead of rewriting its history.
 - [ADR-0001: Use AWS for media processing and delivery](0001-use-aws-media-processing-and-delivery.md)
 - [ADR-0002: Store multiple private artifacts per media job](0002-use-multi-asset-media-jobs.md)
 - [ADR-0003: Reuse unexpired media artifacts](0003-reuse-unexpired-media-artifacts.md)
+- [ADR-0004: Use Visolix as the YouTube media provider](0004-use-visolix-for-youtube.md)
