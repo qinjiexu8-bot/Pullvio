@@ -19,6 +19,7 @@ export const runtime = "nodejs";
 
 const DECISION_STATUS: Record<string, number> = {
   SERVICE_DISABLED: 503,
+  SOURCE_DISABLED: 503,
   QUOTA_EXCEEDED: 429,
   ACTIVE_JOB_LIMIT: 429,
   RATE_LIMITED: 429,
@@ -80,6 +81,8 @@ function decisionMessage(code: string) {
   switch (code) {
     case "SERVICE_DISABLED":
       return "Media processing is not accepting new jobs yet.";
+    case "SOURCE_DISABLED":
+      return "This media source is temporarily unavailable while its connection is being prepared.";
     case "QUOTA_EXCEEDED":
       return "You have used your five guest downloads in the last 24 hours. Sign in for normal unlimited use.";
     case "ACTIVE_JOB_LIMIT":

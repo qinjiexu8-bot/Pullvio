@@ -26,8 +26,9 @@ Pullvio 的下载后端已经具备完整的异步任务处理能力：
 - TikTok：当前 EC2 网络能够解析公开视频，底层基本可用；
 - YouTube：当前 AWS 出口会立即出现 `LOGIN_REQUIRED` / `Sign in to confirm you are not a bot`；
 - 生产数据库总开关 `media_runtime_config.accepting_jobs` 已开启；
+- YouTube 独立开关 `media_platform_config.youtube.accepting_jobs` 已关闭，请求会在创建任务和发送 SQS 消息前被拒绝；
 - Vimeo 授权测试视频已完成 API、SQS、Worker、FFmpeg、S3、CloudFront 全链路；
-- YouTube 任务仍会因当前 AWS 出口限制失败，不能宣称 YouTube 已可用。
+- TikTok、Vimeo 和 SoundCloud 保持开放，YouTube 不能宣称已可用。
 
 建议：
 
@@ -208,6 +209,17 @@ SoundCloud 单曲（仅 Audio / MP3）：
 ```
 
 HTTP Status：`503`。
+
+### 6. 平台独立开关
+
+`media_platform_config` 控制单个平台是否接单。当前生产值为：
+
+- `youtube = false`
+- `tiktok = true`
+- `vimeo = true`
+- `soundcloud = true`
+
+关闭的平台返回 `SOURCE_DISABLED`（HTTP `503`），不会创建下载记录、消耗额度或发送 SQS 消息。未来只有在授权的 YouTube ISP/代理全链路测试通过后，才可把 `youtube` 改为 `true`。
 
 ## 五、已经完成的安全措施
 

@@ -29,9 +29,11 @@ for the existing AWS Elastic IP, a newly allocated Elastic IP, the recommended
 `mweb + PO Token` configuration, and three alternative player clients.
 
 The user explicitly enabled `media_runtime_config.accepting_jobs` after an
-authorized Vimeo end-to-end test succeeded. YouTube remains unavailable on the
-current AWS egress and must not be advertised as working. The recommended
-long-term design remains a separate YouTube worker with an accepted ISP egress.
+authorized Vimeo end-to-end test succeeded. The independent production switch
+`media_platform_config.youtube.accepting_jobs` is now `false`, so YouTube is
+rejected before a job or queue message is created while the other reviewed
+platforms remain enabled. The recommended long-term design remains a separate
+YouTube worker with an accepted ISP egress.
 
 ## 2. Current architecture
 
@@ -148,8 +150,9 @@ Pullvio. The current distinction is:
 
 Strict product status: YouTube, TikTok, Vimeo, and SoundCloud are integrated in
 backend code. Vimeo has passed an authorized end-to-end download; TikTok and
-SoundCloud have passed EC2 metadata probes. The global gate is open. YouTube is
-still blocked on AWS egress. Bilibili, Douyin, Reddit, and X/Twitter remain disabled.
+SoundCloud have passed EC2 metadata probes. The global gate is open, but the
+independent YouTube platform gate is closed because AWS egress remains blocked.
+Bilibili, Douyin, Reddit, and X/Twitter remain disabled.
 
 ### Bilibili and Douyin probe results
 
