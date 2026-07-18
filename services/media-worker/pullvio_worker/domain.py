@@ -26,6 +26,27 @@ ALLOWED_HOSTS = {
     "www.soundcloud.com": "soundcloud",
     "m.soundcloud.com": "soundcloud",
     "on.soundcloud.com": "soundcloud",
+    "bilibili.com": "bilibili",
+    "www.bilibili.com": "bilibili",
+    "pinterest.com": "pinterest",
+    "www.pinterest.com": "pinterest",
+    "clips.twitch.tv": "twitch",
+    "twitch.tv": "twitch",
+    "www.twitch.tv": "twitch",
+    "dailymotion.com": "dailymotion",
+    "www.dailymotion.com": "dailymotion",
+    "dai.ly": "dailymotion",
+    "streamable.com": "streamable",
+    "www.streamable.com": "streamable",
+    "snapchat.com": "snapchat",
+    "www.snapchat.com": "snapchat",
+    "imgur.com": "imgur",
+    "www.imgur.com": "imgur",
+    "i.imgur.com": "imgur",
+    "loom.com": "loom",
+    "www.loom.com": "loom",
+    "dropbox.com": "dropbox",
+    "www.dropbox.com": "dropbox",
 }
 UUID_PATTERN = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -54,6 +75,7 @@ class YtDlpPolicy:
     sleep_interval_seconds: int = 8
     max_sleep_interval_seconds: int = 15
     youtube_proxy: str | None = None
+    bilibili_proxy: str | None = None
 
     def __post_init__(self):
         provider = urlsplit(self.pot_provider_url)
@@ -75,14 +97,22 @@ class YtDlpPolicy:
         if not 1 <= self.sleep_interval_seconds <= self.max_sleep_interval_seconds <= 60:
             raise ValueError("Download pacing is invalid")
         if self.youtube_proxy is not None:
-            try:
-                parsed_proxy = urlsplit(self.youtube_proxy)
-                if parsed_proxy.scheme not in {"http", "https", "socks5", "socks5h"}:
-                    raise ValueError("YouTube proxy scheme must be http, https, socks5, or socks5h")
-                if not parsed_proxy.netloc:
-                    raise ValueError("YouTube proxy must have a valid network location (host:port)")
-            except Exception as exc:
-                raise ValueError("YouTube proxy URL is invalid") from exc
+            _validate_proxy_url(self.youtube_proxy, "YouTube")
+        if self.bilibili_proxy is not None:
+            _validate_proxy_url(self.bilibili_proxy, "Bilibili")
+
+
+def _validate_proxy_url(value: str, label: str):
+    try:
+        parsed_proxy = urlsplit(value)
+        if parsed_proxy.scheme not in {"http", "https", "socks5", "socks5h"}:
+            raise ValueError(f"{label} proxy uses an unsupported scheme")
+        if not parsed_proxy.hostname:
+            raise ValueError(f"{label} proxy must include a host")
+        if parsed_proxy.path not in {"", "/"} or parsed_proxy.query or parsed_proxy.fragment:
+            raise ValueError(f"{label} proxy must not include a path, query, or fragment")
+    except Exception as exc:
+        raise ValueError(f"{label} proxy URL is invalid") from exc
 
 
 def parse_queue_message(body: str) -> QueueMessage:
@@ -98,7 +128,7 @@ def parse_queue_message(body: str) -> QueueMessage:
     return QueueMessage(job_id=job_id.lower())
 
 
-def normalize_source_url(value: str, expected_host: str) -> str:
+def normalize_source_url(value: str, expected_host: str, expected_platform: str | None = None) -> str:
     try:
         parsed = urlsplit(value)
     except ValueError as exc:
@@ -115,6 +145,8 @@ def normalize_source_url(value: str, expected_host: str) -> str:
         raise WorkerError("INVALID_SOURCE", "Source URL failed the worker allowlist")
     segments = [segment for segment in parsed.path.split("/") if segment]
     platform = ALLOWED_HOSTS[host]
+    if expected_platform is not None and platform != expected_platform:
+        raise WorkerError("INVALID_SOURCE", "Source platform failed the worker allowlist")
     if platform == "vimeo":
         is_public_video = (
             len(segments) == 2 and segments[0] == "video" and segments[1].isdigit()
@@ -130,12 +162,88 @@ def normalize_source_url(value: str, expected_host: str) -> str:
         }
         if not is_short_link and not is_public_track:
             raise WorkerError("INVALID_SOURCE", "SoundCloud URL is not a single public track")
+    if platform == "bilibili":
+        video_id = segments[1] if len(segments) == 2 else ""
+        is_public_video = (
+            len(segments) == 2
+            and segments[0] == "video"
+            and (
+                re.fullmatch(r"BV[0-9A-Za-z]{10}", video_id) is not None
+                or re.fullmatch(r"av\d+", video_id, re.IGNORECASE) is not None
+            )
+        )
+        if not is_public_video:
+            raise WorkerError("INVALID_SOURCE", "Bilibili URL is not a single public video")
+    if platform == "pinterest":
+        if len(segments) != 2 or segments[0] != "pin" or not segments[1].isdigit():
+            raise WorkerError("INVALID_SOURCE", "Pinterest URL is not a single public video Pin")
+    if platform == "twitch":
+        is_clip_host = host == "clips.twitch.tv" and len(segments) == 1 and re.fullmatch(r"[\w-]+", segments[0])
+        is_channel_clip = (
+            len(segments) == 3
+            and segments[1] == "clip"
+            and re.fullmatch(r"[\w-]+", segments[0])
+            and re.fullmatch(r"[\w-]+", segments[2])
+        )
+        if not is_clip_host and not is_channel_clip:
+            raise WorkerError("INVALID_SOURCE", "Twitch URL is not a single public clip")
+    if platform == "dailymotion":
+        is_short_link = host == "dai.ly" and len(segments) == 1 and re.fullmatch(r"[\w-]+", segments[0])
+        is_video_page = (
+            len(segments) == 2
+            and segments[0] == "video"
+            and re.fullmatch(r"[\w-]+", segments[1])
+        )
+        if not is_short_link and not is_video_page:
+            raise WorkerError("INVALID_SOURCE", "Dailymotion URL is not a single public video")
+    if platform == "streamable":
+        if len(segments) != 1 or re.fullmatch(r"[A-Za-z0-9]+", segments[0]) is None:
+            raise WorkerError("INVALID_SOURCE", "Streamable URL is not a single public video")
+    if platform == "snapchat":
+        if (
+            len(segments) != 2
+            or segments[0] != "spotlight"
+            or re.fullmatch(r"[\w-]+", segments[1]) is None
+        ):
+            raise WorkerError("INVALID_SOURCE", "Snapchat URL is not a public Spotlight")
+    if platform == "imgur":
+        if len(segments) != 1 or re.fullmatch(r"[A-Za-z0-9]{5,12}(?:\.(?:mp4|gifv))?", segments[0]) is None:
+            raise WorkerError("INVALID_SOURCE", "Imgur URL is not a single public video or GIFV")
+    if platform == "loom":
+        if len(segments) != 2 or segments[0] != "share" or re.fullmatch(r"[a-f0-9]{32}", segments[1], re.IGNORECASE) is None:
+            raise WorkerError("INVALID_SOURCE", "Loom URL is not a public share")
+    if platform == "dropbox":
+        is_legacy_share = (
+            len(segments) >= 2
+            and segments[0] == "s"
+            and re.fullmatch(r"[\w-]+", segments[1]) is not None
+        )
+        is_file_share = (
+            len(segments) >= 3
+            and segments[0] == "scl"
+            and segments[1] == "fi"
+            and re.fullmatch(r"[\w-]+", segments[2]) is not None
+        )
+        if not is_legacy_share and not is_file_share:
+            raise WorkerError("INVALID_SOURCE", "Dropbox URL is not a public file share")
     return urlunsplit(("https", host, parsed.path, parsed.query, ""))
 
 
 def _source_policy_arguments(source_url: str, policy: YtDlpPolicy) -> list[str]:
     host = (urlsplit(source_url).hostname or "").lower().rstrip(".")
-    if ALLOWED_HOSTS.get(host) != "youtube":
+    platform = ALLOWED_HOSTS.get(host)
+    if platform == "bilibili":
+        args = [
+            "--sleep-requests", str(policy.sleep_requests_seconds),
+            "--sleep-interval", str(policy.sleep_interval_seconds),
+            "--max-sleep-interval", str(policy.max_sleep_interval_seconds),
+        ]
+        if policy.bilibili_proxy:
+            args += ["--proxy", policy.bilibili_proxy]
+        return args
+    if platform == "dailymotion":
+        return ["--impersonate", "firefox"]
+    if platform != "youtube":
         return []
     args = [
         "--extractor-args",
@@ -234,6 +342,12 @@ def classify_yt_dlp_failure(stderr: str, returncode: int = 1) -> WorkerError:
         return WorkerError(
             "SOURCE_RATE_LIMITED",
             "The source rate-limited this worker network",
+            retryable=False,
+        )
+    if "http error 412" in normalized or "precondition failed" in normalized:
+        return WorkerError(
+            "SOURCE_BLOCKED",
+            "The source rejected this worker network",
             retryable=False,
         )
     if returncode in {1, 2}:

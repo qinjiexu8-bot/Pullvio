@@ -13,6 +13,15 @@ class SupabaseCredentials:
     secret_key: str
 
 
+def load_proxy_url(secret_arn: str, region: str) -> str:
+    response = boto3.client("secretsmanager", region_name=region).get_secret_value(SecretId=secret_arn)
+    value = json.loads(response["SecretString"])
+    proxy_url = value.get("proxyUrl")
+    if not isinstance(proxy_url, str) or len(proxy_url) > 2048:
+        raise RuntimeError("Media proxy secret is malformed")
+    return proxy_url
+
+
 def load_supabase_credentials(secret_arn: str, region: str) -> SupabaseCredentials:
     response = boto3.client("secretsmanager", region_name=region).get_secret_value(SecretId=secret_arn)
     value = json.loads(response["SecretString"])

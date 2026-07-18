@@ -7,6 +7,14 @@ describe("public platform catalog", () => {
       "TikTok",
       "Vimeo",
       "SoundCloud",
+      "Pinterest",
+      "Twitch Clips",
+      "Dailymotion",
+      "Streamable",
+      "Snapchat",
+      "Imgur",
+      "Loom",
+      "Dropbox",
     ]);
   });
 

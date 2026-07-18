@@ -43,6 +43,12 @@ class DomainTests(unittest.TestCase):
         )
         with self.assertRaises(WorkerError):
             normalize_source_url("https://youtube.com.evil.example/abc", "youtube.com.evil.example")
+        with self.assertRaises(WorkerError):
+            normalize_source_url(
+                "https://www.tiktok.com/@owner/video/123",
+                "www.tiktok.com",
+                "vimeo",
+            )
 
         self.assertEqual(
             normalize_source_url("https://vimeo.com/777912896", "vimeo.com"),
@@ -55,10 +61,46 @@ class DomainTests(unittest.TestCase):
             ),
             "https://soundcloud.com/scottbuckley/simplicity-cc-by",
         )
+        self.assertEqual(
+            normalize_source_url(
+                "https://www.bilibili.com/video/BV1Fb4111732/?spm_id_from=333.337",
+                "www.bilibili.com",
+            ),
+            "https://www.bilibili.com/video/BV1Fb4111732/?spm_id_from=333.337",
+        )
+        verified_sources = [
+            ("https://www.pinterest.com/pin/664281013778109217/", "www.pinterest.com"),
+            ("https://clips.twitch.tv/FaintLightGullWholeWheat", "clips.twitch.tv"),
+            ("https://www.dailymotion.com/video/x5kesuj", "www.dailymotion.com"),
+            ("https://streamable.com/dnd1", "streamable.com"),
+            ("https://www.snapchat.com/spotlight/W7_EDlXWTBiXAEEniNoMPwAAYYWtidGhudGZpAX1TKn0JAX1TKnXJAAAAAA", "www.snapchat.com"),
+            ("https://imgur.com/A61SaA1", "imgur.com"),
+            ("https://www.loom.com/share/43d05f362f734614a2e81b4694a3a523", "www.loom.com"),
+            ("https://www.dropbox.com/scl/fi/r2kd2skcy5ylbbta5y1pz/DJI_0003.MP4?dl=0", "www.dropbox.com"),
+        ]
+        for source_url, expected_host in verified_sources:
+            with self.subTest(source_url=source_url):
+                self.assertEqual(normalize_source_url(source_url, expected_host), source_url)
         with self.assertRaises(WorkerError):
             normalize_source_url("https://vimeo.com/channels/creativecommons", "vimeo.com")
         with self.assertRaises(WorkerError):
             normalize_source_url("https://soundcloud.com/artist/sets/playlist", "soundcloud.com")
+        with self.assertRaises(WorkerError):
+            normalize_source_url("https://www.bilibili.com/bangumi/play/ep123", "www.bilibili.com")
+        rejected_sources = [
+            ("https://www.pinterest.com/user/board/", "www.pinterest.com"),
+            ("https://www.twitch.tv/videos/6528877", "www.twitch.tv"),
+            ("https://www.dailymotion.com/playlist/x123", "www.dailymotion.com"),
+            ("https://streamable.com/e/dnd1", "streamable.com"),
+            ("https://www.snapchat.com/add/example", "www.snapchat.com"),
+            ("https://imgur.com/a/A61SaA1", "imgur.com"),
+            ("https://www.loom.com/edit/43d05f362f734614a2e81b4694a3a523", "www.loom.com"),
+            ("https://www.dropbox.com/sh/folder/share", "www.dropbox.com"),
+        ]
+        for source_url, expected_host in rejected_sources:
+            with self.subTest(source_url=source_url):
+                with self.assertRaises(WorkerError):
+                    normalize_source_url(source_url, expected_host)
 
     def test_builds_video_command_as_an_argument_array(self):
         command = download_command(
@@ -185,6 +227,46 @@ class DomainTests(unittest.TestCase):
         meta_cmd = metadata_command("https://www.tiktok.com/@owner/video/123", proxy_policy)
         self.assertNotIn("--proxy", meta_cmd)
         self.assertNotIn("socks5://localhost:1080", meta_cmd)
+
+    def test_dailymotion_commands_use_browser_impersonation(self):
+        command = metadata_command(
+            "https://www.dailymotion.com/video/x89eyek",
+            self.policy,
+        )
+        self.assertIn("--impersonate", command)
+        self.assertIn("firefox", command)
+
+    def test_bilibili_commands_only_receive_the_bilibili_proxy(self):
+        proxy_policy = YtDlpPolicy(
+            pot_provider_url="http://pot-provider:4416",
+            youtube_proxy="socks5://youtube-proxy.example:1080",
+            bilibili_proxy="socks5h://bilibili-proxy.example:1080",
+        )
+        command = metadata_command(
+            "https://www.bilibili.com/video/BV1Fb4111732/",
+            proxy_policy,
+        )
+        self.assertIn("--proxy", command)
+        self.assertIn("socks5h://bilibili-proxy.example:1080", command)
+        self.assertNotIn("socks5://youtube-proxy.example:1080", command)
+        self.assertIn("--sleep-requests", command)
+
+    def test_bilibili_proxy_rejects_paths_and_queries(self):
+        for invalid in [
+            "https://proxy.example.com/path",
+            "socks5://proxy.example.com:1080?token=secret",
+        ]:
+            with self.subTest(proxy=invalid):
+                with self.assertRaises(ValueError):
+                    YtDlpPolicy(
+                        pot_provider_url="http://pot-provider:4416",
+                        bilibili_proxy=invalid,
+                    )
+
+    def test_classifies_bilibili_412_as_a_network_block(self):
+        error = classify_yt_dlp_failure("ERROR: HTTP Error 412: Precondition Failed")
+        self.assertEqual(error.code, "SOURCE_BLOCKED")
+        self.assertFalse(error.retryable)
 
 
 if __name__ == "__main__":

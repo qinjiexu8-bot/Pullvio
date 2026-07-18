@@ -10,12 +10,12 @@ import subprocess
 import tempfile
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import boto3
 
-from .clients import SupabaseRpcClient, load_supabase_credentials
+from .clients import SupabaseRpcClient, load_proxy_url, load_supabase_credentials
 from .domain import (
     WorkerError,
     YtDlpPolicy,
@@ -41,6 +41,7 @@ class Config:
     queue_url: str
     bucket: str
     secret_arn: str
+    bilibili_proxy_secret_arn: str | None
     worker_id: str
     temp_root: str
     max_duration_seconds: int
@@ -65,6 +66,7 @@ class Config:
             queue_url=required["PULLVIO_SQS_QUEUE_URL"] or "",
             bucket=os.getenv("PULLVIO_S3_BUCKET", "pullvio"),
             secret_arn=required["PULLVIO_SUPABASE_SECRET_ARN"] or "",
+            bilibili_proxy_secret_arn=os.getenv("PULLVIO_BILIBILI_PROXY_SECRET_ARN") or None,
             worker_id=worker_id[:200],
             temp_root=os.getenv("PULLVIO_TMP_ROOT", "/work"),
             max_duration_seconds=int(os.getenv("PULLVIO_MAX_DURATION_SECONDS", "7200")),
@@ -97,6 +99,12 @@ class Config:
 
 class MediaWorker:
     def __init__(self, config: Config):
+        if config.bilibili_proxy_secret_arn:
+            proxy_url = load_proxy_url(config.bilibili_proxy_secret_arn, config.region)
+            config = replace(
+                config,
+                yt_dlp_policy=replace(config.yt_dlp_policy, bilibili_proxy=proxy_url),
+            )
         self.config = config
         credentials = load_supabase_credentials(config.secret_arn, config.region)
         self.database = SupabaseRpcClient(credentials)
@@ -152,12 +160,17 @@ class MediaWorker:
                 return
             claimed = True
 
-            source_url = normalize_source_url(claim["source_url"], claim["source_host"])
+            source_url = normalize_source_url(
+                claim["source_url"],
+                claim["source_host"],
+                claim["source_platform"],
+            )
             with tempfile.TemporaryDirectory(prefix=f"{job_id}-", dir=self.config.temp_root) as workdir:
                 self._wait_for_source_slot()
                 metadata = self._probe(job_id, receipt, source_url)
                 duration = int(metadata.get("duration") or 0)
-                if duration <= 0 or duration > self.config.max_duration_seconds:
+                allows_unknown_duration = claim["source_platform"] in {"imgur", "dropbox"}
+                if duration > self.config.max_duration_seconds or (duration <= 0 and not allows_unknown_duration):
                     raise WorkerError("DURATION_LIMIT", "Media duration is outside the supported range")
 
                 artifacts = self._download_artifacts(job_id, receipt, claim, source_url, Path(workdir))

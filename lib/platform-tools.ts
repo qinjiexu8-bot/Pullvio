@@ -1,9 +1,23 @@
 import type { Locale } from "./i18n";
+import { extendedPlatformTools } from "./extended-platform-tools";
 
-export const platformSlugs = ["youtube-video-downloader", "tiktok-video-downloader", "vimeo-video-downloader", "soundcloud-downloader"] as const;
+export const platformSlugs = [
+  "youtube-video-downloader",
+  "tiktok-video-downloader",
+  "vimeo-video-downloader",
+  "soundcloud-downloader",
+  "pinterest-video-downloader",
+  "twitch-clip-downloader",
+  "dailymotion-video-downloader",
+  "streamable-video-downloader",
+  "snapchat-video-downloader",
+  "imgur-video-downloader",
+  "loom-video-downloader",
+  "dropbox-video-downloader",
+] as const;
 export type PlatformSlug = (typeof platformSlugs)[number];
 
-type PlatformCopy = {
+export type PlatformCopy = {
   title: string;
   description: string;
   keywords: string[];
@@ -42,8 +56,8 @@ type PlatformCopy = {
   faqs: [string, string][];
 };
 
-type PlatformDefinition = {
-  platform: "YouTube" | "TikTok" | "Vimeo" | "SoundCloud";
+export type PlatformDefinition = {
+  platform: string;
   guideSlug: string;
   relatedSlug: PlatformSlug;
   audioOnly?: boolean;
@@ -536,6 +550,7 @@ export const platformTools: Record<PlatformSlug, PlatformDefinition> = {
       },
     },
   },
+  ...extendedPlatformTools,
 };
 
 export function getPlatformTool(slug: PlatformSlug, locale: Locale) {
