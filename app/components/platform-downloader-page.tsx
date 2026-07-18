@@ -80,7 +80,12 @@ export default function PlatformDownloaderPage({ slug, locale = "en" }: { slug: 
             <p>{t.intro}</p>
             <ul>{t.benefits.map((benefit) => <li key={benefit}><Check size={16} />{benefit}</li>)}</ul>
           </div>
-          <MediaStudio locale={locale} placeholder={t.placeholder} audioOnly={tool.audioOnly} />
+          <MediaStudio
+            locale={locale}
+            placeholder={t.placeholder}
+            audioOnly={tool.audioOnly}
+            showQualitySelector={slug === "youtube-video-downloader"}
+          />
         </div>
       </section>
 

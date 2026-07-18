@@ -45,6 +45,15 @@ const jobCopy = {
     retry: "Try another link",
     signIn: "Sign in to continue",
     challenge: "Please complete the security check, then submit the YouTube link again.",
+    quality: {
+      label: "Video quality",
+      options: {
+        "720p": "720p · Smaller file",
+        "1080p": "1080p · Recommended",
+        "1440p": "1440p (2K) · Larger file",
+        "2160p": "2160p (4K) · Largest file",
+      },
+    },
     errors: {
       INVALID_URL: "Paste a complete HTTPS media link.",
       UNSUPPORTED_SOURCE: "Pullvio currently supports public TikTok, Vimeo, and SoundCloud links.",
@@ -76,6 +85,15 @@ const jobCopy = {
     retry: "尝试其他链接",
     signIn: "登录后继续",
     challenge: "请先完成人机验证，然后重新提交 YouTube 链接。",
+    quality: {
+      label: "视频清晰度",
+      options: {
+        "720p": "720p · 文件较小",
+        "1080p": "1080p · 推荐",
+        "1440p": "1440p（2K）· 文件较大",
+        "2160p": "2160p（4K）· 文件最大",
+      },
+    },
     errors: {
       INVALID_URL: "请粘贴完整的 HTTPS 媒体链接。",
       UNSUPPORTED_SOURCE: "Pullvio 目前支持公开的 TikTok、Vimeo 和 SoundCloud 链接。",
@@ -107,6 +125,15 @@ const jobCopy = {
     retry: "Probar otro enlace",
     signIn: "Inicia sesión para continuar",
     challenge: "Completa la verificación de seguridad y vuelve a enviar el enlace de YouTube.",
+    quality: {
+      label: "Calidad de vídeo",
+      options: {
+        "720p": "720p · Archivo menor",
+        "1080p": "1080p · Recomendado",
+        "1440p": "1440p (2K) · Archivo mayor",
+        "2160p": "2160p (4K) · Archivo máximo",
+      },
+    },
     errors: {
       INVALID_URL: "Pega un enlace multimedia HTTPS completo.",
       UNSUPPORTED_SOURCE: "Pullvio admite enlaces públicos de TikTok, Vimeo y SoundCloud.",
@@ -126,7 +153,17 @@ const jobCopy = {
   },
 } as const;
 
-export default function MediaStudio({ locale, placeholder, audioOnly = false }: { locale: Locale; placeholder?: string; audioOnly?: boolean }) {
+export default function MediaStudio({
+  locale,
+  placeholder,
+  audioOnly = false,
+  showQualitySelector = false,
+}: {
+  locale: Locale;
+  placeholder?: string;
+  audioOnly?: boolean;
+  showQualitySelector?: boolean;
+}) {
   const t = homeContent[locale].studio;
   const copy = jobCopy[locale];
   const [url, setUrl] = useState("");
@@ -291,14 +328,11 @@ export default function MediaStudio({ locale, placeholder, audioOnly = false }: 
               <span>{status === "submitting" ? t.loading : t.submit}</span>
             </button>
           </div>
-          {mode === "video" && (
+          {showQualitySelector && mode === "video" && (
             <div className="quality-field">
-              <label htmlFor="media-quality">{locale === "zh-cn" ? "视频清晰度" : locale === "es" ? "Calidad de vídeo" : "Video quality"}</label>
+              <label htmlFor="media-quality">{copy.quality.label}</label>
               <select id="media-quality" value={quality} onChange={(event) => setQuality(event.target.value)} disabled={status === "submitting" || status === "queued" || status === "processing"}>
-                <option value="720p">720p</option>
-                <option value="1080p">1080p</option>
-                <option value="1440p">1440p (2K)</option>
-                <option value="2160p">2160p (4K)</option>
+                {Object.entries(copy.quality.options).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
               </select>
             </div>
           )}
