@@ -6,13 +6,19 @@ from unittest.mock import Mock
 
 sys.modules.setdefault("boto3", Mock())
 
-from pullvio_worker.worker import MediaWorker
+from pullvio_worker.worker import MediaWorker, VISOLIX_SOURCE_PLATFORMS
 
 
 JOB_ID = "7a3fc784-77f1-48f3-a601-718a0357bf49"
 
 
 class WorkerLifecycleTests(unittest.TestCase):
+    def test_paid_social_platforms_use_the_visolix_worker_path(self):
+        self.assertEqual(
+            VISOLIX_SOURCE_PLATFORMS,
+            {"youtube", "instagram", "facebook", "snapchat", "okru"},
+        )
+
     def test_claim_rpc_error_keeps_message_for_retry(self):
         worker = MediaWorker.__new__(MediaWorker)
         worker.config = SimpleNamespace(

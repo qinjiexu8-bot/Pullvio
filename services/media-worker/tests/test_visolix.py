@@ -55,8 +55,9 @@ PRIVATE_DNS = [(2, 1, 6, "", ("127.0.0.1", 443))]
 
 class VisolixTests(unittest.TestCase):
     def test_maps_best_to_default_1080(self):
-        self.assertEqual(provider_format_for("best"), "1080")
-        self.assertEqual(provider_format_for("2160p"), "2160")
+        self.assertEqual(provider_format_for("youtube", "best"), "1080")
+        self.assertEqual(provider_format_for("youtube", "2160p"), "2160")
+        self.assertEqual(provider_format_for("instagram", "best"), "source")
 
     def test_submits_youtube_without_exposing_key_in_url(self):
         session = FakeSession([FakeResponse(payload={
@@ -66,25 +67,38 @@ class VisolixTests(unittest.TestCase):
         })])
         result = VisolixClient("test-key", session=session).submit(
             "https://www.youtube.com/watch?v=abc",
+            "youtube",
             "1080",
         )
         self.assertEqual(result.provider_job_id, "provider-123")
         url, options = session.calls[0]
         self.assertNotIn("test-key", url)
         self.assertEqual(options["headers"]["X-API-KEY"], "test-key")
+        self.assertEqual(options["headers"]["X-PLATFORM"], "youtube")
+        self.assertEqual(options["headers"]["X-FORMAT"], "1080")
         self.assertEqual(result.info, {"title": "Example"})
+
+    def test_submits_social_platform_without_youtube_format_header(self):
+        session = FakeSession([FakeResponse(payload={"success": 1, "id": "provider-social", "info": {}})])
+        VisolixClient("test-key", session=session).submit(
+            "https://www.instagram.com/reel/ABC123/",
+            "instagram",
+        )
+        _, options = session.calls[0]
+        self.assertEqual(options["headers"]["X-PLATFORM"], "instagram")
+        self.assertNotIn("X-FORMAT", options["headers"])
 
     def test_maps_402_to_balance_exhausted(self):
         client = VisolixClient("test-key", session=FakeSession([FakeResponse(status_code=402)]))
         with self.assertRaises(WorkerError) as caught:
-            client.submit("https://youtu.be/abc", "1080")
+            client.submit("https://youtu.be/abc", "youtube", "1080")
         self.assertEqual(caught.exception.code, "PROVIDER_BALANCE_EXHAUSTED")
         self.assertFalse(caught.exception.retryable)
 
     def test_submission_network_error_is_not_automatically_resubmitted(self):
         session = FakeSession([requests.Timeout("unknown provider outcome")])
         with self.assertRaises(WorkerError) as caught:
-            VisolixClient("test-key", session=session).submit("https://youtu.be/abc", "1080")
+            VisolixClient("test-key", session=session).submit("https://youtu.be/abc", "youtube", "1080")
         self.assertEqual(caught.exception.code, "PROVIDER_SUBMISSION_AMBIGUOUS")
         self.assertFalse(caught.exception.retryable)
 

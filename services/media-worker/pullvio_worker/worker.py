@@ -43,6 +43,7 @@ from .visolix import VisolixClient, download_provider_result, provider_format_fo
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
 LOGGER = logging.getLogger("pullvio.worker")
 STOP = False
+VISOLIX_SOURCE_PLATFORMS = {"youtube", "instagram", "facebook", "snapchat", "okru"}
 
 
 @dataclass(frozen=True)
@@ -192,8 +193,8 @@ class MediaWorker:
             )
             with tempfile.TemporaryDirectory(prefix=f"{job_id}-", dir=self.config.temp_root) as workdir:
                 self._wait_for_source_slot()
-                if claim["source_platform"] == "youtube":
-                    metadata, artifacts = self._download_youtube_artifacts(
+                if claim["source_platform"] in VISOLIX_SOURCE_PLATFORMS:
+                    metadata, artifacts = self._download_provider_artifacts(
                         job_id, receipt, claim, source_url, Path(workdir)
                     )
                     duration = int(metadata.get("duration") or 0)
@@ -287,7 +288,7 @@ class MediaWorker:
             raise WorkerError("METADATA_ERROR", "Metadata response was invalid", retryable=True)
         return value
 
-    def _download_youtube_artifacts(
+    def _download_provider_artifacts(
         self,
         job_id: str,
         receipt: str,
@@ -298,10 +299,11 @@ class MediaWorker:
         if self.visolix is None:
             raise WorkerError(
                 "PROVIDER_NOT_CONFIGURED",
-                "YouTube provider is not configured",
+                "Media provider is not configured",
                 retryable=False,
             )
-        provider_format = provider_format_for(claim["requested_quality"])
+        platform = claim["source_platform"]
+        provider_format = provider_format_for(platform, claim["requested_quality"])
         rows = self.database.rpc(
             "begin_media_provider_run",
             {
@@ -321,7 +323,11 @@ class MediaWorker:
             )
             if started is not True:
                 raise WorkerError("PROVIDER_STATE_CONFLICT", "Provider submission state changed", retryable=True)
-            submission = self.visolix.submit(source_url, provider_format)
+            submission = self.visolix.submit(
+                source_url,
+                platform,
+                provider_format if platform == "youtube" else None,
+            )
             recorded = self.database.rpc(
                 "record_media_provider_submission",
                 {
@@ -353,7 +359,7 @@ class MediaWorker:
         deadline = time.monotonic() + self.config.command_timeout_seconds
         while True:
             if STOP or time.monotonic() >= deadline:
-                raise WorkerError("PROCESSING_TIMEOUT", "YouTube provider exceeded its time limit", retryable=True)
+                raise WorkerError("PROCESSING_TIMEOUT", "Media provider exceeded its time limit", retryable=True)
             progress = self.visolix.progress(provider_job_id)
             metadata = {**metadata, **progress.info}
             recorded = self.database.rpc(
@@ -540,10 +546,10 @@ class MediaWorker:
         self._delete_uploaded_artifacts(job_id, uploaded_keys)
         if error.code == "PROVIDER_BALANCE_EXHAUSTED":
             handled = self.database.rpc(
-                "fail_youtube_provider_balance",
+                "fail_media_provider_balance",
                 {"p_job_id": job_id, "p_worker_id": self.config.worker_id},
             )
-            LOGGER.error("youtube_provider_balance_exhausted job_id=%s handled=%s", job_id, handled)
+            LOGGER.error("media_provider_balance_exhausted job_id=%s handled=%s", job_id, handled)
             if handled is True:
                 self._deliver_pending_alert()
                 self._delete(receipt)

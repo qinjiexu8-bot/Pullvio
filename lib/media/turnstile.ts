@@ -26,5 +26,5 @@ export async function verifyTurnstileToken(token: unknown, remoteIp: string | nu
   const expectedHostname = process.env.TURNSTILE_EXPECTED_HOSTNAME ?? "pullvio.com";
   return result.success === true
     && result.hostname === expectedHostname
-    && (result.action === undefined || result.action === "youtube-download");
+    && (result.action === undefined || result.action === "media-download");
 }

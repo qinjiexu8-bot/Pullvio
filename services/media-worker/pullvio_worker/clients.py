@@ -53,9 +53,9 @@ def send_feishu_provider_alert(webhook_url: str, alert_type: str, payload: dict)
             "msg_type": "text",
             "content": {
                 "text": (
-                    "【Pullvio 告警】YouTube 下载供应商余额不足\n"
+                    "【Pullvio 告警】媒体下载供应商余额不足\n"
                     f"供应商：{provider}\n"
-                    "系统已自动关闭 YouTube 新任务，客户端会显示友好提示。"
+                    "系统已自动关闭所有 Visolix 平台的新任务，客户端会显示友好提示。"
                     "请充值并完成恢复检查后再手动开启。"
                 )
             },

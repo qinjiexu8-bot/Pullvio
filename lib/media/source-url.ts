@@ -1,5 +1,7 @@
 export type SourcePlatform =
   | "youtube"
+  | "instagram"
+  | "facebook"
   | "tiktok"
   | "vimeo"
   | "soundcloud"
@@ -9,6 +11,7 @@ export type SourcePlatform =
   | "dailymotion"
   | "streamable"
   | "snapchat"
+  | "okru"
   | "imgur"
   | "loom"
   | "dropbox";
@@ -29,6 +32,14 @@ const SOURCE_HOSTS: Readonly<Record<string, SourcePlatform>> = {
   "m.youtube.com": "youtube",
   "music.youtube.com": "youtube",
   "youtu.be": "youtube",
+  "instagram.com": "instagram",
+  "www.instagram.com": "instagram",
+  "m.instagram.com": "instagram",
+  "facebook.com": "facebook",
+  "www.facebook.com": "facebook",
+  "m.facebook.com": "facebook",
+  "web.facebook.com": "facebook",
+  "fb.watch": "facebook",
   "tiktok.com": "tiktok",
   "www.tiktok.com": "tiktok",
   "m.tiktok.com": "tiktok",
@@ -55,6 +66,9 @@ const SOURCE_HOSTS: Readonly<Record<string, SourcePlatform>> = {
   "www.streamable.com": "streamable",
   "snapchat.com": "snapchat",
   "www.snapchat.com": "snapchat",
+  "ok.ru": "okru",
+  "www.ok.ru": "okru",
+  "m.ok.ru": "okru",
   "imgur.com": "imgur",
   "www.imgur.com": "imgur",
   "i.imgur.com": "imgur",
@@ -109,6 +123,34 @@ export function normalizeSourceUrl(input: string): NormalizedSourceUrl {
 
 function assertSingleMediaPath(parsed: URL, platform: SourcePlatform) {
   const segments = parsed.pathname.split("/").filter(Boolean);
+  if (platform === "instagram") {
+    const shortcode = segments[1] ?? "";
+    const isVideoPost = segments.length === 2
+      && new Set(["p", "reel", "reels", "tv"]).has(segments[0])
+      && /^[A-Za-z0-9_-]+$/.test(shortcode);
+    const isPublicStory = segments.length === 3
+      && segments[0] === "stories"
+      && /^[A-Za-z0-9._]+$/.test(segments[1])
+      && /^\d+$/.test(segments[2]);
+    if (!isVideoPost && !isPublicStory) {
+      throw new MediaInputError("INVALID_URL", "Enter a public Instagram Reel, video post, or Story URL.");
+    }
+  }
+
+  if (platform === "facebook") {
+    const token = (value: string | undefined) => Boolean(value && /^[A-Za-z0-9._-]+$/.test(value));
+    const isShortLink = parsed.hostname === "fb.watch" && segments.length === 1 && token(segments[0]);
+    const isWatch = segments.length === 1
+      && new Set(["watch", "video.php"]).has(segments[0])
+      && token(parsed.searchParams.get("v") ?? undefined);
+    const isReel = segments.length === 2 && new Set(["reel", "reels", "videos"]).has(segments[0]) && token(segments[1]);
+    const isProfileVideo = segments.length === 3 && segments[1] === "videos" && token(segments[0]) && token(segments[2]);
+    const isSharedVideo = segments.length === 3 && segments[0] === "share" && new Set(["v", "r"]).has(segments[1]) && token(segments[2]);
+    if (!isShortLink && !isWatch && !isReel && !isProfileVideo && !isSharedVideo) {
+      throw new MediaInputError("INVALID_URL", "Enter a direct public Facebook video or Reel URL.");
+    }
+  }
+
   if (platform === "vimeo") {
     const isPublicVideo = parsed.hostname === "player.vimeo.com"
       ? segments.length === 2 && segments[0] === "video" && /^\d+$/.test(segments[1])
@@ -181,8 +223,16 @@ function assertSingleMediaPath(parsed: URL, platform: SourcePlatform) {
   }
 
   if (platform === "snapchat") {
-    if (segments.length !== 2 || segments[0] !== "spotlight" || !/^[\w-]+$/.test(segments[1])) {
-      throw new MediaInputError("INVALID_URL", "Enter a public Snapchat Spotlight URL.");
+    const isSpotlight = segments.length === 2 && segments[0] === "spotlight" && /^[\w-]+$/.test(segments[1]);
+    const isPublicStory = segments.length === 3 && segments[0] === "add" && /^[\w.-]+$/.test(segments[1]) && /^[\w-]+$/.test(segments[2]);
+    if (!isSpotlight && !isPublicStory) {
+      throw new MediaInputError("INVALID_URL", "Enter a direct public Snapchat Spotlight or Story URL.");
+    }
+  }
+
+  if (platform === "okru") {
+    if (segments.length !== 2 || !new Set(["video", "videoembed"]).has(segments[0]) || !/^\d+$/.test(segments[1])) {
+      throw new MediaInputError("INVALID_URL", "Enter a direct public OK.ru video URL.");
     }
   }
 

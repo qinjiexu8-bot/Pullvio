@@ -24,7 +24,7 @@ export default function TurnstileWidget({ onToken }: { onToken: (token: string |
       if (canceled || !container.current || !window.turnstile || widgetId.current) return;
       widgetId.current = window.turnstile.render(container.current, {
         sitekey: siteKey,
-        action: "youtube-download",
+        action: "media-download",
         callback: (token: string) => onToken(token),
         "expired-callback": () => onToken(null),
         "error-callback": () => onToken(null),

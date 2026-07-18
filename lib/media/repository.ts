@@ -49,13 +49,13 @@ export async function reserveMediaJob(
   };
 }
 
-export async function youtubeChallengeRequired(owner: MediaOwner, networkSubject: string | null) {
-  const { data, error } = await createAdminClient().rpc("youtube_challenge_required", {
+export async function mediaProviderChallengeRequired(owner: MediaOwner, networkSubject: string | null) {
+  const { data, error } = await createAdminClient().rpc("media_provider_challenge_required", {
     p_user_id: owner.kind === "user" ? owner.userId : null,
     p_anonymous_subject: owner.kind === "anonymous" ? owner.anonymousSubject : null,
     p_network_subject: networkSubject,
   });
-  if (error) throw new Error(`Could not evaluate YouTube challenge: ${error.code}`);
+  if (error) throw new Error(`Could not evaluate media provider challenge: ${error.code}`);
   return data === true;
 }
 

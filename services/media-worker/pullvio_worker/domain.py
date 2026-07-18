@@ -14,6 +14,14 @@ ALLOWED_HOSTS = {
     "m.youtube.com": "youtube",
     "music.youtube.com": "youtube",
     "youtu.be": "youtube",
+    "instagram.com": "instagram",
+    "www.instagram.com": "instagram",
+    "m.instagram.com": "instagram",
+    "facebook.com": "facebook",
+    "www.facebook.com": "facebook",
+    "m.facebook.com": "facebook",
+    "web.facebook.com": "facebook",
+    "fb.watch": "facebook",
     "tiktok.com": "tiktok",
     "www.tiktok.com": "tiktok",
     "m.tiktok.com": "tiktok",
@@ -40,6 +48,9 @@ ALLOWED_HOSTS = {
     "www.streamable.com": "streamable",
     "snapchat.com": "snapchat",
     "www.snapchat.com": "snapchat",
+    "ok.ru": "okru",
+    "www.ok.ru": "okru",
+    "m.ok.ru": "okru",
     "imgur.com": "imgur",
     "www.imgur.com": "imgur",
     "i.imgur.com": "imgur",
@@ -156,6 +167,31 @@ def normalize_source_url(value: str, expected_host: str, expected_platform: str 
     platform = ALLOWED_HOSTS[host]
     if expected_platform is not None and platform != expected_platform:
         raise WorkerError("INVALID_SOURCE", "Source platform failed the worker allowlist")
+    if platform == "instagram":
+        shortcode = segments[1] if len(segments) > 1 else ""
+        is_video_post = (
+            len(segments) == 2
+            and segments[0] in {"p", "reel", "reels", "tv"}
+            and re.fullmatch(r"[A-Za-z0-9_-]+", shortcode) is not None
+        )
+        is_public_story = (
+            len(segments) == 3
+            and segments[0] == "stories"
+            and re.fullmatch(r"[A-Za-z0-9._]+", segments[1]) is not None
+            and segments[2].isdigit()
+        )
+        if not is_video_post and not is_public_story:
+            raise WorkerError("INVALID_SOURCE", "Instagram URL is not a direct public video")
+    if platform == "facebook":
+        is_token = lambda value: value is not None and re.fullmatch(r"[A-Za-z0-9._-]+", value) is not None
+        query = dict(item.split("=", 1) for item in parsed.query.split("&") if "=" in item)
+        is_short_link = host == "fb.watch" and len(segments) == 1 and is_token(segments[0])
+        is_watch = len(segments) == 1 and segments[0] in {"watch", "video.php"} and is_token(query.get("v"))
+        is_reel = len(segments) == 2 and segments[0] in {"reel", "reels", "videos"} and is_token(segments[1])
+        is_profile_video = len(segments) == 3 and segments[1] == "videos" and is_token(segments[0]) and is_token(segments[2])
+        is_shared_video = len(segments) == 3 and segments[0] == "share" and segments[1] in {"v", "r"} and is_token(segments[2])
+        if not any((is_short_link, is_watch, is_reel, is_profile_video, is_shared_video)):
+            raise WorkerError("INVALID_SOURCE", "Facebook URL is not a direct public video")
     if platform == "vimeo":
         is_public_video = (
             len(segments) == 2 and segments[0] == "video" and segments[1].isdigit()
@@ -209,12 +245,18 @@ def normalize_source_url(value: str, expected_host: str, expected_platform: str 
         if len(segments) != 1 or re.fullmatch(r"[A-Za-z0-9]+", segments[0]) is None:
             raise WorkerError("INVALID_SOURCE", "Streamable URL is not a single public video")
     if platform == "snapchat":
-        if (
-            len(segments) != 2
-            or segments[0] != "spotlight"
-            or re.fullmatch(r"[\w-]+", segments[1]) is None
-        ):
-            raise WorkerError("INVALID_SOURCE", "Snapchat URL is not a public Spotlight")
+        is_spotlight = len(segments) == 2 and segments[0] == "spotlight" and re.fullmatch(r"[\w-]+", segments[1]) is not None
+        is_public_story = (
+            len(segments) == 3
+            and segments[0] == "add"
+            and re.fullmatch(r"[\w.-]+", segments[1]) is not None
+            and re.fullmatch(r"[\w-]+", segments[2]) is not None
+        )
+        if not is_spotlight and not is_public_story:
+            raise WorkerError("INVALID_SOURCE", "Snapchat URL is not a direct public Spotlight or Story")
+    if platform == "okru":
+        if len(segments) != 2 or segments[0] not in {"video", "videoembed"} or not segments[1].isdigit():
+            raise WorkerError("INVALID_SOURCE", "OK.ru URL is not a direct public video")
     if platform == "imgur":
         if len(segments) != 1 or re.fullmatch(r"[A-Za-z0-9]{5,12}(?:\.(?:mp4|gifv))?", segments[0]) is None:
             raise WorkerError("INVALID_SOURCE", "Imgur URL is not a single public video or GIFV")

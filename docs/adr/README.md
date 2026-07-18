@@ -10,3 +10,4 @@ links back to the earlier decision instead of rewriting its history.
 - [ADR-0002: Store multiple private artifacts per media job](0002-use-multi-asset-media-jobs.md)
 - [ADR-0003: Reuse unexpired media artifacts](0003-reuse-unexpired-media-artifacts.md)
 - [ADR-0004: Use Visolix as the YouTube media provider](0004-use-visolix-for-youtube.md)
+- [ADR-0005: Expand Visolix to supported social platforms](0005-expand-visolix-social-platforms.md)

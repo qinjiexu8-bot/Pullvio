@@ -14,9 +14,40 @@ type ExtendedPlatformConfig = {
   searchName: string;
   relatedSlug: PlatformSlug;
   details: Record<Locale, LocalDetails>;
+  keywords?: Record<Locale, string[]>;
 };
 
 const configs = {
+  "instagram-video-downloader": {
+    platform: "Instagram",
+    searchName: "Instagram video",
+    relatedSlug: "facebook-video-downloader",
+    keywords: {
+      en: ["instagram video downloader", "instagram reel downloader", "download instagram video", "instagram to mp4", "instagram to mp3", "instagram downloader online"],
+      "zh-cn": ["Instagram视频下载器", "Instagram视频下载", "Instagram Reels下载", "Instagram转MP4", "Instagram转MP3"],
+      es: ["descargador de videos de instagram", "descargar reels de instagram", "descargar video instagram", "instagram a mp4", "instagram a mp3"],
+    },
+    details: {
+      en: { subject: "Instagram Reel, video post, or public Story", accepted: "a direct public Instagram Reel, video-post, or Story link", excluded: "profiles, private accounts, Highlights, image-only posts, login-only media, and expired Stories", useCase: "your own Reels, campaign drafts, creator-approved posts, and licensed social clips", quality: "the video rendition made available for that public Instagram item" },
+      "zh-cn": { subject: "Instagram Reel、视频帖子或公开 Story", accepted: "Instagram Reel、视频帖子或公开 Story 的直达链接", excluded: "个人主页、私人账号、Highlights、纯图片帖子、登录后媒体和已过期 Story", useCase: "自己的 Reels、营销素材、创作者授权帖子和获得许可的社交短视频", quality: "该 Instagram 公开内容实际提供的视频版本" },
+      es: { subject: "Reel, publicación de video o Story pública de Instagram", accepted: "un enlace directo a un Reel, video o Story pública de Instagram", excluded: "perfiles, cuentas privadas, Highlights, imágenes, contenido con sesión y Stories vencidas", useCase: "tus Reels, campañas, publicaciones autorizadas y clips con licencia", quality: "la versión de video disponible para ese contenido público de Instagram" },
+    },
+  },
+  "facebook-video-downloader": {
+    platform: "Facebook",
+    searchName: "Facebook video",
+    relatedSlug: "snapchat-video-downloader",
+    keywords: {
+      en: ["facebook video downloader", "facebook reel downloader", "download facebook video", "facebook to mp4", "facebook to mp3", "fb video downloader"],
+      "zh-cn": ["Facebook视频下载器", "Facebook视频下载", "Facebook Reels下载", "Facebook转MP4", "Facebook转MP3"],
+      es: ["descargador de videos de facebook", "descargar reels de facebook", "descargar video facebook", "facebook a mp4", "facebook a mp3"],
+    },
+    details: {
+      en: { subject: "Facebook video or Reel", accepted: "a direct public Facebook video, Reel, Watch, share, or fb.watch link", excluded: "feeds, profiles, groups, private posts, login-only videos, active Live streams, paid media, and deleted posts", useCase: "your own Page videos, approved campaign assets, licensed clips, and creator-authorized Reels", quality: "the public video rendition Facebook makes available for that link" },
+      "zh-cn": { subject: "Facebook 视频或 Reel", accepted: "Facebook 视频、Reel、Watch、Share 或 fb.watch 的公开直达链接", excluded: "信息流、个人主页、群组、私人帖子、登录后视频、直播、付费媒体和已删除内容", useCase: "自己的 Page 视频、获准营销素材、许可短片和创作者授权 Reels", quality: "Facebook 针对该公开链接实际提供的视频版本" },
+      es: { subject: "video o Reel de Facebook", accepted: "un enlace directo público de video, Reel, Watch, compartido o fb.watch", excluded: "feeds, perfiles, grupos, posts privados, videos con sesión, Live activos, contenido de pago y posts eliminados", useCase: "tus videos de Página, campañas aprobadas, clips con licencia y Reels autorizados", quality: "la versión pública que Facebook ofrece para ese enlace" },
+    },
+  },
   "pinterest-video-downloader": {
     platform: "Pinterest",
     searchName: "Pinterest video",
@@ -60,11 +91,26 @@ const configs = {
   "snapchat-video-downloader": {
     platform: "Snapchat",
     searchName: "Snapchat Spotlight video",
-    relatedSlug: "imgur-video-downloader",
+    relatedSlug: "okru-video-downloader",
     details: {
-      en: { subject: "Snapchat Spotlight video", accepted: "a direct public Spotlight link", excluded: "Stories, profiles, chat media, private Snaps, and expired posts", useCase: "your own Spotlight uploads or posts the creator authorizes you to save", quality: "the public MP4 rendition available for that Spotlight" },
-      "zh-cn": { subject: "Snapchat Spotlight 视频", accepted: "公开 Spotlight 直达链接", excluded: "Story、个人主页、聊天媒体、私人 Snap 和已过期帖子", useCase: "自己的 Spotlight 上传或创作者授权保存的帖子", quality: "该 Spotlight 当前公开提供的 MP4 版本" },
-      es: { subject: "video de Snapchat Spotlight", accepted: "un enlace público directo de Spotlight", excluded: "Stories, perfiles, chats, Snaps privados y publicaciones vencidas", useCase: "tus propios Spotlight o publicaciones autorizadas por el creador", quality: "la versión MP4 pública disponible para ese Spotlight" },
+      en: { subject: "Snapchat Spotlight video or public Story", accepted: "a direct public Snapchat Spotlight or Story link", excluded: "profiles, chat media, private Snaps, friends-only Stories, expired Stories, and deleted posts", useCase: "your own Spotlight uploads, public Stories, or posts the creator authorizes you to save", quality: "the public video rendition available for that Snapchat item" },
+      "zh-cn": { subject: "Snapchat Spotlight 视频或公开 Story", accepted: "公开 Snapchat Spotlight 或 Story 直达链接", excluded: "个人主页、聊天媒体、私人 Snap、仅好友 Story、已过期 Story 和已删除内容", useCase: "自己的 Spotlight、公开 Story 或创作者授权保存的帖子", quality: "该 Snapchat 公开内容当前实际提供的视频版本" },
+      es: { subject: "video Spotlight o Story pública de Snapchat", accepted: "un enlace directo público de Spotlight o Story", excluded: "perfiles, chats, Snaps privados, Stories para amigos, vencidas y posts eliminados", useCase: "tus Spotlight, Stories públicas o posts autorizados por el creador", quality: "la versión pública disponible para ese contenido de Snapchat" },
+    },
+  },
+  "okru-video-downloader": {
+    platform: "OK.ru",
+    searchName: "OK.ru video",
+    relatedSlug: "instagram-video-downloader",
+    keywords: {
+      en: ["okru video downloader", "ok.ru video downloader", "download ok.ru video", "okru to mp4", "okru to mp3", "odnoklassniki video downloader"],
+      "zh-cn": ["OKRU视频下载器", "OK.ru视频下载", "Odnoklassniki视频下载", "OKRU转MP4", "OKRU转MP3"],
+      es: ["descargador de videos de okru", "descargar video de ok.ru", "descargador de odnoklassniki", "okru a mp4", "okru a mp3"],
+    },
+    details: {
+      en: { subject: "OK.ru (Odnoklassniki) video", accepted: "a direct public OK.ru video or videoembed link", excluded: "profiles, group feeds, private videos, login-only media, paid content, active Live streams, and deleted videos", useCase: "your own OK.ru uploads, public-domain footage, licensed videos, and creator-approved posts", quality: "the public video rendition OK.ru provides for that item" },
+      "zh-cn": { subject: "OK.ru（Odnoklassniki）视频", accepted: "OK.ru Video 或 Videoembed 的公开直达链接", excluded: "个人主页、群组信息流、私人视频、登录后媒体、付费内容、直播和已删除视频", useCase: "自己的 OK.ru 上传、公共领域影像、许可视频和创作者授权帖子", quality: "OK.ru 针对该公开内容实际提供的视频版本" },
+      es: { subject: "video de OK.ru (Odnoklassniki)", accepted: "un enlace directo público de video o videoembed de OK.ru", excluded: "perfiles, feeds de grupos, videos privados, contenido con sesión o de pago, Live activos y videos eliminados", useCase: "tus subidas a OK.ru, dominio público, videos con licencia y posts autorizados", quality: "la versión pública que OK.ru ofrece para ese contenido" },
     },
   },
   "imgur-video-downloader": {
@@ -105,7 +151,7 @@ function buildCopy(config: ExtendedPlatformConfig, locale: Locale): PlatformCopy
     return {
       title: `${config.platform} 视频下载器 - 在线下载 MP4/MP3 | Pullvio`,
       description: `免费的 ${config.platform} 视频下载器。粘贴${d.accepted}，将有权保存的内容下载为 MP4，并在音轨存在时获取 MP3。`,
-      keywords: [`${config.platform}视频下载器`, `${config.platform}视频下载`, `${config.platform}转MP4`, `${config.platform}转MP3`, "在线视频下载器"],
+      keywords: config.keywords?.[locale] ?? [`${config.platform}视频下载器`, `${config.platform}视频下载`, `${config.platform}转MP4`, `${config.platform}转MP3`, "在线视频下载器"],
       eyebrow: `${config.platform.toUpperCase()} 视频下载器`, h1: `在线下载 ${config.platform} 视频。`, accent: `将获得授权的内容保存为 HD MP4 或 MP3。`,
       intro: `粘贴${d.accepted}。Pullvio 会处理您自己拥有、符合许可条件或已获得保存授权的${d.subject}，并在浏览器中提供可用的视频、封面和音频文件。`,
       placeholder: `粘贴${config.platform}公开链接`, benefits: [`支持${d.accepted}`, `输出以${d.quality}为准`, "无需安装 App 或浏览器扩展"],
@@ -125,7 +171,7 @@ function buildCopy(config: ExtendedPlatformConfig, locale: Locale): PlatformCopy
     return {
       title: `Descargador de ${config.platform} – MP4 y MP3 | Pullvio`,
       description: `Descarga ${config.searchName} público autorizado en MP4 y extrae MP3 cuando exista audio. Gratis, online y sin instalar aplicaciones.`,
-      keywords: [`descargador de ${config.platform.toLowerCase()}`, `descargar ${config.searchName.toLowerCase()}`, `${config.platform.toLowerCase()} a mp4`, `${config.platform.toLowerCase()} a mp3`, "descargador de videos online"],
+      keywords: config.keywords?.[locale] ?? [`descargador de ${config.platform.toLowerCase()}`, `descargar ${config.searchName.toLowerCase()}`, `${config.platform.toLowerCase()} a mp4`, `${config.platform.toLowerCase()} a mp3`, "descargador de videos online"],
       eyebrow: `DESCARGADOR DE ${config.platform.toUpperCase()}`, h1: `Descarga videos de ${config.platform} online.`, accent: "Guarda contenido autorizado en MP4 o MP3.",
       intro: `Pega ${d.accepted}. Pullvio procesa ${d.subject} que posees, que tienen licencia o que puedes guardar, y entrega video, portada y audio disponible desde el navegador.`,
       placeholder: `Pega un enlace público de ${config.platform}`, benefits: [`Compatible con ${d.accepted}`, `Calidad según ${d.quality}`, "Sin aplicación ni extensión"],
@@ -144,7 +190,7 @@ function buildCopy(config: ExtendedPlatformConfig, locale: Locale): PlatformCopy
   return {
     title: `Free ${config.platform} Downloader – MP4 & MP3 | Pullvio`,
     description: `Download permitted public ${config.searchName} links as MP4 and extract MP3 when audio exists. Free, browser-based, and no app or extension required.`,
-    keywords: [`${config.searchName.toLowerCase()} downloader`, `download ${config.searchName.toLowerCase()}`, `${config.platform.toLowerCase()} to mp4`, `${config.platform.toLowerCase()} to mp3`, "online video downloader"],
+    keywords: config.keywords?.[locale] ?? [`${config.searchName.toLowerCase()} downloader`, `download ${config.searchName.toLowerCase()}`, `${config.platform.toLowerCase()} to mp4`, `${config.platform.toLowerCase()} to mp3`, "online video downloader"],
     eyebrow: `${config.platform.toUpperCase()} VIDEO DOWNLOADER`, h1: `Download ${config.platform} videos online.`, accent: "Save permitted public media as MP4 or MP3.",
     intro: `Paste ${d.accepted}. Pullvio processes a ${d.subject} you own, licensed material, or media you have permission to save, then delivers available video, cover, and audio files in your browser.`,
     placeholder: `Paste a public ${config.platform} link`, benefits: [`Supports ${d.accepted}`, `Quality follows ${d.quality}`, "No app or browser extension"],

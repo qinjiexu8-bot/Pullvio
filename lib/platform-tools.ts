@@ -3,6 +3,8 @@ import { extendedPlatformTools } from "./extended-platform-tools";
 
 export const platformSlugs = [
   "youtube-video-downloader",
+  "instagram-video-downloader",
+  "facebook-video-downloader",
   "tiktok-video-downloader",
   "vimeo-video-downloader",
   "soundcloud-downloader",
@@ -11,6 +13,7 @@ export const platformSlugs = [
   "dailymotion-video-downloader",
   "streamable-video-downloader",
   "snapchat-video-downloader",
+  "okru-video-downloader",
   "imgur-video-downloader",
   "loom-video-downloader",
   "dropbox-video-downloader",

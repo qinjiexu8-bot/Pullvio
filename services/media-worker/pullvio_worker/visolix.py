@@ -14,6 +14,7 @@ from .domain import WorkerError
 
 VISOLIX_API_BASE = "https://developers.visolix.com/api"
 ALLOWED_VIDEO_FORMATS = {"360", "480", "720", "1080", "1440", "2160"}
+VISOLIX_PLATFORMS = {"youtube", "instagram", "facebook", "snapchat", "okru"}
 
 
 @dataclass(frozen=True)
@@ -51,25 +52,36 @@ class VisolixClient:
         self._session = session or requests.Session()
         self._session.trust_env = False
 
-    def submit(self, source_url: str, provider_format: str) -> VisolixSubmission:
-        if provider_format not in ALLOWED_VIDEO_FORMATS:
+    def submit(
+        self,
+        source_url: str,
+        platform: str,
+        provider_format: str | None = None,
+    ) -> VisolixSubmission:
+        if platform not in VISOLIX_PLATFORMS:
+            raise WorkerError("INVALID_OPTIONS", "Unsupported media provider platform")
+        if platform == "youtube" and provider_format not in ALLOWED_VIDEO_FORMATS:
             raise WorkerError("INVALID_OPTIONS", "Unsupported YouTube video quality")
+        if platform != "youtube" and provider_format is not None:
+            raise WorkerError("INVALID_OPTIONS", "Only YouTube accepts a provider format")
+        headers = {
+            "X-API-KEY": self._api_key,
+            "X-PLATFORM": platform,
+            "URL": source_url,
+            "User-Agent": "pullvio-media-worker/1",
+        }
+        if provider_format is not None:
+            headers["X-FORMAT"] = provider_format
         try:
             response = self._session.get(
                 f"{self._base_url}/download",
-                headers={
-                    "X-API-KEY": self._api_key,
-                    "X-PLATFORM": "youtube",
-                    "URL": source_url,
-                    "X-FORMAT": provider_format,
-                    "User-Agent": "pullvio-media-worker/1",
-                },
+                headers=headers,
                 timeout=(5, 30),
             )
         except requests.RequestException as exc:
             raise WorkerError(
                 "PROVIDER_SUBMISSION_AMBIGUOUS",
-                "YouTube provider submission outcome is unknown",
+                "Media provider submission outcome is unknown",
                 retryable=False,
             ) from exc
         _raise_for_provider_status(response.status_code)
@@ -78,7 +90,7 @@ class VisolixClient:
         if payload.get("success") not in {True, 1} or not isinstance(provider_job_id, str):
             raise WorkerError(
                 "PROVIDER_RESPONSE_INVALID",
-                "YouTube provider returned an invalid submission response",
+                "Media provider returned an invalid submission response",
                 retryable=True,
             )
         return VisolixSubmission(
@@ -88,7 +100,7 @@ class VisolixClient:
 
     def progress(self, provider_job_id: str) -> VisolixProgress:
         if not provider_job_id or len(provider_job_id) > 500:
-            raise WorkerError("PROVIDER_STATE_INVALID", "YouTube provider job ID is invalid")
+            raise WorkerError("PROVIDER_STATE_INVALID", "Media provider job ID is invalid")
         try:
             response = self._session.get(
                 f"{self._base_url}/progress",
@@ -102,7 +114,7 @@ class VisolixClient:
         except requests.RequestException as exc:
             raise WorkerError(
                 "PROVIDER_UNAVAILABLE",
-                "YouTube provider progress is temporarily unavailable",
+                "Media provider progress is temporarily unavailable",
                 retryable=True,
             ) from exc
         _raise_for_provider_status(response.status_code)
@@ -111,7 +123,7 @@ class VisolixClient:
         if not isinstance(raw_progress, int) or not 0 <= raw_progress <= 1000:
             raise WorkerError(
                 "PROVIDER_RESPONSE_INVALID",
-                "YouTube provider returned invalid progress",
+                "Media provider returned invalid progress",
                 retryable=True,
             )
         download_url = payload.get("download_url")
@@ -122,7 +134,7 @@ class VisolixClient:
         if download_url is not None and not isinstance(download_url, str):
             raise WorkerError(
                 "PROVIDER_RESPONSE_INVALID",
-                "YouTube provider returned an invalid result URL",
+                "Media provider returned an invalid result URL",
                 retryable=True,
             )
         if download_url is not None:
@@ -134,7 +146,11 @@ class VisolixClient:
         )
 
 
-def provider_format_for(requested_quality: str) -> str:
+def provider_format_for(platform: str, requested_quality: str) -> str:
+    if platform != "youtube":
+        if platform not in VISOLIX_PLATFORMS:
+            raise WorkerError("INVALID_OPTIONS", "Unsupported media provider platform")
+        return "source"
     normalized = requested_quality.removesuffix("p")
     if normalized == "best":
         return "1080"
@@ -172,7 +188,7 @@ def download_provider_result(
             if not location or redirect_count >= max_redirects:
                 raise WorkerError(
                     "PROVIDER_DOWNLOAD_FAILED",
-                    "YouTube provider result redirected unexpectedly",
+                    "Media provider result redirected unexpectedly",
                     retryable=True,
                 )
             current_url = urljoin(current_url, location)
@@ -182,7 +198,7 @@ def download_provider_result(
             response.close()
             raise WorkerError(
                 "PROVIDER_DOWNLOAD_FAILED",
-                f"YouTube provider result returned HTTP {status}",
+                f"Media provider result returned HTTP {status}",
                 retryable=status in {408, 425, 429} or status >= 500,
             )
 
@@ -210,14 +226,14 @@ def download_provider_result(
             destination.unlink(missing_ok=True)
             raise WorkerError(
                 "PROVIDER_DOWNLOAD_FAILED",
-                "YouTube provider returned an empty file",
+                "Media provider returned an empty file",
                 retryable=True,
             )
         return total
 
     raise WorkerError(
         "PROVIDER_DOWNLOAD_FAILED",
-        "YouTube provider result could not be downloaded",
+        "Media provider result could not be downloaded",
         retryable=True,
     )
 
@@ -228,18 +244,18 @@ def _raise_for_provider_status(status_code: int):
     if status_code == 402:
         raise WorkerError(
             "PROVIDER_BALANCE_EXHAUSTED",
-            "YouTube downloads are temporarily unavailable",
+            "Media downloads are temporarily unavailable",
             retryable=False,
         )
     if status_code in {401, 403}:
         raise WorkerError(
             "PROVIDER_AUTH_ERROR",
-            "YouTube provider authentication failed",
+            "Media provider authentication failed",
             retryable=False,
         )
     raise WorkerError(
         "PROVIDER_UNAVAILABLE",
-        f"YouTube provider returned HTTP {status_code}",
+        f"Media provider returned HTTP {status_code}",
         retryable=status_code in {408, 425, 429} or status_code >= 500,
     )
 
@@ -250,13 +266,13 @@ def _json_object(response: requests.Response) -> dict[str, Any]:
     except (ValueError, requests.JSONDecodeError) as exc:
         raise WorkerError(
             "PROVIDER_RESPONSE_INVALID",
-            "YouTube provider returned invalid JSON",
+            "Media provider returned invalid JSON",
             retryable=True,
         ) from exc
     if not isinstance(value, dict):
         raise WorkerError(
             "PROVIDER_RESPONSE_INVALID",
-            "YouTube provider returned invalid JSON",
+            "Media provider returned invalid JSON",
             retryable=True,
         )
     return value

@@ -89,11 +89,14 @@ class DomainTests(unittest.TestCase):
             "https://www.bilibili.com/video/BV1Fb4111732/?spm_id_from=333.337",
         )
         verified_sources = [
+            ("https://www.instagram.com/reel/ABC_123/", "www.instagram.com"),
+            ("https://www.facebook.com/reel/123456789", "www.facebook.com"),
             ("https://www.pinterest.com/pin/664281013778109217/", "www.pinterest.com"),
             ("https://clips.twitch.tv/FaintLightGullWholeWheat", "clips.twitch.tv"),
             ("https://www.dailymotion.com/video/x5kesuj", "www.dailymotion.com"),
             ("https://streamable.com/dnd1", "streamable.com"),
             ("https://www.snapchat.com/spotlight/W7_EDlXWTBiXAEEniNoMPwAAYYWtidGhudGZpAX1TKn0JAX1TKnXJAAAAAA", "www.snapchat.com"),
+            ("https://ok.ru/video/5754458544", "ok.ru"),
             ("https://imgur.com/A61SaA1", "imgur.com"),
             ("https://www.loom.com/share/43d05f362f734614a2e81b4694a3a523", "www.loom.com"),
             ("https://www.dropbox.com/scl/fi/r2kd2skcy5ylbbta5y1pz/DJI_0003.MP4?dl=0", "www.dropbox.com"),
@@ -108,11 +111,14 @@ class DomainTests(unittest.TestCase):
         with self.assertRaises(WorkerError):
             normalize_source_url("https://www.bilibili.com/bangumi/play/ep123", "www.bilibili.com")
         rejected_sources = [
+            ("https://www.instagram.com/creator/", "www.instagram.com"),
+            ("https://www.facebook.com/creator/", "www.facebook.com"),
             ("https://www.pinterest.com/user/board/", "www.pinterest.com"),
             ("https://www.twitch.tv/videos/6528877", "www.twitch.tv"),
             ("https://www.dailymotion.com/playlist/x123", "www.dailymotion.com"),
             ("https://streamable.com/e/dnd1", "streamable.com"),
             ("https://www.snapchat.com/add/example", "www.snapchat.com"),
+            ("https://ok.ru/creator/video", "ok.ru"),
             ("https://imgur.com/a/A61SaA1", "imgur.com"),
             ("https://www.loom.com/edit/43d05f362f734614a2e81b4694a3a523", "www.loom.com"),
             ("https://www.dropbox.com/sh/folder/share", "www.dropbox.com"),

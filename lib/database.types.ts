@@ -293,6 +293,7 @@ export type Database = {
           provider_format: string
           provider_info: Json
           provider_job_id: string | null
+          provider_platform: string
           provider_progress: number
           result_url: string | null
           status: string
@@ -314,6 +315,7 @@ export type Database = {
           provider_format: string
           provider_info?: Json
           provider_job_id?: string | null
+          provider_platform?: string
           provider_progress?: number
           result_url?: string | null
           status?: string
@@ -335,6 +337,7 @@ export type Database = {
           provider_format?: string
           provider_info?: Json
           provider_job_id?: string | null
+          provider_platform?: string
           provider_progress?: number
           result_url?: string | null
           status?: string
@@ -583,6 +586,10 @@ export type Database = {
         }
         Returns: string
       }
+      fail_media_provider_balance: {
+        Args: { p_job_id: string; p_worker_id: string }
+        Returns: boolean
+      }
       fail_youtube_provider_balance: {
         Args: { p_job_id: string; p_worker_id: string }
         Returns: boolean
@@ -609,6 +616,14 @@ export type Database = {
       }
       media_job_should_cancel: {
         Args: { p_job_id: string; p_worker_id: string }
+        Returns: boolean
+      }
+      media_provider_challenge_required: {
+        Args: {
+          p_anonymous_subject: string | null
+          p_network_subject: string | null
+          p_user_id: string | null
+        }
         Returns: boolean
       }
       reserve_media_job: {
@@ -639,6 +654,10 @@ export type Database = {
         Returns: boolean
       }
       resolve_youtube_provider_balance_incident: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      resolve_media_provider_balance_incident: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }

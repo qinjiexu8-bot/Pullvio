@@ -5,6 +5,8 @@ describe("public platform catalog", () => {
   it("publishes only production-enabled platforms", () => {
     expect(publicPlatforms.map(({ platform }) => platform)).toEqual([
       "YouTube",
+      "Instagram",
+      "Facebook",
       "TikTok",
       "Vimeo",
       "SoundCloud",
@@ -13,6 +15,7 @@ describe("public platform catalog", () => {
       "Dailymotion",
       "Streamable",
       "Snapchat",
+      "OK.ru",
       "Imgur",
       "Loom",
       "Dropbox",

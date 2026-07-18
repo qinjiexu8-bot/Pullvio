@@ -15,7 +15,7 @@ import {
   markMediaJobDispatched,
   reserveMediaJob,
   reuseCachedMediaJob,
-  youtubeChallengeRequired,
+  mediaProviderChallengeRequired,
 } from "@/lib/media/repository";
 import { verifyTurnstileToken } from "@/lib/media/turnstile";
 import {
@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
     let challengeCookieValue: string | null = null;
 
     if (
-      input.sourcePlatform === "youtube"
-      && await youtubeChallengeRequired(identity.owner, identity.networkSubject)
+      new Set(["youtube", "instagram", "facebook", "snapchat", "okru"]).has(input.sourcePlatform)
+      && await mediaProviderChallengeRequired(identity.owner, identity.networkSubject)
     ) {
       const anonymousSecret = process.env.PULLVIO_ANONYMOUS_SECRET;
       if (!anonymousSecret) throw new Error("PULLVIO_ANONYMOUS_SECRET is not configured.");
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
           {
             error: {
               code: "CHALLENGE_REQUIRED",
-              message: "Complete the security check before submitting another YouTube link.",
+              message: "Complete the security check before submitting another media link.",
             },
             challengeRequired: true,
           },

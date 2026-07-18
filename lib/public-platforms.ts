@@ -1,5 +1,7 @@
 export const publicPlatforms = [
   { platform: "YouTube", slug: "youtube-video-downloader", media: "video" },
+  { platform: "Instagram", slug: "instagram-video-downloader", media: "video" },
+  { platform: "Facebook", slug: "facebook-video-downloader", media: "video" },
   { platform: "TikTok", slug: "tiktok-video-downloader", media: "video" },
   { platform: "Vimeo", slug: "vimeo-video-downloader", media: "video" },
   { platform: "SoundCloud", slug: "soundcloud-downloader", media: "audio" },
@@ -8,6 +10,7 @@ export const publicPlatforms = [
   { platform: "Dailymotion", slug: "dailymotion-video-downloader", media: "video" },
   { platform: "Streamable", slug: "streamable-video-downloader", media: "video" },
   { platform: "Snapchat", slug: "snapchat-video-downloader", media: "video" },
+  { platform: "OK.ru", slug: "okru-video-downloader", media: "video" },
   { platform: "Imgur", slug: "imgur-video-downloader", media: "video" },
   { platform: "Loom", slug: "loom-video-downloader", media: "video" },
   { platform: "Dropbox", slug: "dropbox-video-downloader", media: "video" },
