@@ -99,6 +99,16 @@ class VisolixTests(unittest.TestCase):
         self.assertTrue(result.completed)
         self.assertEqual(result.progress, 1000)
 
+    def test_empty_download_url_means_processing(self):
+        session = FakeSession([FakeResponse(payload={
+            "success": 1,
+            "progress": 0,
+            "download_url": "",
+        })])
+        result = VisolixClient("test-key", session=session).progress("provider-123")
+        self.assertFalse(result.completed)
+        self.assertIsNone(result.download_url)
+
     @patch("pullvio_worker.visolix.socket.getaddrinfo", return_value=PRIVATE_DNS)
     def test_rejects_private_provider_result(self, _resolver):
         session = FakeSession([FakeResponse(payload={

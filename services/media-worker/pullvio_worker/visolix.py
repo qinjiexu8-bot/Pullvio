@@ -115,6 +115,10 @@ class VisolixClient:
                 retryable=True,
             )
         download_url = payload.get("download_url")
+        # Visolix returns an empty string while a job is still processing. Treat
+        # that as an absent result instead of validating it as a completed URL.
+        if download_url == "":
+            download_url = None
         if download_url is not None and not isinstance(download_url, str):
             raise WorkerError(
                 "PROVIDER_RESPONSE_INVALID",
