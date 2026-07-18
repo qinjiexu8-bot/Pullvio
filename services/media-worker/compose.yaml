@@ -27,7 +27,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: pullvio/media-worker:2026-07-18-multi-asset
+    image: pullvio/media-worker:2026-07-18-visolix
     container_name: pullvio-media-worker
     depends_on:
       - pot-provider
@@ -48,6 +48,8 @@ services:
       PULLVIO_S3_BUCKET: pullvio
       PULLVIO_SUPABASE_SECRET_ARN: arn:aws:secretsmanager:us-east-1:856021349535:secret:pullvio/supabase/worker-GrpN9z
       PULLVIO_BILIBILI_PROXY_SECRET_ARN: ${PULLVIO_BILIBILI_PROXY_SECRET_ARN:-}
+      PULLVIO_VISOLIX_SECRET_ARN: ${PULLVIO_VISOLIX_SECRET_ARN:-pullvio/visolix}
+      PULLVIO_FEISHU_SECRET_ARN: ${PULLVIO_FEISHU_SECRET_ARN:-pullvio/feishu-media-alerts}
       PULLVIO_TMP_ROOT: /work
       PULLVIO_MAX_DURATION_SECONDS: "7200"
       PULLVIO_MAX_OUTPUT_BYTES: "2147483648"
