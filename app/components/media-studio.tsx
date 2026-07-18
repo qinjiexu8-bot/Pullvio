@@ -16,6 +16,8 @@ import {
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { homeContent, localePath, type Locale } from "@/lib/i18n";
 import { needsDownloadDetails } from "@/lib/media/client-job";
+import type { ProcessingStage } from "@/lib/media/job-progress";
+import MediaJobProgress from "./media-job-progress";
 import TurnstileWidget from "./turnstile-widget";
 
 type JobStatus = "idle" | "submitting" | "queued" | "processing" | "ready" | "failed" | "canceled";
@@ -23,6 +25,9 @@ type JobStatus = "idle" | "submitting" | "queued" | "processing" | "ready" | "fa
 type MediaJob = {
   id: string;
   status: Exclude<JobStatus, "idle" | "submitting">;
+  processingStage?: ProcessingStage;
+  progressPercent?: number;
+  estimatedSecondsRemaining?: number | null;
   title?: string | null;
   failureCode?: string | null;
   downloadUrl?: string | null;
@@ -44,7 +49,7 @@ const jobCopy = {
     cancel: "Cancel",
     retry: "Try another link",
     signIn: "Sign in to continue",
-    challenge: "Please complete the security check, then submit the YouTube link again.",
+    challenge: "Please complete the security check, then submit the media link again.",
     quality: {
       label: "Video quality",
       options: {
@@ -84,7 +89,7 @@ const jobCopy = {
     cancel: "取消任务",
     retry: "尝试其他链接",
     signIn: "登录后继续",
-    challenge: "请先完成人机验证，然后重新提交 YouTube 链接。",
+    challenge: "请先完成人机验证，然后重新提交媒体链接。",
     quality: {
       label: "视频清晰度",
       options: {
@@ -124,7 +129,7 @@ const jobCopy = {
     cancel: "Cancelar",
     retry: "Probar otro enlace",
     signIn: "Inicia sesión para continuar",
-    challenge: "Completa la verificación de seguridad y vuelve a enviar el enlace de YouTube.",
+    challenge: "Completa la verificación de seguridad y vuelve a enviar el enlace multimedia.",
     quality: {
       label: "Calidad de vídeo",
       options: {
@@ -305,6 +310,9 @@ export default function MediaStudio({
 
   const quotaText = remaining === null ? t.quota : `${remaining} ${locale === "zh-cn" ? "次访客下载剩余" : locale === "es" ? "descargas de invitado restantes" : "guest downloads remaining"}`;
   const errorMessage = copy.errors[errorCode as keyof typeof copy.errors] ?? copy.errors.default;
+  const progressStage: ProcessingStage = job?.processingStage
+    ?? (status === "queued" ? "queued" : status === "ready" ? "completed" : status === "failed" ? "failed" : status === "canceled" ? "canceled" : "fetching");
+  const progressPercent = job?.progressPercent ?? (status === "ready" ? 100 : status === "processing" ? 5 : 0);
 
   return (
     <div className="studio-wrap">
@@ -353,9 +361,10 @@ export default function MediaStudio({
               {status === "ready" && <CircleCheck size={20} />}
               {(status === "failed" || status === "canceled") && <Ban size={20} />}
             </span>
-            <div>
+            <div className="media-job-summary">
               <strong>{status === "queued" ? copy.queued : status === "processing" ? copy.processing : status === "ready" ? copy.ready : status === "canceled" ? copy.canceled : copy.failed}</strong>
               <p>{status === "queued" ? copy.queuedCopy : status === "processing" ? copy.processingCopy : status === "ready" ? copy.readyCopy : status === "failed" ? errorMessage : ""}</p>
+              {(status === "queued" || status === "processing") && <MediaJobProgress locale={locale} stage={progressStage} percent={progressPercent} estimatedSecondsRemaining={job?.estimatedSecondsRemaining} />}
             </div>
             <div className="media-job-actions">
               {(status === "queued" || status === "processing") && <button type="button" className="secondary" onClick={cancel}>{copy.cancel}</button>}

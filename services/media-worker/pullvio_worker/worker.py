@@ -37,7 +37,7 @@ from .domain import (
     parse_queue_message,
     safe_content_disposition,
 )
-from .visolix import VisolixClient, download_provider_result, provider_format_for
+from .visolix import VisolixClient, download_provider_result, provider_format_for, provider_progress_percent
 
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
@@ -185,6 +185,7 @@ class MediaWorker:
             if decision != "CLAIMED":
                 return
             claimed = True
+            self._set_progress(job_id, "fetching", 5)
 
             source_url = normalize_source_url(
                 claim["source_url"],
@@ -205,8 +206,10 @@ class MediaWorker:
                     if duration > self.config.max_duration_seconds or (duration <= 0 and not allows_unknown_duration):
                         raise WorkerError("DURATION_LIMIT", "Media duration is outside the supported range")
                     artifacts = self._download_artifacts(job_id, receipt, claim, source_url, Path(workdir))
+                self._set_progress(job_id, "uploading", 88)
                 committed_artifacts = []
-                for artifact_kind, artifact in artifacts.items():
+                artifact_count = max(len(artifacts), 1)
+                for artifact_index, (artifact_kind, artifact) in enumerate(artifacts.items(), start=1):
                     size = artifact.stat().st_size
                     if size <= 0 or size > self.config.max_output_bytes:
                         raise WorkerError("OUTPUT_SIZE_LIMIT", "Output exceeds the supported size")
@@ -233,6 +236,8 @@ class MediaWorker:
                         "checksumSha256": digest,
                         "fileSizeBytes": size,
                     })
+                    upload_progress = min(97, 88 + round(artifact_index * 9 / artifact_count))
+                    self._set_progress(job_id, "uploading", upload_progress)
 
                 completed = self.database.rpc(
                     "complete_media_job_v2",
@@ -375,6 +380,8 @@ class MediaWorker:
             )
             if recorded is not True:
                 raise WorkerError("PROVIDER_STATE_CONFLICT", "Provider progress could not be committed")
+            whole_progress = provider_progress_percent(progress.progress)
+            self._set_progress(job_id, "fetching", whole_progress)
             if progress.completed and progress.download_url:
                 break
             self._heartbeat(job_id, receipt)
@@ -390,6 +397,7 @@ class MediaWorker:
             provider_result,
             self.config.max_output_bytes,
         )
+        self._set_progress(job_id, "fetching", 72)
         video = workdir / "artifact-video.mp4"
         self._run(
             job_id,
@@ -399,6 +407,7 @@ class MediaWorker:
         )
         provider_result.unlink(missing_ok=True)
         artifacts: dict[str, Path] = {"video": video}
+        self._set_progress(job_id, "processing_audio", 78)
         audio = workdir / "artifact-audio.mp3"
         self._run(
             job_id,
@@ -407,6 +416,7 @@ class MediaWorker:
             timeout=min(self.config.command_timeout_seconds, 600),
         )
         artifacts["audio"] = audio
+        self._set_progress(job_id, "processing_cover", 84)
         cover = workdir / "artifact-cover.jpg"
         try:
             self._run(
@@ -433,6 +443,7 @@ class MediaWorker:
             self.config.yt_dlp_policy,
         )
         self._run(job_id, receipt, command, timeout=self.config.command_timeout_seconds)
+        self._set_progress(job_id, "fetching", 70)
         outputs = [
             path for path in workdir.iterdir()
             if path.is_file() and path.suffix.lower() in {".mp4", ".mp3"}
@@ -451,6 +462,7 @@ class MediaWorker:
                 thumbnail = normalized
             artifacts["thumbnail"] = thumbnail
         if claim["media_kind"] == "video":
+            self._set_progress(job_id, "processing_audio", 78)
             derived_audio = workdir / "artifact-audio.mp3"
             try:
                 self._run(job_id, receipt, derive_audio_command(primary[0], derived_audio), timeout=min(self.config.command_timeout_seconds, 600))
@@ -460,6 +472,19 @@ class MediaWorker:
                 LOGGER.warning("optional_audio_derivative_failed job_id=%s code=%s", job_id, exc.code)
                 derived_audio.unlink(missing_ok=True)
         return artifacts
+
+    def _set_progress(self, job_id: str, stage: str, percent: int):
+        updated = self.database.rpc(
+            "update_media_job_progress",
+            {
+                "p_job_id": job_id,
+                "p_worker_id": self.config.worker_id,
+                "p_processing_stage": stage,
+                "p_progress_percent": percent,
+            },
+        )
+        if updated is not True:
+            raise WorkerError("PROGRESS_STATE_CONFLICT", "Media job progress could not be committed", retryable=True)
 
     def _run(self, job_id: str, receipt: str, command: list[str], timeout: int) -> str:
         process = subprocess.Popen(

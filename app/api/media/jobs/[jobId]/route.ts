@@ -7,6 +7,7 @@ import {
 } from "@/lib/media/http";
 import { createArtifactDownloadUrl } from "@/lib/media/delivery";
 import { cancelOwnedMediaJob, getMediaArtifacts, getOwnedMediaJob } from "@/lib/media/repository";
+import { clampProgress, estimateSecondsRemaining } from "@/lib/media/job-progress";
 
 export const runtime = "nodejs";
 
@@ -76,6 +77,14 @@ function serializeJob(job: Record<string, unknown>, artifacts: SerializedArtifac
   return {
     id: job.id,
     status: job.status,
+    processingStage: job.processing_stage,
+    progressPercent: clampProgress(job.progress_percent),
+    estimatedSecondsRemaining: estimateSecondsRemaining({
+      status: job.status,
+      stage: job.processing_stage,
+      progressPercent: job.progress_percent,
+      startedAt: job.started_at,
+    }),
     mediaKind: job.media_kind,
     format: job.requested_format,
     quality: job.requested_quality,

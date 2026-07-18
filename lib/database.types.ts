@@ -113,6 +113,8 @@ export type Database = {
           original_duration_seconds: number | null
           plan_code: string
           priority: number
+          processing_stage: string
+          progress_percent: number
           queue_message_sent_at: string | null
           requested_format: string
           requested_quality: string
@@ -147,6 +149,8 @@ export type Database = {
           original_duration_seconds?: number | null
           plan_code?: string
           priority?: number
+          processing_stage?: string
+          progress_percent?: number
           queue_message_sent_at?: string | null
           requested_format?: string
           requested_quality?: string
@@ -181,6 +185,8 @@ export type Database = {
           original_duration_seconds?: number | null
           plan_code?: string
           priority?: number
+          processing_stage?: string
+          progress_percent?: number
           queue_message_sent_at?: string | null
           requested_format?: string
           requested_quality?: string
@@ -623,6 +629,15 @@ export type Database = {
           p_anonymous_subject: string | null
           p_network_subject: string | null
           p_user_id: string | null
+        }
+        Returns: boolean
+      }
+      update_media_job_progress: {
+        Args: {
+          p_job_id: string
+          p_processing_stage: string
+          p_progress_percent: number
+          p_worker_id: string
         }
         Returns: boolean
       }

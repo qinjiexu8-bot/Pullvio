@@ -159,6 +159,12 @@ def provider_format_for(platform: str, requested_quality: str) -> str:
     return normalized
 
 
+def provider_progress_percent(progress: int) -> int:
+    if progress not in range(0, 1001):
+        raise WorkerError("PROVIDER_RESPONSE_INVALID", "Media provider returned invalid progress", retryable=True)
+    return min(70, 5 + round(progress * 65 / 1000))
+
+
 def download_provider_result(
     url: str,
     destination: Path,

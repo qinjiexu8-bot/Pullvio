@@ -3,13 +3,15 @@
 import { ChevronLeft, ChevronRight, Clock3, Download, ExternalLink, LoaderCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import { localePath, type Locale } from "@/lib/i18n";
 import { ACCOUNT_PAGE_SIZES, accountPageNumbers } from "@/lib/account-pagination";
+import type { ProcessingStage } from "@/lib/media/job-progress";
+import MediaJobProgress from "./media-job-progress";
 
 type DownloadJob = {
-  id: string; source_url: string; source_host: string; title: string | null; media_kind: string; requested_format: string; requested_quality: string; status: string; file_size_bytes: number | null; failure_code: string | null; created_at: string; artifacts?: Array<{ kind: string; contentType: string; fileSizeBytes: number; expiresAt: string | null; downloadUrl: string }>;
+  id: string; source_url: string; source_host: string; title: string | null; media_kind: string; requested_format: string; requested_quality: string; status: string; processing_stage: string; progress_percent: number; started_at: string | null; file_size_bytes: number | null; failure_code: string | null; created_at: string; artifacts?: Array<{ kind: string; contentType: string; fileSizeBytes: number; expiresAt: string | null; downloadUrl: string }>;
 };
 
 const statusCopy = {
@@ -39,11 +41,46 @@ export default function DownloadHistory({ locale, initialJobs, page, pageSize, t
   const [error, setError] = useState("");
   const dateFormatter = new Intl.DateTimeFormat(locale === "zh-cn" ? "zh-CN" : locale, { dateStyle: "medium", timeStyle: "short" });
   const totalPages = Math.max(1, Math.ceil(totalJobs / pageSize));
+  const activeJobKey = jobs.filter((job) => job.status === "queued" || job.status === "processing").map((job) => job.id).sort().join(",");
   const pageLabels = locale === "zh-cn"
     ? { rows: "每页", previous: "上一页", next: "下一页", of: "条，共" }
     : locale === "es"
       ? { rows: "Por página", previous: "Anterior", next: "Siguiente", of: "de" }
       : { rows: "Rows per page", previous: "Previous", next: "Next", of: "of" };
+
+  useEffect(() => {
+    if (!supabase || !activeJobKey) return;
+    let canceled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const ids = activeJobKey.split(",");
+
+    const poll = async () => {
+      const { data, error: pollError } = await supabase.from("download_jobs")
+        .select("id,status,processing_stage,progress_percent,started_at")
+        .in("id", ids);
+      if (canceled) return;
+      if (!pollError && data) {
+        let becameTerminal = false;
+        setJobs((current) => current.map((job) => {
+          const update = data.find((row) => row.id === job.id);
+          if (!update) return job;
+          if (job.status !== update.status && !["queued", "processing"].includes(update.status)) becameTerminal = true;
+          return { ...job, ...update };
+        }));
+        if (becameTerminal) {
+          router.refresh();
+          return;
+        }
+      }
+      timer = setTimeout(poll, 4000);
+    };
+
+    timer = setTimeout(poll, 1500);
+    return () => {
+      canceled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [activeJobKey, router, supabase]);
 
   function pageHref(nextPage: number, nextSize = pageSize) {
     return `${localePath(locale, "/account")}?page=${nextPage}&pageSize=${nextSize}`;
@@ -70,7 +107,7 @@ export default function DownloadHistory({ locale, initialJobs, page, pageSize, t
         const label = statusCopy[locale][job.status as keyof typeof statusCopy.en] ?? job.status;
         const size = formatBytes(job.file_size_bytes, locale);
         const artifacts = [...(job.artifacts ?? [])].sort((left, right) => (artifactOrder[left.kind] ?? 99) - (artifactOrder[right.kind] ?? 99));
-        return <article key={job.id} className="account-history-row"><div className="account-history-main"><span className={`account-job-status status-${job.status}`}>{label}</span><div><a href={job.source_url} target="_blank" rel="noopener noreferrer nofollow"><strong>{job.title || job.source_host}</strong><ExternalLink size={13} /></a><span>{job.source_host} · {job.requested_format.toUpperCase()} · {job.requested_quality}{size ? ` · ${size}` : ""}</span>{artifacts.length > 0 && <div className="account-artifact-links">{artifacts.map((artifact) => <a key={artifact.kind} href={artifact.downloadUrl}><Download size={14} />{copy.artifact[artifact.kind] ?? artifact.kind}<small>{formatBytes(artifact.fileSizeBytes, locale)}</small></a>)}</div>}</div></div><div className="account-history-actions"><time dateTime={job.created_at}>{dateFormatter.format(new Date(job.created_at))}</time>{deletableStatuses.has(job.status) && <button type="button" onClick={() => remove(job.id)} disabled={deleting === job.id} aria-label={copy.delete} title={copy.delete}>{deleting === job.id ? <LoaderCircle className="spinner-icon" size={16} /> : <Trash2 size={16} />}</button>}</div></article>;
+        return <article key={job.id} className="account-history-row"><div className="account-history-main"><span className={`account-job-status status-${job.status}`}>{label}</span><div><a href={job.source_url} target="_blank" rel="noopener noreferrer nofollow"><strong>{job.title || job.source_host}</strong><ExternalLink size={13} /></a><span>{job.source_host} · {job.requested_format.toUpperCase()} · {job.requested_quality}{size ? ` · ${size}` : ""}</span>{(job.status === "queued" || job.status === "processing") && <MediaJobProgress locale={locale} stage={job.processing_stage as ProcessingStage} percent={job.progress_percent} compact />}{artifacts.length > 0 && <div className="account-artifact-links">{artifacts.map((artifact) => <a key={artifact.kind} href={artifact.downloadUrl}><Download size={14} />{copy.artifact[artifact.kind] ?? artifact.kind}<small>{formatBytes(artifact.fileSizeBytes, locale)}</small></a>)}</div>}</div></div><div className="account-history-actions"><time dateTime={job.created_at}>{dateFormatter.format(new Date(job.created_at))}</time>{deletableStatuses.has(job.status) && <button type="button" onClick={() => remove(job.id)} disabled={deleting === job.id} aria-label={copy.delete} title={copy.delete}>{deleting === job.id ? <LoaderCircle className="spinner-icon" size={16} /> : <Trash2 size={16} />}</button>}</div></article>;
       })}</div>}
       {totalJobs > 0 && <nav className="account-history-pagination" aria-label={copy.title}>
         <label>{pageLabels.rows}<select value={pageSize} onChange={(event) => router.push(pageHref(1, Number(event.target.value)))}>{ACCOUNT_PAGE_SIZES.map((sizeOption) => <option key={sizeOption} value={sizeOption}>{sizeOption}</option>)}</select></label>

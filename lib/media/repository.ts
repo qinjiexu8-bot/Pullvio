@@ -83,7 +83,7 @@ export async function failUndispatchedMediaJob(jobId: string) {
   return data;
 }
 
-const PUBLIC_JOB_FIELDS = "id,status,media_kind,requested_format,requested_quality,source_platform,title,thumbnail_url,file_size_bytes,failure_code,cancellation_requested_at,created_at,started_at,completed_at,updated_at" as const;
+const PUBLIC_JOB_FIELDS = "id,status,processing_stage,progress_percent,media_kind,requested_format,requested_quality,source_platform,title,thumbnail_url,file_size_bytes,failure_code,cancellation_requested_at,created_at,started_at,completed_at,updated_at" as const;
 
 function ownerQuery<T extends { eq: (column: string, value: string) => T }>(query: T, owner: MediaOwner) {
   return owner.kind === "user"

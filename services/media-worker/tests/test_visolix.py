@@ -11,6 +11,7 @@ from pullvio_worker.visolix import (
     VisolixClient,
     download_provider_result,
     provider_format_for,
+    provider_progress_percent,
 )
 
 
@@ -54,6 +55,13 @@ PRIVATE_DNS = [(2, 1, 6, "", ("127.0.0.1", 443))]
 
 
 class VisolixTests(unittest.TestCase):
+    def test_maps_provider_progress_into_the_fetching_segment(self):
+        self.assertEqual(provider_progress_percent(0), 5)
+        self.assertEqual(provider_progress_percent(500), 37)
+        self.assertEqual(provider_progress_percent(1000), 70)
+        with self.assertRaises(WorkerError):
+            provider_progress_percent(1001)
+
     def test_maps_best_to_default_1080(self):
         self.assertEqual(provider_format_for("youtube", "best"), "1080")
         self.assertEqual(provider_format_for("youtube", "2160p"), "2160")

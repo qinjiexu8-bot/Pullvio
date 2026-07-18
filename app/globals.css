@@ -177,6 +177,15 @@ a { color: inherit; text-decoration: none; }
 .media-job-status.is-canceled .media-job-icon { color: var(--muted); background: rgba(255,255,255,.05); }
 .media-job-status strong { display: block; color: var(--ink); font-size: var(--type-small); }
 .media-job-status p { margin: 4px 0 0; color: var(--muted); font-size: var(--type-micro); line-height: 1.5; }
+.media-job-summary { min-width: 0; }
+.media-progress { width: min(440px, 100%); margin-top: 12px; }
+.media-progress-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--ink); font-size: var(--type-micro); font-weight: 800; }
+.media-progress-meta span:last-child { color: var(--mint); font-variant-numeric: tabular-nums; }
+.media-progress-track { height: 7px; margin-top: 7px; overflow: hidden; background: rgba(255,255,255,.08); border-radius: 100px; }
+.media-progress-track > span { display: block; height: 100%; min-width: 0; background: linear-gradient(90deg, #2ecf96, var(--mint)); border-radius: inherit; box-shadow: 0 0 16px rgba(79,226,172,.28); transition: width .45s ease; }
+.media-progress small { display: block; margin-top: 6px; color: var(--muted); font-size: var(--type-micro); }
+.media-progress.is-compact { width: min(360px, 100%); margin-top: 10px; }
+.media-progress.is-compact .media-progress-track { height: 5px; margin-top: 5px; }
 .media-job-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }
 .media-job-status.is-ready { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
 .media-job-status.is-ready .media-job-actions { grid-column: 1 / -1; width: 100%; padding-left: 51px; justify-content: flex-start; }
@@ -451,6 +460,7 @@ footer { padding: 70px 0 25px; background: #060d0f; }
 :root[data-theme="light"] .studio-footer p { color: #62746f; }
 :root[data-theme="light"] .studio-footer > div span { border-color: rgba(25,73,59,.12); color: #61736e; }
 :root[data-theme="light"] .media-job-status { border-color: rgba(24,119,84,.15); background: rgba(45,205,145,.06); }
+:root[data-theme="light"] .media-progress-track { background: rgba(15,78,57,.1); }
 :root[data-theme="light"] .media-job-status.is-failed { border-color: rgba(196,66,66,.2); background: rgba(210,68,68,.05); }
 :root[data-theme="light"] .waitlist-backdrop { background: rgba(22,43,36,.48); }
 :root[data-theme="light"] .waitlist-modal { border-color: rgba(22,116,82,.18); background: linear-gradient(145deg, rgba(255,255,255,.99), rgba(238,246,242,.99)); box-shadow: 0 38px 120px rgba(24,59,47,.28), 0 0 70px rgba(38,188,132,.08); }

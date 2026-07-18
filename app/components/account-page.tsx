@@ -37,7 +37,7 @@ export default async function AccountPage({ locale, page, pageSize }: { locale: 
   let profile = null;
   let usage = null;
   let recentJobs: Array<{
-    id: string; source_url: string; source_host: string; title: string | null; media_kind: string; requested_format: string; requested_quality: string; status: string; file_size_bytes: number | null; failure_code: string | null; created_at: string; artifacts?: Array<{ kind: string; contentType: string; fileSizeBytes: number; expiresAt: string | null; downloadUrl: string }>;
+    id: string; source_url: string; source_host: string; title: string | null; media_kind: string; requested_format: string; requested_quality: string; status: string; processing_stage: string; progress_percent: number; started_at: string | null; file_size_bytes: number | null; failure_code: string | null; created_at: string; artifacts?: Array<{ kind: string; contentType: string; fileSizeBytes: number; expiresAt: string | null; downloadUrl: string }>;
   }> = [];
   let totalJobs = 0;
   let hasDataError = false;
@@ -64,7 +64,7 @@ export default async function AccountPage({ locale, page, pageSize }: { locale: 
     }
 
     const jobsResult = await supabase.from("download_jobs")
-      .select("id, source_url, source_host, title, media_kind, requested_format, requested_quality, status, file_size_bytes, failure_code, created_at", { count: "exact" })
+      .select("id, source_url, source_host, title, media_kind, requested_format, requested_quality, status, processing_stage, progress_percent, started_at, file_size_bytes, failure_code, created_at", { count: "exact" })
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })

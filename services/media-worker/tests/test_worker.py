@@ -19,6 +19,24 @@ class WorkerLifecycleTests(unittest.TestCase):
             {"youtube", "instagram", "facebook", "snapchat", "okru"},
         )
 
+    def test_progress_updates_require_the_active_worker(self):
+        worker = MediaWorker.__new__(MediaWorker)
+        worker.config = SimpleNamespace(worker_id="test-worker")
+        worker.database = Mock()
+        worker.database.rpc.return_value = True
+
+        worker._set_progress(JOB_ID, "uploading", 90)
+
+        worker.database.rpc.assert_called_once_with(
+            "update_media_job_progress",
+            {
+                "p_job_id": JOB_ID,
+                "p_worker_id": "test-worker",
+                "p_processing_stage": "uploading",
+                "p_progress_percent": 90,
+            },
+        )
+
     def test_claim_rpc_error_keeps_message_for_retry(self):
         worker = MediaWorker.__new__(MediaWorker)
         worker.config = SimpleNamespace(
