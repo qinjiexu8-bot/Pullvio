@@ -1,0 +1,19 @@
+[Unit]
+Description=Pullvio private media processing worker
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/pullvio/media-worker
+ExecStartPre=/bin/sh -c '/usr/sbin/iptables -C DOCKER-USER -s 172.30.240.2/32 -d 169.254.0.0/16 -j REJECT 2>/dev/null || /usr/sbin/iptables -I DOCKER-USER 1 -s 172.30.240.2/32 -d 169.254.0.0/16 -j REJECT'
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecReload=/usr/bin/docker compose up -d --remove-orphans
+ExecStop=/usr/bin/docker compose down --timeout 30
+TimeoutStartSec=900
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target

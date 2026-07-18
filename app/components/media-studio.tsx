@@ -1,165 +1,273 @@
 "use client";
 
 import {
-  BellRing,
+  Ban,
   CircleCheck,
+  Clock3,
+  Download,
   Headphones,
   Link2,
   LoaderCircle,
   LockKeyhole,
-  Mail,
+  RotateCcw,
   Sparkles,
   Video,
-  X,
 } from "lucide-react";
-import { FormEvent, RefObject, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { homeContent, localePath, type Locale } from "@/lib/i18n";
 
-const waitlistCopy = {
+type JobStatus = "idle" | "submitting" | "queued" | "processing" | "ready" | "failed" | "canceled";
+
+type MediaJob = {
+  id: string;
+  status: Exclude<JobStatus, "idle" | "submitting">;
+  title?: string | null;
+  failureCode?: string | null;
+  downloadUrl?: string | null;
+};
+
+const jobCopy = {
   en: {
-    eyebrow: "EARLY ACCESS",
-    title: "Media downloads are coming soon.",
-    copy: "We’re finishing the processing experience now. Leave your email and we’ll let you know as soon as it’s ready.",
-    email: "Email address",
-    placeholder: "you@example.com",
-    submit: "Notify me",
-    submitting: "Joining…",
-    successTitle: "You’re on the list.",
-    successCopy: "We’ll email you when Pullvio media downloads are ready.",
-    error: "We couldn’t save your email right now. Please try again.",
-    privacy: "We’ll only use your email for Pullvio product updates.",
-    privacyLink: "Privacy policy",
-    close: "Close",
-    done: "Done",
+    queued: "Your media is in the queue.",
+    queuedCopy: "Keep this page open. Processing starts automatically.",
+    processing: "Preparing your media…",
+    processingCopy: "Pullvio is checking the source, format, and output file.",
+    ready: "Your download is ready.",
+    readyCopy: "The private download link remains available for a limited time.",
+    failed: "We couldn’t prepare this media.",
+    canceled: "This media job was canceled.",
+    cancel: "Cancel",
+    retry: "Try another link",
+    signIn: "Sign in to continue",
+    errors: {
+      INVALID_URL: "Paste a complete HTTPS media link.",
+      UNSUPPORTED_SOURCE: "Pullvio currently supports public YouTube and TikTok links.",
+      QUOTA_EXCEEDED: "You’ve used five guest downloads in the last 24 hours.",
+      ACTIVE_JOB_LIMIT: "Wait for your current job to finish before starting another.",
+      RATE_LIMITED: "Too many requests were submitted. Wait a moment and try again.",
+      SERVICE_DISABLED: "Media processing is temporarily unavailable while we finish production checks.",
+      SOURCE_UNAVAILABLE: "The source is unavailable, restricted, or no longer public.",
+      DURATION_LIMIT: "This media is longer than the current processing limit.",
+      OUTPUT_SIZE_LIMIT: "The finished file would exceed the current size limit.",
+      default: "The media could not be processed. Check the link and try again.",
+    },
   },
   "zh-cn": {
-    eyebrow: "抢先体验",
-    title: "媒体下载功能即将上线。",
-    copy: "我们正在完成媒体处理体验。留下您的邮箱，功能开放后我们会第一时间通知您。",
-    email: "邮箱地址",
-    placeholder: "you@example.com",
-    submit: "上线时通知我",
-    submitting: "正在登记…",
-    successTitle: "登记成功。",
-    successCopy: "Pullvio 媒体下载功能开放后，我们会通过邮件通知您。",
-    error: "暂时无法保存您的邮箱，请稍后再试。",
-    privacy: "您的邮箱仅用于发送 Pullvio 产品上线通知。",
-    privacyLink: "隐私政策",
-    close: "关闭",
-    done: "完成",
+    queued: "媒体任务已进入队列。",
+    queuedCopy: "请保持页面打开，系统会自动开始处理。",
+    processing: "正在准备媒体文件…",
+    processingCopy: "Pullvio 正在检查来源、格式并生成文件。",
+    ready: "文件已准备好。",
+    readyCopy: "私密下载链接将在有限时间内有效。",
+    failed: "暂时无法处理这个媒体。",
+    canceled: "该媒体任务已取消。",
+    cancel: "取消任务",
+    retry: "尝试其他链接",
+    signIn: "登录后继续",
+    errors: {
+      INVALID_URL: "请粘贴完整的 HTTPS 媒体链接。",
+      UNSUPPORTED_SOURCE: "Pullvio 目前支持公开的 YouTube 和 TikTok 链接。",
+      QUOTA_EXCEEDED: "过去 24 小时内，访客的 5 次下载额度已用完。",
+      ACTIVE_JOB_LIMIT: "请等待当前任务完成后再提交新任务。",
+      RATE_LIMITED: "提交过于频繁，请稍后再试。",
+      SERVICE_DISABLED: "媒体处理正在完成生产检查，暂时不可用。",
+      SOURCE_UNAVAILABLE: "来源不可用、受限或已不再公开。",
+      DURATION_LIMIT: "该媒体超过当前支持的时长限制。",
+      OUTPUT_SIZE_LIMIT: "生成的文件会超过当前大小限制。",
+      default: "暂时无法处理该媒体，请检查链接后重试。",
+    },
   },
   es: {
-    eyebrow: "ACCESO ANTICIPADO",
-    title: "Las descargas multimedia llegarán pronto.",
-    copy: "Estamos terminando la experiencia de procesamiento. Déjanos tu correo y te avisaremos en cuanto esté disponible.",
-    email: "Correo electrónico",
-    placeholder: "tu@ejemplo.com",
-    submit: "Avisarme",
-    submitting: "Registrando…",
-    successTitle: "Ya estás en la lista.",
-    successCopy: "Te avisaremos por correo cuando las descargas de Pullvio estén disponibles.",
-    error: "No hemos podido guardar tu correo. Inténtalo de nuevo.",
-    privacy: "Solo usaremos tu correo para novedades del producto Pullvio.",
-    privacyLink: "Política de privacidad",
-    close: "Cerrar",
-    done: "Listo",
+    queued: "Tu contenido está en la cola.",
+    queuedCopy: "Mantén esta página abierta. El proceso comenzará automáticamente.",
+    processing: "Preparando el archivo…",
+    processingCopy: "Pullvio está comprobando la fuente, el formato y el resultado.",
+    ready: "La descarga está lista.",
+    readyCopy: "El enlace privado estará disponible durante un tiempo limitado.",
+    failed: "No hemos podido preparar este contenido.",
+    canceled: "La tarea se ha cancelado.",
+    cancel: "Cancelar",
+    retry: "Probar otro enlace",
+    signIn: "Inicia sesión para continuar",
+    errors: {
+      INVALID_URL: "Pega un enlace multimedia HTTPS completo.",
+      UNSUPPORTED_SOURCE: "Pullvio admite actualmente enlaces públicos de YouTube y TikTok.",
+      QUOTA_EXCEEDED: "Has usado las cinco descargas de invitado en las últimas 24 horas.",
+      ACTIVE_JOB_LIMIT: "Espera a que termine la tarea actual antes de iniciar otra.",
+      RATE_LIMITED: "Se han enviado demasiadas solicitudes. Espera un momento.",
+      SERVICE_DISABLED: "El procesamiento no está disponible mientras terminamos las comprobaciones de producción.",
+      SOURCE_UNAVAILABLE: "La fuente no está disponible, está restringida o ya no es pública.",
+      DURATION_LIMIT: "El contenido supera el límite de duración actual.",
+      OUTPUT_SIZE_LIMIT: "El archivo final superaría el límite de tamaño actual.",
+      default: "No se ha podido procesar el contenido. Comprueba el enlace e inténtalo de nuevo.",
+    },
   },
 } as const;
 
-function WaitlistModal({ locale, onClose, triggerRef }: { locale: Locale; onClose: () => void; triggerRef: RefObject<HTMLButtonElement | null> }) {
-  const t = waitlistCopy[locale];
-  const emailRef = useRef<HTMLInputElement>(null);
-  const [email, setEmail] = useState("");
-  const [company, setCompany] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+export default function MediaStudio({ locale, placeholder }: { locale: Locale; placeholder?: string }) {
+  const t = homeContent[locale].studio;
+  const copy = jobCopy[locale];
+  const [url, setUrl] = useState("");
+  const [mode, setMode] = useState<"video" | "audio">("video");
+  const [status, setStatus] = useState<JobStatus>("idle");
+  const [job, setJob] = useState<MediaJob | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const pollAttempts = useRef(0);
+  const activeJobId = job?.id;
+  const activeJobStatus = job?.status;
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    const trigger = triggerRef.current;
-    document.body.style.overflow = "hidden";
-    emailRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-      trigger?.focus();
-    };
-  }, [onClose, triggerRef]);
+    if (!activeJobId || (activeJobStatus !== "queued" && activeJobStatus !== "processing")) return;
+    let canceled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-  async function joinWaitlist(event: FormEvent<HTMLFormElement>) {
+    const poll = async () => {
+      if (canceled) return;
+      if (document.hidden) {
+        timer = setTimeout(poll, 5000);
+        return;
+      }
+      try {
+        const response = await fetch(`/api/media/jobs/${activeJobId}`, { cache: "no-store" });
+        if (!response.ok) throw new Error("status request failed");
+        const payload = (await response.json()) as { job: MediaJob };
+        if (canceled) return;
+        setJob(payload.job);
+        setStatus(payload.job.status);
+        if (payload.job.status === "failed") setErrorCode(payload.job.failureCode ?? "default");
+        if (payload.job.status === "queued" || payload.job.status === "processing") {
+          pollAttempts.current += 1;
+          timer = setTimeout(poll, Math.min(1500 + pollAttempts.current * 350, 5000));
+        }
+      } catch {
+        if (!canceled) timer = setTimeout(poll, 5000);
+      }
+    };
+
+    timer = setTimeout(poll, 1200);
+    return () => {
+      canceled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [activeJobId, activeJobStatus]);
+
+  async function submit(event: FormEvent) {
     event.preventDefault();
-    setStatus("submitting");
+    setErrorCode(null);
     try {
-      const response = await fetch("/api/waitlist", {
+      const parsed = new URL(url.trim());
+      if (parsed.protocol !== "https:") throw new Error("invalid URL");
+    } catch {
+      setStatus("failed");
+      setErrorCode("INVALID_URL");
+      return;
+    }
+
+    setStatus("submitting");
+    const idempotencyKey = crypto.randomUUID();
+    try {
+      const response = await fetch("/api/media/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, company, locale }),
+        body: JSON.stringify({
+          sourceUrl: url.trim(),
+          mediaKind: mode,
+          format: mode === "video" ? "mp4" : "mp3",
+          quality: "best",
+          idempotencyKey,
+        }),
       });
-      if (!response.ok) throw new Error("Waitlist request failed");
-      setStatus("success");
+      const payload = (await response.json()) as {
+        job?: MediaJob;
+        quota?: { remaining?: number | null };
+        error?: { code?: string };
+      };
+      if (!response.ok || !payload.job) {
+        setStatus("failed");
+        setErrorCode(payload.error?.code ?? "default");
+        return;
+      }
+      pollAttempts.current = 0;
+      setRemaining(payload.quota?.remaining ?? null);
+      setJob(payload.job);
+      setStatus(payload.job.status);
     } catch {
-      setStatus("error");
+      setStatus("failed");
+      setErrorCode("default");
     }
   }
 
-  return (
-    <div className="waitlist-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <section className="waitlist-modal" role="dialog" aria-modal="true" aria-labelledby="waitlist-title">
-        <button className="waitlist-close" type="button" aria-label={t.close} onClick={onClose}><X size={18} /></button>
-        {status === "success" ? (
-          <div className="waitlist-success" role="status">
-            <span className="waitlist-icon success"><CircleCheck size={27} /></span>
-            <span className="waitlist-kicker">{t.eyebrow}</span>
-            <h2 id="waitlist-title">{t.successTitle}</h2>
-            <p>{t.successCopy}</p>
-            <button type="button" onClick={onClose}>{t.done}</button>
-          </div>
-        ) : (
-          <>
-            <span className="waitlist-icon"><BellRing size={25} /></span>
-            <span className="waitlist-kicker">{t.eyebrow}</span>
-            <h2 id="waitlist-title">{t.title}</h2>
-            <p>{t.copy}</p>
-            <form onSubmit={joinWaitlist}>
-              <label htmlFor="waitlist-email">{t.email}</label>
-              <div className="waitlist-field"><Mail size={18} /><input ref={emailRef} id="waitlist-email" type="email" inputMode="email" autoComplete="email" placeholder={t.placeholder} value={email} onChange={(event) => { setEmail(event.target.value); setStatus("idle"); }} required maxLength={320} /></div>
-              <label className="waitlist-honeypot" aria-hidden="true">Company<input name="company" aria-hidden="true" tabIndex={-1} autoComplete="off" value={company} onChange={(event) => setCompany(event.target.value)} /></label>
-              {status === "error" && <p className="waitlist-message" role="alert">{t.error}</p>}
-              <button className="waitlist-submit" type="submit" disabled={status === "submitting"}>{status === "submitting" ? <LoaderCircle className="spinner-icon" size={18} /> : <BellRing size={17} />}{status === "submitting" ? t.submitting : t.submit}</button>
-            </form>
-            <small>{t.privacy} <a href={localePath(locale, "/privacy")}>{t.privacyLink}</a></small>
-          </>
-        )}
-      </section>
-    </div>
-  );
-}
-
-export default function MediaStudio({ locale, placeholder }: { locale: Locale; placeholder?: string }) {
-  const t = homeContent[locale].studio;
-  const [url, setUrl] = useState("");
-  const [mode, setMode] = useState<"video" | "audio">("video");
-  const [waitlistOpen, setWaitlistOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    setWaitlistOpen(true);
+  async function cancel() {
+    if (!job) return;
+    try {
+      const response = await fetch(`/api/media/jobs/${job.id}`, { method: "DELETE" });
+      if (!response.ok) return;
+      const payload = (await response.json()) as { job: MediaJob };
+      setJob(payload.job);
+      setStatus(payload.job.status === "processing" ? "processing" : payload.job.status);
+    } catch {
+      // Polling remains active and will converge to the durable server state.
+    }
   }
 
+  function reset() {
+    setJob(null);
+    setStatus("idle");
+    setErrorCode(null);
+    pollAttempts.current = 0;
+  }
+
+  const quotaText = remaining === null ? t.quota : `${remaining} ${locale === "zh-cn" ? "次访客下载剩余" : locale === "es" ? "descargas de invitado restantes" : "guest downloads remaining"}`;
+  const errorMessage = copy.errors[errorCode as keyof typeof copy.errors] ?? copy.errors.default;
+
   return (
-    <>
-      <div className="studio-wrap"><div className="studio-glow" /><div className="studio">
+    <div className="studio-wrap">
+      <div className="studio-glow" />
+      <div className="studio">
         <div className="studio-topline">
-          <div className="mode-switch"><button className={mode === "video" ? "active" : ""} onClick={() => setMode("video")} type="button"><Video size={16} />{t.video}</button><button className={mode === "audio" ? "active" : ""} onClick={() => setMode("audio")} type="button"><Headphones size={16} />{t.audio}</button></div>
-          <span className="quota"><span />{t.quota}</span>
+          <div className="mode-switch">
+            <button className={mode === "video" ? "active" : ""} onClick={() => setMode("video")} type="button" disabled={status === "submitting" || status === "queued" || status === "processing"}><Video size={16} />{t.video}</button>
+            <button className={mode === "audio" ? "active" : ""} onClick={() => setMode("audio")} type="button" disabled={status === "submitting" || status === "queued" || status === "processing"}><Headphones size={16} />{t.audio}</button>
+          </div>
+          <span className="quota"><span />{quotaText}</span>
         </div>
-        <form onSubmit={submit} noValidate><label htmlFor="media-url">{t.label}</label><div className="url-field"><Link2 size={21} /><input id="media-url" inputMode="url" placeholder={placeholder ?? t.placeholder} value={url} onChange={(event) => setUrl(event.target.value)} /><button ref={triggerRef} type="submit"><Sparkles size={18} /><span>{t.submit}</span></button></div></form>
+
+        <form onSubmit={submit} noValidate>
+          <label htmlFor="media-url">{t.label}</label>
+          <div className={`url-field ${status === "failed" ? "has-error" : ""}`}>
+            <Link2 size={21} />
+            <input id="media-url" inputMode="url" autoComplete="url" placeholder={placeholder ?? t.placeholder} value={url} onChange={(event) => { setUrl(event.target.value); if (status === "failed" && !job) { setStatus("idle"); setErrorCode(null); } }} disabled={status === "submitting" || status === "queued" || status === "processing"} />
+            <button type="submit" disabled={status === "submitting" || status === "queued" || status === "processing"}>
+              {status === "submitting" ? <LoaderCircle className="spinner-icon" size={18} /> : <Sparkles size={18} />}
+              <span>{status === "submitting" ? t.loading : t.submit}</span>
+            </button>
+          </div>
+        </form>
+
+        {status !== "idle" && status !== "submitting" && (
+          <div className={`media-job-status is-${status}`} role="status" aria-live="polite">
+            <span className="media-job-icon">
+              {status === "queued" && <Clock3 size={20} />}
+              {status === "processing" && <LoaderCircle className="spinner-icon" size={20} />}
+              {status === "ready" && <CircleCheck size={20} />}
+              {(status === "failed" || status === "canceled") && <Ban size={20} />}
+            </span>
+            <div>
+              <strong>{status === "queued" ? copy.queued : status === "processing" ? copy.processing : status === "ready" ? copy.ready : status === "canceled" ? copy.canceled : copy.failed}</strong>
+              <p>{status === "queued" ? copy.queuedCopy : status === "processing" ? copy.processingCopy : status === "ready" ? copy.readyCopy : status === "failed" ? errorMessage : ""}</p>
+            </div>
+            <div className="media-job-actions">
+              {(status === "queued" || status === "processing") && <button type="button" className="secondary" onClick={cancel}>{copy.cancel}</button>}
+              {status === "ready" && job?.downloadUrl && <a href={job.downloadUrl}><Download size={17} />{t.download}</a>}
+              {(status === "failed" || status === "canceled" || (status === "ready" && !job?.downloadUrl)) && <button type="button" onClick={reset}><RotateCcw size={17} />{copy.retry}</button>}
+              {status === "failed" && errorCode === "QUOTA_EXCEEDED" && <a href={localePath(locale, "/auth/sign-in")}>{copy.signIn}</a>}
+            </div>
+          </div>
+        )}
+
         <div className="studio-footer"><p><LockKeyhole size={15} />{t.legal}</p><div><span>MP4</span><span>MP3</span><span>4K <b>SOURCE</b></span></div></div>
-      </div></div>
-      {waitlistOpen && createPortal(<WaitlistModal locale={locale} onClose={() => setWaitlistOpen(false)} triggerRef={triggerRef} />, document.body)}
-    </>
+      </div>
+    </div>
   );
 }

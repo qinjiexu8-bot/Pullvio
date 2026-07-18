@@ -12,12 +12,18 @@
     "db:push:dry": "supabase db push --dry-run",
     "db:types": "supabase gen types typescript --linked > lib/database.types.ts",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.1089.0",
+    "@aws-sdk/client-sqs": "^3.1089.0",
+    "@aws-sdk/cloudfront-signer": "^3.1088.0",
     "@clerk/localizations": "^4.13.4",
     "@clerk/nextjs": "^7.5.19",
     "@supabase/supabase-js": "^2.110.2",
+    "@vercel/oidc-aws-credentials-provider": "^3.3.0",
     "lucide-react": "1.24.0",
     "next": "16.2.10",
     "react": "19.2.7",
@@ -30,6 +36,12 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "16.2.10",
     "supabase": "^2.109.1",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.19"
+    }
   }
 }
