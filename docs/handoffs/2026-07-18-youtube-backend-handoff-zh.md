@@ -2,7 +2,7 @@
 
 **整理日期：** 2026-07-18  
 **项目仓库：** `qinjiexu8-bot/Pullvio`  
-**当前状态：** 后端主链路已经完成并部署，媒体任务总开关保持关闭  
+**当前状态：** 后端主链路已经完成并部署，媒体任务总开关已于 2026-07-18 显式开启
 **核心问题：** YouTube 在解析阶段拒绝 AWS 数据中心出口，并非 FFmpeg、S3 或前端故障
 
 > 重要：本文不包含任何私钥、Token、数据库密码或代理凭据。需要的访问权限必须通过安全渠道单独交接。
@@ -25,8 +25,9 @@ Pullvio 的下载后端已经具备完整的异步任务处理能力：
 
 - TikTok：当前 EC2 网络能够解析公开视频，底层基本可用；
 - YouTube：当前 AWS 出口会立即出现 `LOGIN_REQUIRED` / `Sign in to confirm you are not a bot`；
-- 生产数据库总开关 `media_runtime_config.accepting_jobs` 仍为关闭状态；
-- 正常的线上提交会返回 `503 SERVICE_DISABLED`，不会进入队列。
+- 生产数据库总开关 `media_runtime_config.accepting_jobs` 已开启；
+- Vimeo 授权测试视频已完成 API、SQS、Worker、FFmpeg、S3、CloudFront 全链路；
+- YouTube 任务仍会因当前 AWS 出口限制失败，不能宣称 YouTube 已可用。
 
 建议：
 
@@ -115,22 +116,22 @@ yt-dlp 包含某个平台的 Extractor，不等于 Pullvio 已经支持该平台
 
 | 平台 | yt-dlp 引擎可识别 | Pullvio 后端已接入 | EC2 当前结果 | 当前前端可用 |
 | --- | --- | --- | --- | --- |
-| TikTok 国际版 | 是 | 是 | 公开示例解析成功 | 否，总开关关闭 |
+| TikTok 国际版 | 是 | 是 | 公开示例解析成功 | 是，仍需持续监控成功率 |
 | YouTube | 是 | 是 | AWS 网络被 YouTube 拒绝 | 否 |
 | Bilibili / 哔哩哔哩 | 是，`BiliBili` / `BiliIntl` | 否 | 美国 AWS 出口返回 HTTP 412 | 否 |
 | 抖音 / Douyin | 是，`Douyin` | 否 | 要求新鲜 Cookie，当前安全模型不接受 | 否 |
-| Vimeo | 是 | 是 | CC BY 单视频解析成功 | 否，总开关关闭且 Web 待部署 |
+| Vimeo | 是 | 是 | CC BY 单视频全链路成功 | 是 |
 | Instagram | 是，部分子 Extractor 当前损坏 | 否 | 未测试 | 否 |
 | Facebook | 是 | 否 | 未测试 | 否 |
 | X / Twitter | 是 | 否 | 官方样本链路返回服务端错误 | 否 |
-| SoundCloud | 是 | 是，仅 Audio | CC BY 单曲解析成功 | 否，总开关关闭且 Web 待部署 |
+| SoundCloud | 是 | 是，仅 Audio | CC BY 单曲解析成功 | 是，仅 Audio |
 | Reddit | 是 | 否 | 要求账号 Cookie | 否 |
 
 因此，严格按产品口径：
 
 - **已完成后端代码接入：YouTube、TikTok、Vimeo 和 SoundCloud；**
 - **当前底层实测可解析：TikTok、Vimeo 和 SoundCloud；**
-- **当前线上用户实际可下载：没有，因为生产总开关仍然关闭；**
+- **当前线上已开放 Vimeo、TikTok 和 SoundCloud 任务；Vimeo 已通过完整下载验证；**
 - **Bilibili、抖音、Reddit 和 X/Twitter 已做低频元数据测试，但未达到接入门槛。**
 
 ### 2. 当前产品白名单
@@ -195,7 +196,7 @@ SoundCloud 单曲（仅 Audio / MP3）：
 
 ### 5. 生产总开关
 
-当前 `media_runtime_config.accepting_jobs` 必须继续保持关闭。有效的线上请求当前应返回：
+当前 `media_runtime_config.accepting_jobs = true`，由用户在 2026-07-18 显式决定开放。紧急停止接单时，将其改为 `false`；有效请求随后应返回：
 
 ```json
 {
@@ -325,7 +326,9 @@ Pullvio 当前明确不接收用户浏览器 Cookie、登录态 Cookie 或第三
 - Reddit：公开帖子仍要求账号 Cookie，与当前无第三方登录态安全模型冲突，未接入；
 - X/Twitter：两个官方公开样本分别出现无视频和服务端域名错误，未达到稳定接入门槛。
 
-数据库平台约束已经扩展，EC2 Worker 镜像 `pullvio/media-worker:2026-07-18` 已部署且运行正常。Vercel 端 API 代码需要随本仓库下一次发布上线；生产接单总开关仍保持关闭。
+数据库平台约束已经扩展，Vercel API 已发布，EC2 Worker 镜像 `pullvio/media-worker:2026-07-18` 已部署且运行正常，生产接单总开关已经开启。
+
+首次 Vimeo 完整测试发现 Worker 等待子进程退出后才读取 stdout/stderr；大型元数据 JSON 会填满系统管道并造成超时。Worker 已改为在保留心跳、取消和超时检查的同时持续排空两个管道。修复后，720p CC BY 测试视频在约 11 秒内完成，生成 16,249,144 字节 MP4；CloudFront 签名地址返回 `200 video/mp4`，同一对象的 S3 直连返回 `403`。
 
 ## 八、对开源项目和竞品的调研结论
 
@@ -565,8 +568,8 @@ python3 -m compileall -q \
 - `pullvio-media-worker`：Running；
 - `pullvio-pot-provider`：Running；
 - Provider 只显示容器内 `4416/tcp`，不能出现 `0.0.0.0:4416`；
-- 关闭期间 SQS Visible / In-flight 都应为 0；
-- API 返回 `503 SERVICE_DISABLED`；
+- 空闲期间 SQS Visible / In-flight 应回到 0；
+- 有效 Vimeo 请求应进入队列；紧急关闭后 API 应返回 `503 SERVICE_DISABLED`；
 - Provider 无法访问 `169.254.169.254`；
 - EC2 出口仍为 `3.212.192.122`。
 
@@ -604,15 +607,15 @@ python3 -m compileall -q \
 - [ ] 一个授权 YouTube 任务完成全链路；
 - [ ] 多视频 Pilot 达到成功率门槛；
 - [ ] 元数据、Token 和媒体分片使用同一 Sticky 出口；
-- [ ] S3 仍为私有；
-- [ ] CloudFront 签名下载验证通过；
+- [x] S3 仍为私有；
+- [x] CloudFront 签名下载验证通过；
 - [ ] 成本、带宽、429 和 Source Block 告警有效；
 - [ ] 连续风控自动熔断；
 - [ ] 并发、时长、文件大小限制已经确认；
 - [ ] Worker 临时文件和 S3 生命周期清理有效；
 - [ ] Tests、Typecheck、Lint、Build 全部通过；
 - [ ] 先内部/Allowlist 灰度；
-- [ ] 最后才显式开启 `accepting_jobs`。
+- [x] 已由用户显式决定开启 `accepting_jobs`；YouTube 风险与阻塞仍需单独处理。
 
 ## 十六、最终建议
 

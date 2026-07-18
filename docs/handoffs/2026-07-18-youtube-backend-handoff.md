@@ -2,7 +2,7 @@
 
 **Prepared:** 2026-07-18  
 **Repository:** `qinjiexu8-bot/Pullvio`  
-**Status:** backend implemented and deployed; public media processing intentionally disabled  
+**Status:** backend implemented and deployed; public media processing explicitly enabled on 2026-07-18
 **Primary blocker:** YouTube rejects the current AWS data-center egress before media processing begins
 
 ## 1. Executive summary
@@ -28,10 +28,10 @@ not. YouTube returns `LOGIN_REQUIRED` / `Sign in to confirm you are not a bot`
 for the existing AWS Elastic IP, a newly allocated Elastic IP, the recommended
 `mweb + PO Token` configuration, and three alternative player clients.
 
-Do **not** enable `media_runtime_config.accepting_jobs` until the source egress
-question is resolved and an authorized end-to-end YouTube test succeeds. The
-recommended long-term design is a separate YouTube worker with an accepted ISP
-egress, while AWS remains the control plane, queue, storage, and delivery layer.
+The user explicitly enabled `media_runtime_config.accepting_jobs` after an
+authorized Vimeo end-to-end test succeeded. YouTube remains unavailable on the
+current AWS egress and must not be advertised as working. The recommended
+long-term design remains a separate YouTube worker with an accepted ISP egress.
 
 ## 2. Current architecture
 
@@ -135,22 +135,21 @@ Pullvio. The current distinction is:
 
 | Platform | Extractor in deployed yt-dlp | Pullvio allowlist/integration | EC2 result | Public UI |
 | --- | --- | --- | --- | --- |
-| TikTok | yes | yes | public example parsed successfully | disabled by global gate |
+| TikTok | yes | yes | public example parsed successfully | enabled; monitor success rate |
 | YouTube | yes | yes | rejected by YouTube on AWS egress | disabled |
 | Bilibili / BiliIntl | yes | no | HTTP 412 from US AWS egress | disabled |
 | Douyin | yes | no | requires fresh cookies; rejected by current security model | disabled |
-| Vimeo | yes | yes | CC BY single video parsed successfully | global gate off; web pending deployment |
+| Vimeo | yes | yes | CC BY single video completed end to end | enabled |
 | Instagram | yes; some sub-extractors currently broken | no | not tested | disabled |
 | Facebook | yes | no | not tested | disabled |
 | X / Twitter | yes | no | official samples failed at platform endpoints | disabled |
-| SoundCloud | yes | yes, audio only | CC BY single track parsed successfully | global gate off; web pending deployment |
+| SoundCloud | yes | yes, audio only | CC BY single track parsed successfully | enabled, audio only |
 | Reddit | yes | no | requires account cookies | disabled |
 
 Strict product status: YouTube, TikTok, Vimeo, and SoundCloud are integrated in
-backend code. TikTok, Vimeo, and SoundCloud have passed EC2 metadata probes. No
-platform is publicly downloadable while the global production gate remains off.
-Bilibili, Douyin, Reddit, and X/Twitter were probed at low frequency but did not
-pass the integration gate.
+backend code. Vimeo has passed an authorized end-to-end download; TikTok and
+SoundCloud have passed EC2 metadata probes. The global gate is open. YouTube is
+still blocked on AWS egress. Bilibili, Douyin, Reddit, and X/Twitter remain disabled.
 
 ### Bilibili and Douyin probe results
 
@@ -195,9 +194,12 @@ or writing to S3:
 - Reddit: public post extraction required account cookies, so it remains disabled;
 - X/Twitter: official public samples failed at platform endpoints, so it remains disabled.
 
-The database platform constraint and EC2 Worker image
-`pullvio/media-worker:2026-07-18` are deployed. The Vercel API changes still need
-the repository's next web deployment. The production job gate remains disabled.
+The database platform constraint, Vercel API, and EC2 Worker image
+`pullvio/media-worker:2026-07-18` are deployed. The production job gate is open.
+The first Vimeo end-to-end test exposed and fixed a subprocess pipe deadlock:
+the Worker now drains large stdout/stderr streams while retaining heartbeat,
+cancellation, and timeout checks. The successful 720p result was 16,249,144
+bytes, CloudFront returned `200 video/mp4`, and direct S3 access returned `403`.
 
 ### Quotas and concurrency
 
@@ -212,7 +214,8 @@ the repository's next web deployment. The production job gate remains disabled.
 ### Kill switch
 
 The production database setting `media_runtime_config.accepting_jobs` is
-currently disabled. A valid production submission returns:
+currently enabled by explicit user decision. Set it to `false` for an emergency
+stop; valid submissions will then return:
 
 ```json
 {
@@ -495,8 +498,8 @@ Useful health expectations:
 - `pullvio-media-worker` is running;
 - `pullvio-pot-provider` is running and only shows `4416/tcp`, never a host
   mapping such as `0.0.0.0:4416`;
-- SQS visible and in-flight counts are zero while the service is gated;
-- the public submission API returns `503 SERVICE_DISABLED`;
+- SQS visible and in-flight counts return to zero while the service is idle;
+- valid Vimeo requests enter the queue; after an emergency stop the API returns `503 SERVICE_DISABLED`;
 - the provider cannot reach `169.254.169.254`;
 - the EC2 egress IP remains `3.212.192.122`.
 
@@ -534,14 +537,14 @@ Before anyone enables public processing, all of the following should be true:
 - [ ] one authorized YouTube job completes end to end;
 - [ ] the multi-video pilot meets the success-rate threshold;
 - [ ] metadata and media segments use the same sticky egress;
-- [ ] S3 remains private and CloudFront signed delivery still passes;
+- [x] S3 remains private and CloudFront signed delivery passes;
 - [ ] cost and bandwidth alarms are configured;
 - [ ] source-block and rate-limit circuit breakers are active;
 - [ ] concurrency and output-size limits are reviewed;
 - [ ] worker scratch cleanup and S3 lifecycle rules are verified;
 - [ ] tests, typecheck, lint, and production build pass;
 - [ ] rollout starts with staff or an explicit allowlist;
-- [ ] `accepting_jobs` is enabled only after an explicit release decision.
+- [x] `accepting_jobs` was enabled by explicit user decision; YouTube remains a separate unresolved release risk.
 
 ## 14. Legal and product boundary
 

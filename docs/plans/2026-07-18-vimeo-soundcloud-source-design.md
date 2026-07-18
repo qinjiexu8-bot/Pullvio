@@ -23,4 +23,8 @@ Both new platforms use the existing quota, concurrency, duration, file-size, SQS
 - Unit tests cover accepted hosts, rejected collection URLs, SoundCloud audio-only enforcement, and the Worker duplicate allowlist.
 - TypeScript, Python Worker tests, production build, and migration lint checks must pass.
 - EC2 metadata probes must succeed without cookies before deployment.
-- A fully authorized end-to-end file test remains required before the global production gate can be enabled.
+- An authorized Vimeo end-to-end test completed successfully before the global production gate was enabled.
+
+## Runtime pipe handling
+
+The first authorized Vimeo end-to-end test exposed a subprocess pipe deadlock: yt-dlp produced a metadata JSON document larger than the operating-system pipe buffer, while the Worker waited for process exit before reading stdout and stderr. The Worker now calls `communicate()` with short timeouts so both pipes are continuously drained while the existing heartbeat, cancellation, lease, and command-timeout checks continue to run. A regression test writes 200 KB to stdout and must complete within five seconds.

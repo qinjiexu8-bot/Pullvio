@@ -270,13 +270,14 @@ class MediaWorker:
         )
         deadline = time.monotonic() + timeout
         next_heartbeat = time.monotonic() + 30
-        while process.poll() is None:
+        while True:
+            try:
+                stdout, stderr = process.communicate(timeout=1)
+                break
+            except subprocess.TimeoutExpired:
+                pass
             if STOP or time.monotonic() >= deadline:
-                process.terminate()
-                try:
-                    process.wait(timeout=10)
-                except subprocess.TimeoutExpired:
-                    process.kill()
+                self._stop_process(process)
                 raise WorkerError("PROCESSING_TIMEOUT", "Media command exceeded its time limit", retryable=True)
             if time.monotonic() >= next_heartbeat:
                 should_cancel = self.database.rpc(
@@ -284,7 +285,7 @@ class MediaWorker:
                     {"p_job_id": job_id, "p_worker_id": self.config.worker_id},
                 )
                 if should_cancel is True:
-                    process.terminate()
+                    self._stop_process(process)
                     raise WorkerError("CANCELED", "Job was canceled")
                 self.database.rpc(
                     "heartbeat_media_job",
@@ -300,12 +301,19 @@ class MediaWorker:
                     VisibilityTimeout=self.config.lease_seconds,
                 )
                 next_heartbeat = time.monotonic() + 30
-            time.sleep(1)
 
-        stdout, stderr = process.communicate()
         if process.returncode != 0:
             raise classify_yt_dlp_failure(stderr, process.returncode)
         return stdout
+
+    @staticmethod
+    def _stop_process(process: subprocess.Popen[str]):
+        process.terminate()
+        try:
+            process.communicate(timeout=10)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.communicate()
 
     def _wait_for_source_slot(self):
         interval = max(float(self.config.source_min_interval_seconds), 0.0)

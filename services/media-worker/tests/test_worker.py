@@ -51,6 +51,17 @@ class WorkerLifecycleTests(unittest.TestCase):
         worker._sleep.assert_called_once_with(5.0)
         self.assertEqual(worker._last_source_started_at, 105.0)
 
+    def test_run_drains_large_stdout_without_pipe_deadlock(self):
+        worker = MediaWorker.__new__(MediaWorker)
+        output = worker._run(
+            JOB_ID,
+            "unused-receipt",
+            [sys.executable, "-c", "import sys; sys.stdout.write('x' * 200000)"],
+            timeout=5,
+        )
+
+        self.assertEqual(len(output), 200000)
+
 
 if __name__ == "__main__":
     unittest.main()
