@@ -20,7 +20,9 @@ The database atomically copies only artifact metadata into
 the newly owned job; the private S3 objects themselves are shared until their
 original 24-hour expiry. A cache hit marks the new job ready and bypasses SQS.
 
-Every requester still receives a distinct job row. Artifact delivery continues
+The cache lookup is global across authenticated and anonymous owners; it contains no
+owner filter. Every requester still receives a distinct, owner-scoped job row.
+Artifact delivery continues
 through the owner-authorized API and short-lived signed CloudFront URLs. The lookup
 does not expose the source job or its owner, and cache hits continue to count toward
 guest quotas and account activity.

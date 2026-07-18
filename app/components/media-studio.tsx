@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { homeContent, localePath, type Locale } from "@/lib/i18n";
+import { needsDownloadDetails } from "@/lib/media/client-job";
 
 type JobStatus = "idle" | "submitting" | "queued" | "processing" | "ready" | "failed" | "canceled";
 
@@ -199,10 +200,22 @@ export default function MediaStudio({ locale, placeholder, audioOnly = false }: 
         setErrorCode(payload.error?.code ?? "default");
         return;
       }
+      let submittedJob = payload.job;
+      if (needsDownloadDetails(submittedJob)) {
+        try {
+          const detailResponse = await fetch(`/api/media/jobs/${submittedJob.id}`, { cache: "no-store" });
+          if (!detailResponse.ok) throw new Error("job details unavailable");
+          const detailPayload = (await detailResponse.json()) as { job: MediaJob };
+          submittedJob = detailPayload.job;
+        } catch {
+          // Keep the durable job polling until its signed artifact links can be read.
+          submittedJob = { ...submittedJob, status: "processing" };
+        }
+      }
       pollAttempts.current = 0;
       setRemaining(payload.quota?.remaining ?? null);
-      setJob(payload.job);
-      setStatus(payload.job.status);
+      setJob(submittedJob);
+      setStatus(submittedJob.status);
     } catch {
       setStatus("failed");
       setErrorCode("default");
