@@ -32,7 +32,7 @@ export default function PlatformDownloaderPage({ slug, locale = "en" }: { slug: 
     "@graph": [
       {
         "@type": "WebApplication",
-        name: `${tool.platform} Video Downloader by Pullvio`,
+        name: `${tool.platform} ${tool.audioOnly ? "Audio" : "Video"} Downloader by Pullvio`,
         url: pageUrl,
         description: t.description,
         applicationCategory: "MultimediaApplication",
@@ -80,7 +80,7 @@ export default function PlatformDownloaderPage({ slug, locale = "en" }: { slug: 
             <p>{t.intro}</p>
             <ul>{t.benefits.map((benefit) => <li key={benefit}><Check size={16} />{benefit}</li>)}</ul>
           </div>
-          <MediaStudio locale={locale} placeholder={t.placeholder} />
+          <MediaStudio locale={locale} placeholder={t.placeholder} audioOnly={tool.audioOnly} />
         </div>
       </section>
 

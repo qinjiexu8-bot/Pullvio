@@ -41,7 +41,7 @@ const jobCopy = {
     signIn: "Sign in to continue",
     errors: {
       INVALID_URL: "Paste a complete HTTPS media link.",
-      UNSUPPORTED_SOURCE: "Pullvio currently supports public YouTube, TikTok, Vimeo, and SoundCloud links.",
+      UNSUPPORTED_SOURCE: "Pullvio currently supports public TikTok, Vimeo, and SoundCloud links.",
       AUDIO_ONLY_SOURCE: "SoundCloud links are available in Audio mode. Select Audio and try again.",
       QUOTA_EXCEEDED: "You’ve used five guest downloads in the last 24 hours.",
       ACTIVE_JOB_LIMIT: "Wait for your current job to finish before starting another.",
@@ -68,7 +68,7 @@ const jobCopy = {
     signIn: "登录后继续",
     errors: {
       INVALID_URL: "请粘贴完整的 HTTPS 媒体链接。",
-      UNSUPPORTED_SOURCE: "Pullvio 目前支持公开的 YouTube、TikTok、Vimeo 和 SoundCloud 链接。",
+      UNSUPPORTED_SOURCE: "Pullvio 目前支持公开的 TikTok、Vimeo 和 SoundCloud 链接。",
       AUDIO_ONLY_SOURCE: "SoundCloud 链接仅支持音频模式，请选择“音频”后重试。",
       QUOTA_EXCEEDED: "过去 24 小时内，访客的 5 次下载额度已用完。",
       ACTIVE_JOB_LIMIT: "请等待当前任务完成后再提交新任务。",
@@ -95,7 +95,7 @@ const jobCopy = {
     signIn: "Inicia sesión para continuar",
     errors: {
       INVALID_URL: "Pega un enlace multimedia HTTPS completo.",
-      UNSUPPORTED_SOURCE: "Pullvio admite enlaces públicos de YouTube, TikTok, Vimeo y SoundCloud.",
+      UNSUPPORTED_SOURCE: "Pullvio admite enlaces públicos de TikTok, Vimeo y SoundCloud.",
       AUDIO_ONLY_SOURCE: "Los enlaces de SoundCloud solo están disponibles en el modo Audio.",
       QUOTA_EXCEEDED: "Has usado las cinco descargas de invitado en las últimas 24 horas.",
       ACTIVE_JOB_LIMIT: "Espera a que termine la tarea actual antes de iniciar otra.",
@@ -110,11 +110,11 @@ const jobCopy = {
   },
 } as const;
 
-export default function MediaStudio({ locale, placeholder }: { locale: Locale; placeholder?: string }) {
+export default function MediaStudio({ locale, placeholder, audioOnly = false }: { locale: Locale; placeholder?: string; audioOnly?: boolean }) {
   const t = homeContent[locale].studio;
   const copy = jobCopy[locale];
   const [url, setUrl] = useState("");
-  const [mode, setMode] = useState<"video" | "audio">("video");
+  const [mode, setMode] = useState<"video" | "audio">(audioOnly ? "audio" : "video");
   const [status, setStatus] = useState<JobStatus>("idle");
   const [job, setJob] = useState<MediaJob | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
@@ -233,7 +233,7 @@ export default function MediaStudio({ locale, placeholder }: { locale: Locale; p
       <div className="studio">
         <div className="studio-topline">
           <div className="mode-switch">
-            <button className={mode === "video" ? "active" : ""} onClick={() => setMode("video")} type="button" disabled={status === "submitting" || status === "queued" || status === "processing"}><Video size={16} />{t.video}</button>
+            {!audioOnly && <button className={mode === "video" ? "active" : ""} onClick={() => setMode("video")} type="button" disabled={status === "submitting" || status === "queued" || status === "processing"}><Video size={16} />{t.video}</button>}
             <button className={mode === "audio" ? "active" : ""} onClick={() => setMode("audio")} type="button" disabled={status === "submitting" || status === "queued" || status === "processing"}><Headphones size={16} />{t.audio}</button>
           </div>
           <span className="quota"><span />{quotaText}</span>
@@ -272,7 +272,7 @@ export default function MediaStudio({ locale, placeholder }: { locale: Locale; p
           </div>
         )}
 
-        <div className="studio-footer"><p><LockKeyhole size={15} />{t.legal}</p><div><span>MP4</span><span>MP3</span><span>4K <b>SOURCE</b></span></div></div>
+        <div className="studio-footer"><p><LockKeyhole size={15} />{t.legal}</p><div>{audioOnly ? <><span>MP3</span><span>SOURCE <b>AUDIO</b></span></> : <><span>MP4</span><span>MP3</span><span>4K <b>SOURCE</b></span></>}</div></div>
       </div>
     </div>
   );

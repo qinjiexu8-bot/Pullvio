@@ -8,11 +8,11 @@ type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   if (!isLocale(locale) || locale === "en") return {};
-  return platformMetadata("youtube-video-downloader", locale);
+  return platformMetadata("vimeo-video-downloader", locale);
 }
 
-export default async function LocalizedYouTubeVideoDownloaderPage({ params }: Props) {
+export default async function LocalizedVimeoVideoDownloaderPage({ params }: Props) {
   const { locale } = await params;
   if (!isLocale(locale) || locale === "en") notFound();
-  return <PlatformDownloaderPage slug="youtube-video-downloader" locale={locale as Locale} />;
+  return <PlatformDownloaderPage slug="vimeo-video-downloader" locale={locale as Locale} />;
 }

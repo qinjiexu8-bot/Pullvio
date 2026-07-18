@@ -26,14 +26,12 @@ import {
 import { useEffect, useState } from "react";
 import { blogIndexCopy, blogPosts } from "@/lib/blog";
 import { homeContent, localePath, type Locale } from "@/lib/i18n";
+import { publicPlatforms } from "@/lib/public-platforms";
 import LanguageMenu from "./language-menu";
 import MediaStudio from "./media-studio";
 import SiteFooter from "./site-footer";
 
-const platforms = [
-  ["YouTube", "/youtube-video-downloader"],
-  ["TikTok", "/tiktok-video-downloader"],
-] as const;
+const platforms = publicPlatforms.map(({ platform, slug }) => [platform, `/${slug}`] as const);
 const stepIcons = [Link2, WandSparkles, ArrowDownToLine];
 const featureIcons = [ShieldCheck, Gauge, Layers3];
 const useCaseIcons = [MonitorSmartphone, Music2, FolderArchive];

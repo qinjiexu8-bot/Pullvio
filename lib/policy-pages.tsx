@@ -17,7 +17,7 @@ export const policyPages: Record<string, PolicyPage> = {
       <ul><li>Explain formats and available quality in plain language.</li><li>Respect source quality instead of promising artificial resolution.</li><li>Make permission and responsible use visible in the main workflow.</li><li>Explain temporary-file handling and deletion behavior.</li><li>Keep the free experience understandable on mobile and desktop.</li></ul>
       <h2 id="editorial-standards">Editorial standards</h2>
       <p>Pullvio guides are written and reviewed by the Pullvio Editorial Team. Technical articles distinguish documented behavior from inference, link to primary specifications where practical, and state product limits instead of presenting unverified features as facts. Material changes receive a new reviewed date; dates are not changed solely to make an article appear fresh.</p>
-      <div className="content-callout"><strong>Independent product</strong><p>Pullvio is not affiliated with YouTube, TikTok, Vimeo, X, SoundCloud, or any other media platform. Platform names are used only to describe compatibility.</p></div>
+      <div className="content-callout"><strong>Independent product</strong><p>Pullvio is not affiliated with TikTok, Vimeo, SoundCloud, or any other media platform. Platform names are used only to describe compatibility.</p></div>
     </>,
   },
   contact: {

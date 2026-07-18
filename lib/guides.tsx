@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export type Guide = { slug: string; title: string; description: string; eyebrow: string; readingTime: string; body: ReactNode };
 
-export const guides: Guide[] = [
+const allGuides: Guide[] = [
   {
     slug: "mp4-vs-mp3", eyebrow: "FORMAT GUIDE", title: "MP4 vs MP3: which format should you choose?", readingTime: "6 min read",
     description: "Compare MP4 video and MP3 audio by purpose, compatibility, quality, editing needs, and storage so you can choose the right format before saving permitted media.",
@@ -30,5 +30,7 @@ export const guides: Guide[] = [
     body: <><p>TikTok is built on short-form, highly shareable video and audio trends. While the app makes sharing easy, saving clips to your device as MP4 files or extracting audio as MP3 requires understanding both built-in features and creator permissions. A respectful workflow helps protect original content creators.</p><h2>1. Use TikTok's native "Save Video" option</h2><p>By default, TikTok includes a built-in download feature. If a creator allows it, you can save their video directly to your phone's camera roll by tapping the "Share" icon and selecting "Save Video." The saved file will contain the video, audio, and a watermark displaying the creator's username. This official method respects the creator's choice to let users keep their work.</p><h2>2. Extract audio to MP3 for reference</h2><p>When you want to save a music track, voiceover, or sound effect from a video for reference or study, you can extract the audio as an MP3. Remember that converting audio to MP3 does not grant ownership. Use the audio file only for personal reference or authorized audio projects. Do not republish songs or copy creators' original voices without their permission.</p><h2>3. Respect creator download settings</h2><p>Creators have the right to turn off the "Save Video" setting for their uploads. If a creator has disabled direct downloads, it is a clear expression of their desire to keep their media within TikTok's ecosystem. Respect their preference and do not use technical workarounds to bypass their sharing settings.</p><h2>4. Handle copyright and fair use</h2><p>Many TikTok videos incorporate copyrighted commercial music. While TikTok has licenses to play these tracks within the app, downloading the video to your device and republishing it elsewhere may violate copyright laws. Ensure you have the right to distribute any audio tracks contained within a saved file.</p><h2>5. Give proper credit to creators</h2><p>If you have permission to reuse a saved TikTok video (for example, in a reaction video or commentary), always attribute the original creator by tagging their username and linking to the source URL. Respecting creator attribution is a fundamental rule of responsible media use.</p><div className="content-callout"><strong>Quick checklist</strong><p>Did the creator enable native saving? Are you using the audio purely for study or reference? Will you credit the creator if you share the clip? Following these guidelines ensures responsible saving.</p></div></>,
   },
 ];
+
+export const guides = allGuides.filter(({ slug }) => slug !== "save-youtube-videos");
 
 export function getGuide(slug: string) { return guides.find((guide) => guide.slug === slug); }

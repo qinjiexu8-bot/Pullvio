@@ -27,6 +27,6 @@ export function platformMetadata(slug: PlatformSlug, locale: Locale): Metadata {
     },
     twitter: { card: "summary_large_image", title: content.title, description: content.description },
     robots: { index: true, follow: true },
-    category: `${platform} video downloader`,
+    category: `${platform} ${platform === "SoundCloud" ? "audio" : "video"} downloader`,
   };
 }

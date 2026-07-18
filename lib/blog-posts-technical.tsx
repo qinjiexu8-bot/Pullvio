@@ -263,8 +263,8 @@ export const technicalBlogPosts: BlogPost[] = [
                 <strong>Try the workflow responsibly</strong>
                 <p>
                   Use Pullvio’s{" "}
-                  <Link href="/youtube-video-downloader">
-                    YouTube video downloader
+                  <Link href="/vimeo-video-downloader">
+                    Vimeo video downloader
                   </Link>{" "}
                   or{" "}
                   <Link href="/tiktok-video-downloader">
@@ -423,8 +423,8 @@ export const technicalBlogPosts: BlogPost[] = [
                 <strong>负责任地体验处理流程</strong>
                 <p>
                   请仅使用{" "}
-                  <Link href="/zh-cn/youtube-video-downloader">
-                    YouTube 视频下载器
+                  <Link href="/zh-cn/vimeo-video-downloader">
+                    Vimeo 视频下载器
                   </Link>
                   或{" "}
                   <Link href="/zh-cn/tiktok-video-downloader">
@@ -584,8 +584,8 @@ export const technicalBlogPosts: BlogPost[] = [
                 <strong>Utiliza fuentes autorizadas</strong>
                 <p>
                   Prueba el{" "}
-                  <Link href="/es/youtube-video-downloader">
-                    descargador de YouTube
+                  <Link href="/es/vimeo-video-downloader">
+                    descargador de Vimeo
                   </Link>{" "}
                   o el{" "}
                   <Link href="/es/tiktok-video-downloader">
