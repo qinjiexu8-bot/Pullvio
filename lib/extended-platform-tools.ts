@@ -92,6 +92,11 @@ const configs = {
     platform: "Snapchat",
     searchName: "Snapchat Spotlight video",
     relatedSlug: "okru-video-downloader",
+    keywords: {
+      en: ["snapchat video downloader", "snapchat story downloader", "snapchat spotlight downloader", "download snapchat video", "snapchat to mp4", "snapchat to mp3"],
+      "zh-cn": ["Snapchat视频下载器", "Snapchat视频下载", "Snapchat Story下载", "Snapchat Spotlight下载", "Snapchat转MP4", "Snapchat转MP3"],
+      es: ["descargador de videos de snapchat", "descargar stories de snapchat", "descargador de snapchat spotlight", "descargar video snapchat", "snapchat a mp4", "snapchat a mp3"],
+    },
     details: {
       en: { subject: "Snapchat Spotlight video or public Story", accepted: "a direct public Snapchat Spotlight or Story link", excluded: "profiles, chat media, private Snaps, friends-only Stories, expired Stories, and deleted posts", useCase: "your own Spotlight uploads, public Stories, or posts the creator authorizes you to save", quality: "the public video rendition available for that Snapchat item" },
       "zh-cn": { subject: "Snapchat Spotlight 视频或公开 Story", accepted: "公开 Snapchat Spotlight 或 Story 直达链接", excluded: "个人主页、聊天媒体、私人 Snap、仅好友 Story、已过期 Story 和已删除内容", useCase: "自己的 Spotlight、公开 Story 或创作者授权保存的帖子", quality: "该 Snapchat 公开内容当前实际提供的视频版本" },
