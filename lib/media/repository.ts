@@ -57,6 +57,14 @@ export async function markMediaJobDispatched(jobId: string) {
   return data;
 }
 
+export async function reuseCachedMediaJob(jobId: string) {
+  const { data, error } = await createAdminClient().rpc("reuse_cached_media_job", {
+    p_job_id: jobId,
+  });
+  if (error) throw new Error(`Could not reuse cached media job: ${error.code}`);
+  return data;
+}
+
 export async function failUndispatchedMediaJob(jobId: string) {
   const { data, error } = await createAdminClient().rpc("fail_undispatched_media_job", {
     p_job_id: jobId,

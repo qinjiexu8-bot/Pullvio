@@ -26,7 +26,7 @@ const accountCopy = {
   },
 } as const;
 
-export default async function AccountPage({ locale }: { locale: Locale }) {
+export default async function AccountPage({ locale, page, pageSize }: { locale: Locale; page: number; pageSize: number }) {
   const t = accountCopy[locale];
   const { userId } = await auth();
   if (!userId) redirect(localePath(locale, "/login"));
@@ -39,6 +39,7 @@ export default async function AccountPage({ locale }: { locale: Locale }) {
   let recentJobs: Array<{
     id: string; source_url: string; source_host: string; title: string | null; media_kind: string; requested_format: string; requested_quality: string; status: string; file_size_bytes: number | null; failure_code: string | null; created_at: string; artifacts?: Array<{ kind: string; contentType: string; fileSizeBytes: number; expiresAt: string | null; downloadUrl: string }>;
   }> = [];
+  let totalJobs = 0;
   let hasDataError = false;
 
   if (supabase) {
@@ -63,12 +64,18 @@ export default async function AccountPage({ locale }: { locale: Locale }) {
     }
 
     const jobsResult = await supabase.from("download_jobs")
-      .select("id, source_url, source_host, title, media_kind, requested_format, requested_quality, status, file_size_bytes, failure_code, created_at")
+      .select("id, source_url, source_host, title, media_kind, requested_format, requested_quality, status, file_size_bytes, failure_code, created_at", { count: "exact" })
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(20);
+      .order("id", { ascending: false })
+      .range((page - 1) * pageSize, page * pageSize - 1);
     recentJobs = jobsResult.data ?? [];
+    totalJobs = jobsResult.count ?? 0;
     hasDataError ||= Boolean(jobsResult.error);
+    const totalPages = Math.max(1, Math.ceil(totalJobs / pageSize));
+    if (!jobsResult.error && totalJobs > 0 && page > totalPages) {
+      redirect(`${localePath(locale, "/account")}?page=${totalPages}&pageSize=${pageSize}`);
+    }
     const readyJobIds = recentJobs.filter((job) => job.status === "ready").map((job) => job.id);
     if (readyJobIds.length > 0) {
       const artifactsResult = await createAdminClient().from("download_artifacts")
@@ -132,7 +139,7 @@ export default async function AccountPage({ locale }: { locale: Locale }) {
           </div>
         </section>
 
-        <DownloadHistory locale={locale} initialJobs={recentJobs} copy={{ eyebrow: t.downloads, title: t.downloadsTitle, description: t.downloadsCopy, empty: t.emptyHistory, emptyCopy: t.emptyHistoryCopy, start: t.start, delete: t.delete, deleteError: t.deleteError, retention: t.retention, artifact: t.artifact }} />
+        <DownloadHistory key={`${page}-${pageSize}`} locale={locale} initialJobs={recentJobs} page={page} pageSize={pageSize} totalJobs={totalJobs} copy={{ eyebrow: t.downloads, title: t.downloadsTitle, description: t.downloadsCopy, empty: t.emptyHistory, emptyCopy: t.emptyHistoryCopy, start: t.start, delete: t.delete, deleteError: t.deleteError, retention: t.retention, artifact: t.artifact }} />
       </section>
     </main>
   );

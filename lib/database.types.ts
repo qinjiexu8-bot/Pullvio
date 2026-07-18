@@ -484,6 +484,10 @@ export type Database = {
           result_code: string
         }[]
       }
+      reuse_cached_media_job: {
+        Args: { p_job_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

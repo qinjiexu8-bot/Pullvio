@@ -13,6 +13,7 @@ import {
   failUndispatchedMediaJob,
   markMediaJobDispatched,
   reserveMediaJob,
+  reuseCachedMediaJob,
 } from "@/lib/media/repository";
 
 export const runtime = "nodejs";
@@ -42,7 +43,12 @@ export async function POST(request: NextRequest) {
       return attachAnonymousCookie(response, identity.anonymousCookieValue);
     }
 
+    let cacheHit = false;
     if (!reservation.duplicate) {
+      cacheHit = await reuseCachedMediaJob(reservation.jobId).catch(() => false);
+    }
+
+    if (!reservation.duplicate && !cacheHit) {
       try {
         await dispatchMediaJob(reservation.jobId);
         await markMediaJobDispatched(reservation.jobId);
@@ -60,8 +66,9 @@ export async function POST(request: NextRequest) {
       {
         job: {
           id: reservation.jobId,
-          status: reservation.status,
+          status: cacheHit ? "ready" : reservation.status,
           createdAt: reservation.createdAt,
+          cacheHit,
         },
         quota: {
           authenticated: identity.owner.kind === "user",
