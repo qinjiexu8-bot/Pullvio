@@ -108,7 +108,7 @@ export const localizedContent = {
     heroTitle: "免费在线视频下载。",
     heroAccent: "保留原始画质，最高支持 4K。",
     heroCopy:
-      "粘贴公开视频链接，将您拥有或获得授权的内容下载为 MP4，或者提取为 MP3 音频。无需登录可完成 5 次下载；登录免费账号后可在合理使用范围内继续下载。",
+      "支持 YouTube、TikTok、Instagram、Facebook、Vimeo、SoundCloud 等主流平台。粘贴您拥有或获得授权的公开链接，可下载为 MP4 或提取 MP3 音频。无需登录可完成 5 次下载；登录免费账号后可在合理使用范围内继续下载。",
     trustTitle: "快速、私密、浏览器直接使用",
     trustCopy: "无需安装 · 没有弹窗 · 没有虚假按钮",
     supported: "平台专用下载工具",
@@ -190,7 +190,7 @@ export const localizedContent = {
     heroTitle: "Descarga videos online.",
     heroAccent: "Calidad original, hasta 4K.",
     heroCopy:
-      "Pega un enlace público para descargar contenido autorizado en MP4 o extraer audio MP3. Haz cinco descargas sin iniciar sesión o crea una cuenta gratuita para continuar dentro de un uso razonable.",
+      "Compatible con enlaces públicos de YouTube, TikTok, Instagram, Facebook, Vimeo, SoundCloud y más. Descarga contenido autorizado en MP4 o extrae audio MP3. Haz cinco descargas sin iniciar sesión o crea una cuenta gratuita para continuar dentro de un uso razonable.",
     trustTitle: "Rápido, privado y desde el navegador",
     trustCopy: "Sin instalar · sin ventanas emergentes · sin botones falsos",
     supported: "Herramientas por plataforma",
@@ -270,7 +270,7 @@ export const homeContent = {
     announcement: "No fixed download cap with a free account",
     heroTitle: "Free online video downloader.",
     heroAccent: "Original quality, up to 4K.",
-    heroCopy: "Paste a public media link to download authorized content as MP4 or extract MP3 audio. Complete five downloads without signing in, or create a free account to continue within fair-use limits.",
+    heroCopy: "Works with public links from YouTube, TikTok, Instagram, Facebook, Vimeo, SoundCloud, and more. Download authorized video as MP4 or extract MP3 audio. Complete five downloads without signing in, or create a free account to continue within fair-use limits.",
     trustTitle: "Fast, private, and browser-based",
     trustCopy: "No install · no pop-ups · no fake buttons",
     supported: "PLATFORM-SPECIFIC DOWNLOADERS",
