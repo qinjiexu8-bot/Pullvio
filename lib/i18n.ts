@@ -106,7 +106,7 @@ export const localizedContent = {
     accountCta: "创建免费账号",
     announcement: "登录免费账号后，不设固定下载次数",
     heroTitle: "免费在线视频下载。",
-    heroAccent: "下载高清与 4K 视频。",
+    heroAccent: "保留原始画质，最高支持 4K。",
     heroCopy:
       "粘贴公开视频链接，将您拥有或获得授权的内容下载为 MP4，或者提取为 MP3 音频。无需登录可完成 5 次下载；登录免费账号后可在合理使用范围内继续下载。",
     trustTitle: "快速、私密、浏览器直接使用",
@@ -188,7 +188,7 @@ export const localizedContent = {
     accountCta: "Crear cuenta gratis",
     announcement: "Sin límite fijo con una cuenta gratuita",
     heroTitle: "Descarga videos online.",
-    heroAccent: "Descarga videos en HD y 4K.",
+    heroAccent: "Calidad original, hasta 4K.",
     heroCopy:
       "Pega un enlace público para descargar contenido autorizado en MP4 o extraer audio MP3. Haz cinco descargas sin iniciar sesión o crea una cuenta gratuita para continuar dentro de un uso razonable.",
     trustTitle: "Rápido, privado y desde el navegador",
@@ -269,7 +269,7 @@ export const homeContent = {
     accountCta: "Create free account",
     announcement: "No fixed download cap with a free account",
     heroTitle: "Free online video downloader.",
-    heroAccent: "Download videos in HD and 4K.",
+    heroAccent: "Original quality, up to 4K.",
     heroCopy: "Paste a public media link to download authorized content as MP4 or extract MP3 audio. Complete five downloads without signing in, or create a free account to continue within fair-use limits.",
     trustTitle: "Fast, private, and browser-based",
     trustCopy: "No install · no pop-ups · no fake buttons",
