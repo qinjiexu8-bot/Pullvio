@@ -67,15 +67,23 @@ const themeScript = `
 
 const schemaData = {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Pullvio",
-  "operatingSystem": "All",
-  "applicationCategory": "MultimediaApplication",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
-  }
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://pullvio.com/#organization",
+      "name": "Pullvio",
+      "url": "https://pullvio.com/",
+      "logo": "https://pullvio.com/icon.svg",
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://pullvio.com/#website",
+      "name": "Pullvio",
+      "url": "https://pullvio.com/",
+      "publisher": { "@id": "https://pullvio.com/#organization" },
+      "inLanguage": ["en", "zh-CN", "es"],
+    },
+  ],
 };
 
 const zhClerkLocalization = {

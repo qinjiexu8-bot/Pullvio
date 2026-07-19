@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
   const labels: Record<string, string> = { login: "Sign in", signup: "Create account", "forgot-password": "Reset password", "reset-password": "Choose a new password" };
-  return { title: `${labels[auth] || "Account"} | Pullvio`, robots: { index: false, follow: false } };
+  return { title: `${labels[auth] || "Account"} | Pullvio`, robots: { index: false, follow: true } };
 }
 
 export default async function LocalizedAuthPage({ params }: Props) {

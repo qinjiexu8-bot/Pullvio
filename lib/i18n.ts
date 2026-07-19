@@ -30,6 +30,7 @@ const localizedRoutes = new Set([
   "/contact",
   "/blog",
   "/guides",
+  "/youtube-video-downloader",
   "/tiktok-video-downloader",
   "/instagram-video-downloader",
   "/facebook-video-downloader",

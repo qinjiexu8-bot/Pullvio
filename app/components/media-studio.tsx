@@ -371,7 +371,7 @@ export default function MediaStudio({
               {status === "ready" && job?.artifacts?.map((artifact) => <a key={artifact.kind} href={artifact.downloadUrl}><Download size={17} />{copy.artifact[artifact.kind]}</a>)}
               {status === "ready" && !job?.artifacts?.length && job?.downloadUrl && <a href={job.downloadUrl}><Download size={17} />{t.download}</a>}
               {(status === "failed" || status === "canceled" || (status === "ready" && !job?.downloadUrl)) && <button type="button" onClick={reset}><RotateCcw size={17} />{copy.retry}</button>}
-              {status === "failed" && errorCode === "QUOTA_EXCEEDED" && <a href={localePath(locale, "/auth/sign-in")}>{copy.signIn}</a>}
+              {status === "failed" && errorCode === "QUOTA_EXCEEDED" && <a href={localePath(locale, "/login")}>{copy.signIn}</a>}
             </div>
           </div>
         )}
