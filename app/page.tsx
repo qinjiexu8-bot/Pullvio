@@ -1,20 +1,18 @@
+import type { Metadata } from "next";
 import LocalizedHome from "./components/localized-home";
 
-const structuredData = {
-  "@context": "https://schema.org",
-  "@graph": [
-    { "@type": "WebSite", "@id": "https://pullvio.com/#website", name: "Pullvio", url: "https://pullvio.com/" },
-    {
-      "@type": "Organization",
-      "@id": "https://pullvio.com/#organization",
-      name: "Pullvio",
-      url: "https://pullvio.com/",
-      logo: "https://pullvio.com/icon.svg",
-      email: "hello@pullvio.com",
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+    languages: {
+      en: "/",
+      "zh-CN": "/zh-cn",
+      es: "/es",
+      "x-default": "/",
     },
-  ],
+  },
 };
 
 export default function Home() {
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><LocalizedHome locale="en" /></>;
+  return <LocalizedHome locale="en" />;
 }

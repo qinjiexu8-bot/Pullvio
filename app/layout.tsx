@@ -23,15 +23,6 @@ export const metadata: Metadata = {
   title: "Free Online Video Downloader - Download MP4 & MP3 | Pullvio",
   description: "Easily download public videos from URLs to MP4, convert links to MP3, and keep original quality up to 4K. Pullvio works directly in your browser without any installation.",
   keywords: ["online video downloader", "download video from link", "link to mp4 converter", "extract audio from video", "free video downloader"],
-  alternates: {
-    canonical: "/",
-    languages: {
-      en: "/",
-      "zh-CN": "/zh-cn",
-      es: "/es",
-      "x-default": "/",
-    },
-  },
   openGraph: {
     type: "website",
     url: "https://pullvio.com/",

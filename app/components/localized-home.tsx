@@ -185,7 +185,18 @@ export default function LocalizedHome({ locale }: { locale: Locale }) {
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "WebApplication", name: "Pullvio", url: pageUrl, applicationCategory: "MultimediaApplication", operatingSystem: "Any", browserRequirements: "Requires a modern web browser", inLanguage: locale === "zh-cn" ? "zh-CN" : locale, description: t.heroCopy, offers: { "@type": "Offer", name: "Pullvio Free", price: "0", priceCurrency: "USD" } },
+      {
+        "@type": "WebApplication",
+        name: "Pullvio",
+        url: pageUrl,
+        applicationCategory: "MultimediaApplication",
+        operatingSystem: "Any",
+        browserRequirements: "Requires a modern web browser",
+        inLanguage: locale === "zh-cn" ? "zh-CN" : locale,
+        description: t.heroCopy,
+        offers: { "@type": "Offer", name: "Pullvio Free", price: "0", priceCurrency: "USD" },
+        publisher: { "@id": "https://pullvio.com/#organization" },
+      },
       { "@type": "FAQPage", mainEntity: t.faqs.map(([question, answer]) => ({ "@type": "Question", name: question, acceptedAnswer: { "@type": "Answer", text: answer } })) },
     ],
   };
