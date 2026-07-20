@@ -66,10 +66,22 @@ UUID_PATTERN = re.compile(
 
 
 class WorkerError(RuntimeError):
-    def __init__(self, code: str, message: str, *, retryable: bool = False):
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        retryable: bool = False,
+        provider_http_status: int | None = None,
+        provider_outcome_known: bool | None = None,
+        safe_diagnostic: dict[str, object] | None = None,
+    ):
         super().__init__(message)
         self.code = code
         self.retryable = retryable
+        self.provider_http_status = provider_http_status
+        self.provider_outcome_known = provider_outcome_known
+        self.safe_diagnostic = dict(safe_diagnostic or {})
 
 
 @dataclass(frozen=True)

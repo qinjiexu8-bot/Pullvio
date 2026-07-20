@@ -328,11 +328,38 @@ class MediaWorker:
             )
             if started is not True:
                 raise WorkerError("PROVIDER_STATE_CONFLICT", "Provider submission state changed", retryable=True)
-            submission = self.visolix.submit(
-                source_url,
-                platform,
-                provider_format if platform == "youtube" else None,
-            )
+            try:
+                submission = self.visolix.submit(
+                    source_url,
+                    platform,
+                    provider_format if platform == "youtube" else None,
+                )
+            except WorkerError as exc:
+                try:
+                    recorded_failure = self.database.rpc(
+                        "record_media_provider_submission_failure",
+                        {
+                            "p_run_id": run_id,
+                            "p_worker_id": self.config.worker_id,
+                            "p_error_code": exc.code,
+                            "p_http_status": exc.provider_http_status,
+                            "p_error_info": exc.safe_diagnostic,
+                            "p_outcome_known": exc.provider_outcome_known is True,
+                        },
+                    )
+                    if recorded_failure is not True:
+                        LOGGER.warning(
+                            "provider_submission_failure_not_recorded job_id=%s code=%s",
+                            job_id,
+                            exc.code,
+                        )
+                except Exception:
+                    LOGGER.exception(
+                        "provider_submission_failure_record_error job_id=%s code=%s",
+                        job_id,
+                        exc.code,
+                    )
+                raise
             recorded = self.database.rpc(
                 "record_media_provider_submission",
                 {

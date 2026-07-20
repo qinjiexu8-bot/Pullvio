@@ -7,6 +7,7 @@ from unittest.mock import Mock
 sys.modules.setdefault("boto3", Mock())
 
 from pullvio_worker.worker import MediaWorker, VISOLIX_SOURCE_PLATFORMS
+from pullvio_worker.domain import WorkerError
 
 
 JOB_ID = "7a3fc784-77f1-48f3-a601-718a0357bf49"
@@ -85,6 +86,52 @@ class WorkerLifecycleTests(unittest.TestCase):
         )
 
         self.assertEqual(len(output), 200000)
+
+    def test_provider_submission_failure_is_recorded_before_job_failure(self):
+        worker = MediaWorker.__new__(MediaWorker)
+        worker.config = SimpleNamespace(worker_id="test-worker")
+        worker.database = Mock()
+        worker.database.rpc.side_effect = [
+            [{
+                "result_code": "SUBMIT",
+                "provider_run_id": "run-123",
+                "provider_job_id": None,
+            }],
+            True,
+            True,
+        ]
+        worker.visolix = Mock()
+        worker.visolix.submit.side_effect = WorkerError(
+            "PROVIDER_RESPONSE_INVALID",
+            "Invalid provider response",
+            retryable=False,
+            provider_http_status=200,
+            provider_outcome_known=False,
+            safe_diagnostic={"category": "invalid_payload", "httpStatus": 200},
+        )
+
+        with self.assertRaises(WorkerError) as caught:
+            worker._download_provider_artifacts(
+                JOB_ID,
+                "receipt",
+                {"source_platform": "okru", "requested_quality": "best"},
+                "https://ok.ru/video/123",
+                Mock(),
+            )
+
+        self.assertEqual(caught.exception.code, "PROVIDER_RESPONSE_INVALID")
+        worker.database.rpc.assert_any_call(
+            "record_media_provider_submission_failure",
+            {
+                "p_run_id": "run-123",
+                "p_worker_id": "test-worker",
+                "p_error_code": "PROVIDER_RESPONSE_INVALID",
+                "p_http_status": 200,
+                "p_error_info": {"category": "invalid_payload", "httpStatus": 200},
+                "p_outcome_known": False,
+            },
+        )
+        worker.visolix.submit.assert_called_once()
 
 
 if __name__ == "__main__":

@@ -292,6 +292,7 @@ export type Database = {
           id: string
           job_id: string
           last_error_code: string | null
+          last_error_info: Json
           last_http_status: number | null
           next_poll_at: string | null
           poll_count: number
@@ -314,6 +315,7 @@ export type Database = {
           id?: string
           job_id: string
           last_error_code?: string | null
+          last_error_info?: Json
           last_http_status?: number | null
           next_poll_at?: string | null
           poll_count?: number
@@ -336,6 +338,7 @@ export type Database = {
           id?: string
           job_id?: string
           last_error_code?: string | null
+          last_error_info?: Json
           last_http_status?: number | null
           next_poll_at?: string | null
           poll_count?: number
@@ -699,6 +702,17 @@ export type Database = {
         Args: {
           p_provider_info: Json
           p_provider_job_id: string
+          p_run_id: string
+          p_worker_id: string
+        }
+        Returns: boolean
+      }
+      record_media_provider_submission_failure: {
+        Args: {
+          p_error_code: string
+          p_error_info: Json
+          p_http_status: number | null
+          p_outcome_known: boolean
           p_run_id: string
           p_worker_id: string
         }

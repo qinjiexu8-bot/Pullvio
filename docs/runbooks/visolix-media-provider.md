@@ -10,6 +10,19 @@ them through Pullvio's signed CloudFront delivery path.
 Provider URLs, API credentials, and provider task identifiers must never be
 returned to a browser or written to public logs.
 
+## Submission diagnostics
+
+Submission failures store a bounded, redacted diagnostic object in
+`media_provider_runs.last_error_info`. It may contain the HTTP status, content
+type, selected response field types, and a short error message with URLs and
+the active API secret removed. Never store the complete provider response.
+
+An explicit provider rejection or HTTP error marks the provider run `failed`.
+An invalid success response, invalid JSON, or a transport interruption leaves
+the run `ambiguous`, because the paid request may have been accepted without a
+usable provider job ID. Neither category is automatically resubmitted: Visolix
+does not provide an idempotency key, so replaying could create duplicate costs.
+
 ## Safe deployment order
 
 1. Deploy and restart the EC2 worker with support for all five platforms.

@@ -110,6 +110,50 @@ class VisolixTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "PROVIDER_SUBMISSION_AMBIGUOUS")
         self.assertFalse(caught.exception.retryable)
 
+    def test_invalid_submission_response_keeps_bounded_safe_diagnostics(self):
+        session = FakeSession([FakeResponse(
+            payload={
+                "success": 1,
+                "id": None,
+                "message": "Could not process https://ok.ru/video/123 with test-key",
+                "download_url": "https://private.example/result.mp4",
+            },
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        )])
+
+        with self.assertRaises(WorkerError) as caught:
+            VisolixClient("test-key", session=session).submit(
+                "https://ok.ru/video/123",
+                "okru",
+            )
+
+        error = caught.exception
+        self.assertEqual(error.code, "PROVIDER_RESPONSE_INVALID")
+        self.assertFalse(error.retryable)
+        self.assertFalse(error.provider_outcome_known)
+        self.assertEqual(error.provider_http_status, 200)
+        serialized = json.dumps(error.safe_diagnostic)
+        self.assertIn("application/json", serialized)
+        self.assertIn("[redacted-url]", serialized)
+        self.assertNotIn("test-key", serialized)
+        self.assertNotIn("private.example", serialized)
+
+    def test_explicit_provider_rejection_is_known_and_terminal(self):
+        session = FakeSession([FakeResponse(
+            payload={"success": 0, "message": "Unsupported public video"},
+            headers={"Content-Type": "application/json"},
+        )])
+
+        with self.assertRaises(WorkerError) as caught:
+            VisolixClient("test-key", session=session).submit(
+                "https://ok.ru/video/123",
+                "okru",
+            )
+
+        self.assertEqual(caught.exception.code, "PROVIDER_REJECTED")
+        self.assertTrue(caught.exception.provider_outcome_known)
+        self.assertFalse(caught.exception.retryable)
+
     @patch("pullvio_worker.visolix.socket.getaddrinfo", return_value=PUBLIC_DNS)
     def test_polls_completed_result(self, _resolver):
         session = FakeSession([FakeResponse(payload={

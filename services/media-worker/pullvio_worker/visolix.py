@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ipaddress
+import re
 import socket
 from dataclasses import dataclass
 from pathlib import Path
@@ -83,15 +84,71 @@ class VisolixClient:
                 "PROVIDER_SUBMISSION_AMBIGUOUS",
                 "Media provider submission outcome is unknown",
                 retryable=False,
+                provider_outcome_known=False,
+                safe_diagnostic={
+                    "category": "transport_error",
+                    "exceptionType": type(exc).__name__[:100],
+                },
             ) from exc
-        _raise_for_provider_status(response.status_code)
-        payload = _json_object(response)
+        diagnostic = _safe_submission_diagnostic(
+            response,
+            source_url=source_url,
+            api_key=self._api_key,
+        )
+        _raise_for_provider_status(
+            response.status_code,
+            submission=True,
+            diagnostic=diagnostic,
+        )
+        try:
+            payload = response.json()
+        except (ValueError, requests.JSONDecodeError) as exc:
+            raise WorkerError(
+                "PROVIDER_RESPONSE_INVALID",
+                "Media provider returned invalid JSON",
+                retryable=False,
+                provider_http_status=response.status_code,
+                provider_outcome_known=False,
+                safe_diagnostic={**diagnostic, "category": "invalid_json"},
+            ) from exc
+        if not isinstance(payload, dict):
+            raise WorkerError(
+                "PROVIDER_RESPONSE_INVALID",
+                "Media provider returned invalid JSON",
+                retryable=False,
+                provider_http_status=response.status_code,
+                provider_outcome_known=False,
+                safe_diagnostic={
+                    **diagnostic,
+                    "category": "invalid_payload",
+                    "responseType": type(payload).__name__[:100],
+                },
+            )
+        diagnostic = _safe_submission_diagnostic(
+            response,
+            payload=payload,
+            source_url=source_url,
+            api_key=self._api_key,
+        )
+        success = payload.get("success")
+        if success is False or (isinstance(success, int) and not isinstance(success, bool) and success == 0):
+            raise WorkerError(
+                "PROVIDER_REJECTED",
+                "Media provider rejected the submitted media",
+                retryable=False,
+                provider_http_status=response.status_code,
+                provider_outcome_known=True,
+                safe_diagnostic={**diagnostic, "category": "provider_rejection"},
+            )
         provider_job_id = payload.get("id")
-        if payload.get("success") not in {True, 1} or not isinstance(provider_job_id, str):
+        if success not in {True, 1} or not isinstance(provider_job_id, str) or not provider_job_id:
             raise WorkerError(
                 "PROVIDER_RESPONSE_INVALID",
                 "Media provider returned an invalid submission response",
-                retryable=True,
+                retryable=False,
+                provider_http_status=response.status_code,
+                provider_outcome_known=False,
+                safe_diagnostic={**diagnostic, "category": "invalid_payload"},
             )
         return VisolixSubmission(
             provider_job_id=provider_job_id[:500],
@@ -244,7 +301,12 @@ def download_provider_result(
     )
 
 
-def _raise_for_provider_status(status_code: int):
+def _raise_for_provider_status(
+    status_code: int,
+    *,
+    submission: bool = False,
+    diagnostic: dict[str, object] | None = None,
+):
     if status_code < 400:
         return
     if status_code == 402:
@@ -252,18 +314,67 @@ def _raise_for_provider_status(status_code: int):
             "PROVIDER_BALANCE_EXHAUSTED",
             "Media downloads are temporarily unavailable",
             retryable=False,
+            provider_http_status=status_code if submission else None,
+            provider_outcome_known=True if submission else None,
+            safe_diagnostic=diagnostic,
         )
     if status_code in {401, 403}:
         raise WorkerError(
             "PROVIDER_AUTH_ERROR",
             "Media provider authentication failed",
             retryable=False,
+            provider_http_status=status_code if submission else None,
+            provider_outcome_known=True if submission else None,
+            safe_diagnostic=diagnostic,
         )
     raise WorkerError(
         "PROVIDER_UNAVAILABLE",
         f"Media provider returned HTTP {status_code}",
-        retryable=status_code in {408, 425, 429} or status_code >= 500,
+        retryable=False if submission else status_code in {408, 425, 429} or status_code >= 500,
+        provider_http_status=status_code if submission else None,
+        provider_outcome_known=True if submission else None,
+        safe_diagnostic=diagnostic,
     )
+
+
+def _safe_submission_diagnostic(
+    response: requests.Response,
+    *,
+    source_url: str,
+    api_key: str,
+    payload: Any = None,
+) -> dict[str, object]:
+    content_type = str(response.headers.get("Content-Type", "")).split(";", 1)[0].strip().lower()
+    diagnostic: dict[str, object] = {
+        "category": "http_response",
+        "httpStatus": response.status_code,
+    }
+    if content_type:
+        diagnostic["contentType"] = content_type[:100]
+    if isinstance(payload, dict):
+        field_types: dict[str, str] = {}
+        for key in ("success", "id", "status", "error", "message", "info"):
+            if key in payload:
+                field_types[key] = type(payload[key]).__name__[:40]
+        if field_types:
+            diagnostic["fieldTypes"] = field_types
+        for key in ("error", "message"):
+            value = payload.get(key)
+            if isinstance(value, str) and value.strip():
+                diagnostic["errorText"] = _redact_provider_text(
+                    value,
+                    source_url=source_url,
+                    api_key=api_key,
+                )
+                break
+    return diagnostic
+
+
+def _redact_provider_text(value: str, *, source_url: str, api_key: str) -> str:
+    redacted = value.replace(source_url, "[redacted-url]").replace(api_key, "[redacted-secret]")
+    redacted = re.sub(r"https?://[^\s<>\"']+", "[redacted-url]", redacted, flags=re.IGNORECASE)
+    redacted = re.sub(r"\s+", " ", redacted).strip()
+    return redacted[:300]
 
 
 def _json_object(response: requests.Response) -> dict[str, Any]:
