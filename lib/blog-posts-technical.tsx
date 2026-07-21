@@ -50,6 +50,529 @@ function TechnicalArticle({
 
 export const technicalBlogPosts: BlogPost[] = [
   {
+    slug: "soundcloud-mp3-quality-and-bitrate",
+    published: "2026-07-21",
+    modified: "2026-07-21",
+    category: { en: "SoundCloud", "zh-cn": "SoundCloud", es: "SoundCloud" },
+    copy: {
+      en: {
+        eyebrow: "SOUNDCLOUD AUDIO QUALITY",
+        title: "SoundCloud MP3 quality and bitrate explained.",
+        description: "Learn how SoundCloud source streams, 128 and 320 kbps labels, MP3 re-encoding, and original downloads affect real audio quality.",
+        readingTime: "7 min read",
+        body: (
+          <TechnicalArticle
+            intro={
+              <>
+                SoundCloud MP3 quality is determined first by the audio that is
+                actually available from the source—not by the number written on
+                the exported file. SoundCloud creates streaming versions of an
+                upload, while an uploader-enabled official download can provide
+                the original uploaded file. Re-encoding a compressed stream as
+                a 320 kbps MP3 makes a larger file, but it cannot restore detail
+                removed before that conversion.
+              </>
+            }
+            takeaways={[
+              "The original upload, an official download, and a public playback stream are not necessarily the same file.",
+              "A 320 kbps output label describes the new encoding rate, not proof of 320 kbps source quality.",
+              "Lossy-to-lossy conversion can add artifacts and never recreates missing frequencies or detail.",
+              "Use SoundCloud’s official Download file option when the creator enables it and you need the uploaded original.",
+            ]}
+            sections={[
+              [
+                "Original download versus SoundCloud streaming audio",
+                <>
+                  <p>
+                    SoundCloud says that creators can enable or disable direct
+                    downloads for individual tracks. When enabled, the official
+                    <em> Download file</em> action gives the listener a copy in
+                    the original format uploaded by the creator. Not every
+                    track enables that option, and whole playlists cannot be
+                    downloaded through it. See SoundCloud&apos;s official guide to{" "}
+                    <a href="https://help.soundcloud.com/hc/en-us/articles/115003448787-Downloading-tracks">
+                      downloading tracks
+                    </a>
+                    .
+                  </p>
+                  <p>
+                    Playback is different. SoundCloud transcodes uploads into
+                    streaming renditions so they can play across devices and
+                    connections. Its upload documentation currently describes
+                    128 kbps MP3 and 64 kbps Opus streaming versions, plus a 256
+                    kbps AAC version for eligible audio. Those renditions are
+                    delivery formats; they do not tell you the bit depth,
+                    sample rate, or quality of the creator&apos;s uploaded master.
+                  </p>
+                </>,
+              ],
+              [
+                "What 128 kbps and 320 kbps really mean",
+                <>
+                  <p>
+                    Bitrate is the amount of encoded data used per second. For
+                    a constant-bitrate MP3, 320 kbps uses about 2.5 times as
+                    much data per second as 128 kbps. That can allow a new
+                    encoder to retain more information when both files start
+                    from the same clean master, but the comparison changes
+                    when the input has already been compressed.
+                  </p>
+                  <p>
+                    Suppose a public source has already passed through lossy
+                    encoding. Exporting it again at 320 kbps cannot infer the
+                    discarded signal. The output may report 320 kbps in a file
+                    inspector, yet its audible ceiling still comes from the
+                    earlier source. The higher number is therefore not evidence
+                    of a lossless or original-quality SoundCloud download.
+                  </p>
+                </>,
+              ],
+              [
+                "Why MP3 conversion cannot improve the source",
+                <>
+                  <p>
+                    MP3 is a lossy codec. Encoding analyzes the audio and
+                    removes information according to its psychoacoustic model
+                    and target settings. Decoding reconstructs playable audio,
+                    not the exact data that was removed. A second encode makes
+                    another set of decisions from that already altered signal.
+                  </p>
+                  <p>
+                    FFmpeg&apos;s official libmp3lame documentation distinguishes
+                    target bitrate from quality-based variable bitrate and
+                    exposes encoder-quality controls. These settings influence
+                    how the new MP3 is made; none is an upscaler for lost audio.
+                    Review the{" "}
+                    <a href="https://ffmpeg.org/ffmpeg-codecs.html#libmp3lame">
+                      FFmpeg MP3 encoder options
+                    </a>{" "}
+                    for the technical distinction.
+                  </p>
+                </>,
+              ],
+              [
+                "How to judge a downloaded SoundCloud MP3",
+                <>
+                  <ul>
+                    <li>
+                      Identify whether the file came from the creator-enabled
+                      official download or from an authorized public playback
+                      source.
+                    </li>
+                    <li>
+                      Check codec, bitrate mode, sample rate, channels, and
+                      duration with a trusted media inspector.
+                    </li>
+                    <li>
+                      Listen for pre-echo, smeared transients, watery high
+                      frequencies, clipping, and unexpected silence.
+                    </li>
+                    <li>
+                      Compare against a source you control when quality matters;
+                      do not judge by file size or filename alone.
+                    </li>
+                  </ul>
+                  <p>
+                    Spectrograms can reveal obvious bandwidth limits or
+                    discontinuities, but they do not prove provenance and
+                    should not be treated as a simple “lossless detector.” For
+                    production work, ask the creator for the original WAV,
+                    FLAC, or other master instead of converting a playback
+                    stream repeatedly.
+                  </p>
+                </>,
+              ],
+              [
+                "Choose the right SoundCloud download path",
+                <>
+                  <p>
+                    If the creator has enabled SoundCloud&apos;s official download,
+                    use it when you need the uploaded file. If you are saving
+                    your own public track or another track you are authorized
+                    to keep as a convenient MP3, Pullvio&apos;s{" "}
+                    <Link href="/soundcloud-downloader">
+                      SoundCloud downloader
+                    </Link>{" "}
+                    provides an audio-only browser workflow. It does not claim
+                    that a converted public source is lossless or a genuine 320
+                    kbps master.
+                  </p>
+                  <p>
+                    Downloading does not grant publishing, sampling, remixing,
+                    or commercial rights. Keep the artist, source URL, license,
+                    and permission record with the file, and review the{" "}
+                    <Link href="/guides/save-online-media-legally">
+                      responsible media-saving guide
+                    </Link>{" "}
+                    before reuse.
+                  </p>
+                </>,
+              ],
+            ]}
+            faq={[
+              [
+                "Is a SoundCloud MP3 always 128 kbps?",
+                <>
+                  No. SoundCloud documents multiple streaming renditions, and
+                  an official creator-enabled download can be the original
+                  uploaded format. Inspect the specific file and identify how
+                  it was obtained rather than assuming one bitrate.
+                </>,
+              ],
+              [
+                "Does converting SoundCloud to 320 kbps improve quality?",
+                <>
+                  Not when the available input is already compressed. A 320
+                  kbps encode may reduce additional damage compared with a
+                  lower-rate new encode, but it cannot restore information that
+                  the source no longer contains.
+                </>,
+              ],
+              [
+                "Is a SoundCloud MP3 lossless?",
+                <>
+                  MP3 is a lossy format. An official download could instead be
+                  WAV, FLAC, or another original format if that is what the
+                  creator uploaded and chose to share.
+                </>,
+              ],
+              [
+                "Can I download an entire SoundCloud playlist?",
+                <>
+                  SoundCloud&apos;s official download feature applies to individual
+                  tracks, not whole playlists. Pullvio likewise focuses on
+                  direct, public track links and does not bypass private or
+                  login-only access.
+                </>,
+              ],
+            ]}
+          />
+        ),
+      },
+      "zh-cn": {
+        eyebrow: "SOUNDCLOUD 音质",
+        title: "SoundCloud MP3 音质与码率：下载后到底得到什么？",
+        description: "了解 SoundCloud 来源音频、128 与 320 kbps 标签、MP3 再次编码和原始文件下载如何影响真实音质。",
+        readingTime: "约 7 分钟",
+        body: (
+          <TechnicalArticle
+            takeawaysLabel="核心结论"
+            faqLabel="常见问题"
+            intro={
+              <>
+                SoundCloud MP3
+                的真实音质首先取决于来源实际提供的音频，而不是导出文件上写着多少
+                kbps。SoundCloud 会为上传内容生成流媒体版本；如果上传者开启官方下载，用户也可能获得原始上传文件。把已经压缩的音频再次编码成
+                320 kbps，只会生成更大的文件，不能恢复此前已经丢失的声音细节。
+              </>
+            }
+            takeaways={[
+              "原始上传文件、官方下载文件与公开播放流不一定是同一个文件。",
+              "输出显示 320 kbps，只说明这次编码使用的码率，不证明来源具有 320 kbps 的真实细节。",
+              "有损格式再次转成有损格式可能增加失真，无法重建已经丢失的频率与细节。",
+              "当创作者开放官方下载且您需要上传原件时，应优先使用 SoundCloud 官方的下载文件功能。",
+            ]}
+            sections={[
+              [
+                "原始文件下载与 SoundCloud 播放流有什么区别",
+                <>
+                  <p>
+                    SoundCloud
+                    允许创作者为单条音轨开启或关闭直接下载。开启后，网页上的“下载文件”会向听众提供创作者最初上传的文件格式。并非所有音轨都开放这一功能，播放列表也不能整体通过官方下载。具体规则可查看 SoundCloud 官方的
+                    <a href="https://help.soundcloud.com/hc/en-us/articles/115003448787-Downloading-tracks">
+                      音轨下载说明
+                    </a>
+                    。
+                  </p>
+                  <p>
+                    在线播放是另一条路径。SoundCloud
+                    会将上传内容转码为适合不同设备与网络的流媒体版本。其上传文档目前列出
+                    128 kbps MP3、64 kbps Opus，以及符合条件音频的 256 kbps AAC。这些是播放交付格式，不能反推创作者母带的位深、采样率或制作质量。
+                  </p>
+                </>,
+              ],
+              [
+                "128 kbps 与 320 kbps 真正代表什么",
+                <>
+                  <p>
+                    码率表示编码音频每秒使用的数据量。对于恒定码率 MP3，320 kbps 每秒使用的数据约为 128 kbps 的 2.5 倍。如果两次编码都从同一个干净母带开始，更高码率通常能让编码器保留更多信息；但输入已经压缩时，情况不同。
+                  </p>
+                  <p>
+                    假设公开来源已经经过有损压缩，再导出为 320 kbps
+                    无法推测或恢复被丢弃的信号。文件检测工具可能显示 320 kbps，但可听细节上限仍由前一个来源决定。因此，更大的数字不等于无损，也不等于拿到了 SoundCloud 原始文件。
+                  </p>
+                </>,
+              ],
+              [
+                "为什么 MP3 转换不能提升来源音质",
+                <>
+                  <p>
+                    MP3 属于有损编码。编码器会分析声音，并根据听觉模型与目标设置移除部分信息；解码只能重建可播放信号，无法找回被删除的原始数据。再次编码会在已经改变的信号上做新一轮取舍。
+                  </p>
+                  <p>
+                    FFmpeg 官方 libmp3lame
+                    文档区分目标码率、可变码率与编码器质量设置。这些参数决定新的 MP3
+                    如何生成，却都不是音频细节“放大器”。技术差异可参考
+                    <a href="https://ffmpeg.org/ffmpeg-codecs.html#libmp3lame">
+                      FFmpeg MP3 编码器文档
+                    </a>
+                    。
+                  </p>
+                </>,
+              ],
+              [
+                "如何判断下载后的 SoundCloud MP3",
+                <>
+                  <ul>
+                    <li>先确认文件来自创作者开放的官方下载，还是获得授权的公开播放来源。</li>
+                    <li>用可信工具检查编码、码率模式、采样率、声道和时长。</li>
+                    <li>试听瞬态模糊、高频水声、削波、异常静音等问题。</li>
+                    <li>重要文件应与您掌握的来源对比，不要只看文件名和大小。</li>
+                  </ul>
+                  <p>
+                    频谱图能帮助发现明显的带宽限制或中断，但不能单独证明文件来源，也不是简单的“无损检测器”。用于制作时，应向创作者索取 WAV、FLAC 或其他母带，而不是反复转换播放流。
+                  </p>
+                </>,
+              ],
+              [
+                "选择正确的 SoundCloud 保存方式",
+                <>
+                  <p>
+                    如果创作者开放了 SoundCloud 官方下载，并且您需要上传文件本身，应优先使用官方入口。如果您要保存自己的公开音轨，或有权把其他公开音轨保存为方便使用的 MP3，可使用 Pullvio 的
+                    <Link href="/zh-cn/soundcloud-downloader">
+                      SoundCloud 下载器
+                    </Link>
+                    。它不会把公开来源转换后的文件宣传成无损或真正的 320 kbps 母带。
+                  </p>
+                  <p>
+                    下载不会自动授予发布、采样、混音或商业使用权。请保留艺术家、来源链接、许可与授权记录，并在复用前阅读
+                    <Link href="/zh-cn/guides/save-online-media-legally">
+                      负责任保存在线媒体指南
+                    </Link>
+                    。
+                  </p>
+                </>,
+              ],
+            ]}
+            faq={[
+              [
+                "SoundCloud MP3 都是 128 kbps 吗？",
+                <>
+                  不是。SoundCloud 官方列出了多个流媒体版本；创作者开放的官方下载还可能提供原始上传格式。应检查具体文件及其获取方式，而不是默认一个码率。
+                </>,
+              ],
+              [
+                "转成 320 kbps 会提升 SoundCloud 音质吗？",
+                <>
+                  如果输入已经压缩，就不会恢复音质。相较于更低码率的再次编码，320 kbps
+                  可能减少这一轮新增损失，但无法找回来源中已经不存在的信息。
+                </>,
+              ],
+              [
+                "SoundCloud MP3 是无损的吗？",
+                <>
+                  不是，MP3 是有损格式。如果创作者上传并开放的是 WAV、FLAC
+                  等格式，官方原始文件下载可能提供无损文件。
+                </>,
+              ],
+              [
+                "可以下载整个 SoundCloud 播放列表吗？",
+                <>
+                  SoundCloud 官方下载只针对单条音轨，不支持整张播放列表。Pullvio
+                  也只处理直接的公开音轨链接，不绕过私人或登录访问。
+                </>,
+              ],
+            ]}
+          />
+        ),
+      },
+      es: {
+        eyebrow: "CALIDAD DE AUDIO SOUNDCLOUD",
+        title: "Calidad y bitrate de SoundCloud MP3.",
+        description: "Descubre cómo la fuente de SoundCloud, 128 y 320 kbps, la recodificación MP3 y la descarga original afectan la calidad real.",
+        readingTime: "7 min de lectura",
+        body: (
+          <TechnicalArticle
+            takeawaysLabel="Conclusiones clave"
+            faqLabel="Preguntas frecuentes"
+            intro={
+              <>
+                La calidad de un MP3 de SoundCloud depende primero del audio que
+                ofrece la fuente, no del número escrito en el archivo final.
+                SoundCloud crea versiones para streaming, mientras que una
+                descarga oficial habilitada por el autor puede entregar el
+                archivo original. Recodificar un flujo comprimido a 320 kbps
+                aumenta el tamaño, pero no recupera el detalle eliminado antes.
+              </>
+            }
+            takeaways={[
+              "La subida original, la descarga oficial y el audio público de reproducción pueden ser archivos distintos.",
+              "Una salida de 320 kbps describe la nueva codificación, no demuestra que la fuente tenga esa calidad.",
+              "Convertir entre formatos con pérdida puede añadir artefactos y no reconstruye información eliminada.",
+              "Usa Descargar archivo de SoundCloud cuando el creador lo habilite y necesites el original subido.",
+            ]}
+            sections={[
+              [
+                "Descarga original frente al audio de streaming",
+                <>
+                  <p>
+                    SoundCloud permite que el creador active o desactive la
+                    descarga directa de cada pista. Cuando está disponible,
+                    <em> Descargar archivo</em> entrega una copia en el formato
+                    original subido. No todas las pistas lo permiten y no se
+                    pueden descargar listas completas mediante esa función.
+                    Consulta la guía oficial para{" "}
+                    <a href="https://help.soundcloud.com/hc/es/articles/115003448787-Descargando-pistas">
+                      descargar pistas
+                    </a>
+                    .
+                  </p>
+                  <p>
+                    La reproducción sigue otra ruta. SoundCloud transcodifica
+                    las subidas para diferentes dispositivos y conexiones. Su
+                    documentación menciona versiones de 128 kbps MP3 y 64 kbps
+                    Opus, además de 256 kbps AAC para audio compatible. Son
+                    formatos de entrega y no revelan la calidad del máster del
+                    creador.
+                  </p>
+                </>,
+              ],
+              [
+                "Qué significan realmente 128 y 320 kbps",
+                <>
+                  <p>
+                    El bitrate indica cuántos datos codificados se usan por
+                    segundo. En MP3 de bitrate constante, 320 kbps usa unas 2,5
+                    veces más información por segundo que 128 kbps. Desde un
+                    mismo máster limpio, el valor superior puede conservar más
+                    información; con una entrada ya comprimida, no recupera lo
+                    perdido.
+                  </p>
+                  <p>
+                    Un archivo recodificado puede mostrar 320 kbps en un
+                    inspector, pero su techo audible sigue limitado por la
+                    fuente anterior. Esa cifra no demuestra que sea una
+                    descarga sin pérdida ni el original de SoundCloud.
+                  </p>
+                </>,
+              ],
+              [
+                "Por qué convertir a MP3 no mejora la fuente",
+                <>
+                  <p>
+                    MP3 es un códec con pérdida. El codificador descarta
+                    información según un modelo psicoacústico y los ajustes
+                    elegidos. Al decodificar se reconstruye audio reproducible,
+                    no los datos exactos eliminados. Una segunda codificación
+                    toma nuevas decisiones sobre una señal ya modificada.
+                  </p>
+                  <p>
+                    La documentación oficial de libmp3lame en FFmpeg distingue
+                    bitrate objetivo, bitrate variable y calidad del
+                    codificador. Esos controles cambian cómo se crea el nuevo
+                    MP3, pero no aumentan el detalle perdido. Consulta las{" "}
+                    <a href="https://ffmpeg.org/ffmpeg-codecs.html#libmp3lame">
+                      opciones del codificador MP3 de FFmpeg
+                    </a>
+                    .
+                  </p>
+                </>,
+              ],
+              [
+                "Cómo evaluar un MP3 descargado de SoundCloud",
+                <>
+                  <ul>
+                    <li>
+                      Identifica si procede de la descarga oficial del creador
+                      o de una fuente pública que puedes guardar.
+                    </li>
+                    <li>
+                      Revisa códec, modo de bitrate, frecuencia de muestreo,
+                      canales y duración.
+                    </li>
+                    <li>
+                      Escucha transitorios borrosos, agudos acuosos, clipping y
+                      silencios inesperados.
+                    </li>
+                    <li>
+                      Compara con una fuente conocida; no confíes solo en el
+                      nombre o el tamaño.
+                    </li>
+                  </ul>
+                  <p>
+                    Un espectrograma puede mostrar límites claros de ancho de
+                    banda, pero no demuestra por sí solo el origen ni si un
+                    archivo es realmente sin pérdida. Para producción, solicita
+                    al creador el WAV, FLAC u otro máster.
+                  </p>
+                </>,
+              ],
+              [
+                "Elige la ruta correcta para descargar de SoundCloud",
+                <>
+                  <p>
+                    Si el autor habilitó la descarga oficial y necesitas la
+                    subida original, usa esa opción. Para descargar de
+                    SoundCloud una pista pública propia o autorizada como MP3,
+                    abre el{" "}
+                    <Link href="/es/soundcloud-downloader">
+                      descargador de SoundCloud
+                    </Link>
+                    . Pullvio no presenta una conversión de audio público como
+                    máster sin pérdida o 320 kbps genuinos.
+                  </p>
+                  <p>
+                    Descargar música de SoundCloud no concede derechos para
+                    publicar, samplear, remezclar o usar comercialmente. Guarda
+                    artista, URL, licencia y permiso, y consulta la{" "}
+                    <Link href="/es/guides/save-online-media-legally">
+                      guía de uso responsable
+                    </Link>{" "}
+                    antes de reutilizar.
+                  </p>
+                </>,
+              ],
+            ]}
+            faq={[
+              [
+                "¿Todos los MP3 de SoundCloud son de 128 kbps?",
+                <>
+                  No. SoundCloud documenta varias versiones de streaming y una
+                  descarga oficial puede ser el formato original. Inspecciona
+                  el archivo y su procedencia en vez de asumir un bitrate.
+                </>,
+              ],
+              [
+                "¿Convertir SoundCloud a 320 kbps mejora la calidad?",
+                <>
+                  No si la entrada ya está comprimida. Puede limitar daños
+                  adicionales frente a una nueva codificación de menor bitrate,
+                  pero no recupera información ausente.
+                </>,
+              ],
+              [
+                "¿Un MP3 de SoundCloud es sin pérdida?",
+                <>
+                  MP3 tiene pérdida. Una descarga oficial podría ser WAV, FLAC
+                  u otro formato original si el creador lo subió y decidió
+                  compartirlo.
+                </>,
+              ],
+              [
+                "¿Puedo descargar una lista completa de SoundCloud?",
+                <>
+                  La descarga oficial se aplica a pistas individuales, no a
+                  listas completas. Pullvio también se centra en enlaces
+                  directos y públicos, sin evitar accesos privados.
+                </>,
+              ],
+            ]}
+          />
+        ),
+      },
+    },
+  },
+  {
     slug: "how-online-video-downloaders-work",
     published: "2026-07-16",
     category: { en: "Engineering", "zh-cn": "工程原理", es: "Ingeniería" },

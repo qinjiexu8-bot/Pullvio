@@ -64,6 +64,15 @@ export type PlatformDefinition = {
   guideSlug: string;
   relatedSlug: PlatformSlug;
   audioOnly?: boolean;
+  resource?: {
+    slug: string;
+    copy: Record<Locale, {
+      eyebrow: string;
+      title: string;
+      description: string;
+      cta: string;
+    }>;
+  };
   copy: Record<Locale, PlatformCopy>;
 };
 
@@ -436,15 +445,38 @@ export const platformTools: Record<PlatformSlug, PlatformDefinition> = {
     guideSlug: "save-online-media-legally",
     relatedSlug: "tiktok-video-downloader",
     audioOnly: true,
+    resource: {
+      slug: "soundcloud-mp3-quality-and-bitrate",
+      copy: {
+        en: {
+          eyebrow: "AUDIO QUALITY GUIDE",
+          title: "What quality is a SoundCloud MP3?",
+          description: "Understand source streams, bitrate labels, re-encoding, and why a 320 kbps export cannot restore audio detail that was already removed.",
+          cta: "Read the MP3 quality guide",
+        },
+        "zh-cn": {
+          eyebrow: "音质指南",
+          title: "SoundCloud MP3 到底是什么音质？",
+          description: "了解来源音频、码率标签与再次编码，并判断为什么导出为 320 kbps 不能恢复已经丢失的声音细节。",
+          cta: "阅读 MP3 音质指南",
+        },
+        es: {
+          eyebrow: "GUÍA DE CALIDAD",
+          title: "¿Qué calidad tiene un MP3 de SoundCloud?",
+          description: "Entiende la fuente, el bitrate y la recodificación, y por qué exportar a 320 kbps no recupera detalle de audio perdido.",
+          cta: "Leer la guía de calidad MP3",
+        },
+      },
+    },
     copy: {
       en: {
-        title: "SoundCloud Downloader – Download Tracks as MP3 | Pullvio",
-        description: "Download permitted public SoundCloud tracks as MP3 in your browser. Use direct track links for music or audio you own or are authorized to save.",
+        title: "SoundCloud Downloader – Convert Tracks to MP3 | Pullvio",
+        description: "Use the free SoundCloud MP3 downloader for permitted public tracks. Download authorized SoundCloud audio from direct track links in your browser.",
         keywords: ["soundcloud downloader", "download soundcloud track", "soundcloud to mp3", "soundcloud mp3 downloader", "download soundcloud audio"],
         eyebrow: "SOUNDCLOUD AUDIO DOWNLOADER",
-        h1: "Download SoundCloud tracks online.",
-        accent: "Save permitted public audio as MP3.",
-        intro: "Paste a direct public SoundCloud track link for audio you created, licensed, or have permission to save. Pullvio uses Audio mode to prepare an MP3 in your browser without an app or extension.",
+        h1: "Free SoundCloud downloader for public tracks.",
+        accent: "Convert authorized SoundCloud audio to MP3 online.",
+        intro: "Use Pullvio as a SoundCloud MP3 downloader for audio you created, licensed, or have permission to save. Paste a direct public track link to download SoundCloud audio as MP3 in your browser without an app or extension.",
         placeholder: "Paste a public SoundCloud track link",
         benefits: ["SoundCloud to MP3", "Direct public track links", "Audio-only, browser-based workflow"],
         howEyebrow: "HOW TO DOWNLOAD SOUNDCLOUD AUDIO",
@@ -514,13 +546,13 @@ export const platformTools: Record<PlatformSlug, PlatformDefinition> = {
         faqs: [["Pullvio SoundCloud 下载器免费吗？", "免费。访客可完成 5 次下载；免费账号可在合理使用和安全范围内继续使用。"], ["可以把 SoundCloud 音轨下载为 MP3 吗？", "可以，前提是单条公开音轨可访问，而且您拥有或获准保存。"], ["为什么不能选择视频模式？", "SoundCloud 在 Pullvio 中属于音频来源，因此专用页面固定使用音频模式。"], ["播放列表或私人音轨可以处理吗？", "不可以。当前仅接受单条公开音轨，不绕过私人或登录访问。"], ["生成的 MP3 是无损音质吗？", "不是。MP3 属于压缩格式，输出也无法超过公开来源的实际细节。"], ["手机可以使用吗？", "可以。支持现代 iPhone、Android、Mac 与 Windows 浏览器，无需扩展。"], ["下载后可以复用音乐吗？", "只有许可或权利人允许时才可以。下载不会自动授予发布、采样或商业使用权。"]],
       },
       es: {
-        title: "Descargador de SoundCloud – Descargar MP3 Online | Pullvio",
-        description: "Descarga pistas públicas autorizadas de SoundCloud en MP3 desde el navegador. Usa enlaces directos de audio propio o con permiso.",
-        keywords: ["descargador de soundcloud", "descargar soundcloud mp3", "soundcloud a mp3", "descargar pista soundcloud", "audio soundcloud online"],
+        title: "Descargar SoundCloud a MP3 Gratis | Pullvio",
+        description: "Descarga de SoundCloud a MP3 pistas públicas autorizadas. Usa enlaces directos para descargar música y audio de SoundCloud desde el navegador.",
+        keywords: ["descargador de soundcloud", "descargar de soundcloud", "descargar mp3 soundcloud", "descargar musica de soundcloud", "soundcloud a mp3"],
         eyebrow: "DESCARGADOR DE AUDIO SOUNDCLOUD",
-        h1: "Descarga pistas de SoundCloud online.",
-        accent: "Guarda audio público autorizado en MP3.",
-        intro: "Pega el enlace directo de una pista pública creada por ti, con licencia o con permiso. Pullvio utiliza el modo Audio para preparar un MP3 en el navegador.",
+        h1: "Descarga audio de SoundCloud online.",
+        accent: "Guarda música autorizada de SoundCloud como MP3.",
+        intro: "Usa Pullvio para descargar de SoundCloud pistas públicas creadas por ti, con licencia o con permiso. Pega el enlace directo para descargar MP3 de SoundCloud o guardar música autorizada desde el navegador.",
         placeholder: "Pega un enlace público de SoundCloud",
         benefits: ["SoundCloud a MP3", "Enlaces directos de pistas públicas", "Flujo de audio sin aplicación"],
         howEyebrow: "CÓMO DESCARGAR AUDIO DE SOUNDCLOUD",

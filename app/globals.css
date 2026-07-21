@@ -262,6 +262,10 @@ a { color: inherit; text-decoration: none; }
 .platform-format-grid article > div b { font-size: var(--type-caption); letter-spacing: .12em; }
 .platform-format-grid h3 { margin-top: 75px; color: #f2f7f5; }
 .platform-format-grid p { margin: 0; color: #82938f; font-size: var(--type-small); line-height: 1.72; }
+.platform-format-resource { margin-top: 18px; padding: 25px 29px; display: flex; align-items: center; justify-content: space-between; gap: 30px; border: 1px solid rgba(124,243,197,.2); border-radius: 20px; background: rgba(124,243,197,.055); }
+.platform-format-resource h3 { margin: 7px 0 5px; color: #f2f7f5; font: 700 24px/1.2 var(--font-display), sans-serif; letter-spacing: -.7px; }
+.platform-format-resource p { max-width: 800px; margin: 0; color: #82938f; font-size: var(--type-small); line-height: 1.65; }
+.platform-format-resource a { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; color: var(--mint); font-size: var(--type-small); font-weight: 850; }
 .platform-boundaries-section { background: #f5f8f6; }
 .platform-boundary-grid { margin-top: 64px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .platform-boundary-grid article { min-height: 275px; padding: 30px; border: 1px solid #d4dfda; background: #edf3f0; border-radius: 22px; }
@@ -637,6 +641,7 @@ footer { padding: 70px 0 25px; background: #060d0f; }
   .platform-step-grid, .platform-format-grid, .platform-boundary-grid { margin-top: 43px; }
   .platform-step-grid article { padding-inline: 18px; }
   .platform-format-grid article, .platform-boundary-grid article { padding: 24px 21px; }
+  .platform-format-resource { padding: 23px 21px; align-items: flex-start; flex-direction: column; gap: 18px; }
   .platform-discovery-section { padding-top: 0; }
   .platform-guide-card, .platform-related-card { min-height: 300px; padding: 28px 23px; }
   .hero-copy h1 { font-size: clamp(43px, 13vw, 60px); letter-spacing: -3px; }

@@ -27,6 +27,9 @@ export default function PlatformDownloaderPage({ slug, locale = "en" }: { slug: 
   const homeName = locale === "zh-cn" ? "首页" : locale === "es" ? "Inicio" : "Home";
   const guidePath = localePath(locale, `/guides/${tool.guideSlug}`);
   const relatedPath = localePath(locale, `/${tool.relatedSlug}`);
+  const resourcePath = tool.resource
+    ? localePath(locale, `/blog/${tool.resource.slug}`)
+    : null;
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -110,6 +113,18 @@ export default function PlatformDownloaderPage({ slug, locale = "en" }: { slug: 
               return <article key={label}><div><Icon size={20} /><b>{label}</b></div><h3>{title}</h3><p>{copy}</p></article>;
             })}
           </div>
+          {tool.resource && resourcePath && (
+            <aside className="platform-format-resource">
+              <div>
+                <span className="kicker">{tool.resource.copy[locale].eyebrow}</span>
+                <h3>{tool.resource.copy[locale].title}</h3>
+                <p>{tool.resource.copy[locale].description}</p>
+              </div>
+              <Link href={resourcePath}>
+                {tool.resource.copy[locale].cta}<ArrowRight size={17} />
+              </Link>
+            </aside>
+          )}
         </div>
       </section>
 

@@ -41,6 +41,15 @@ describe("buildSitemap", () => {
     expect(entry?.lastModified).toEqual(new Date(`${post.modified ?? post.published}T00:00:00.000Z`));
   });
 
+  it("publishes the SoundCloud quality guide in every supported locale", () => {
+    const slug = "soundcloud-mp3-quality-and-bitrate";
+    const urls = new Set(sitemap.map(({ url }) => url));
+
+    expect(urls.has(`https://pullvio.com/blog/${slug}`)).toBe(true);
+    expect(urls.has(`https://pullvio.com/zh-cn/blog/${slug}`)).toBe(true);
+    expect(urls.has(`https://pullvio.com/es/blog/${slug}`)).toBe(true);
+  });
+
   it("does not emit ignored priority or change-frequency hints", () => {
     expect(sitemap.every((entry) => entry.priority === undefined)).toBe(true);
     expect(sitemap.every((entry) => entry.changeFrequency === undefined)).toBe(true);
