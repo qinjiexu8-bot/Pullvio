@@ -42,7 +42,7 @@ const jobCopy = {
     processing: "Preparing your media…",
     processingCopy: "Pullvio is checking the source, format, and output file.",
     ready: "Your download is ready.",
-    readyCopy: "Files are kept for 24 hours only. Download them now before they are automatically deleted.",
+    readyCopy: "This is a temporary download link. Save the file promptly before the link expires.",
     artifact: { video: "Download video", audio: "Download audio", thumbnail: "Download cover" },
     failed: "We couldn’t prepare this media.",
     canceled: "This media job was canceled.",
@@ -63,6 +63,7 @@ const jobCopy = {
       INVALID_URL: "Paste a complete HTTPS media link.",
       UNSUPPORTED_SOURCE: "This source is not supported yet. Use one of Pullvio's listed platform downloaders.",
       AUDIO_ONLY_SOURCE: "SoundCloud links are available in Audio mode. Select Audio and try again.",
+      AUDIO_UNAVAILABLE: "Audio output is currently available for YouTube links only.",
       QUOTA_EXCEEDED: "You’ve used five guest downloads in the last 24 hours.",
       ACTIVE_JOB_LIMIT: "Wait for your current job to finish before starting another.",
       RATE_LIMITED: "Too many requests were submitted. Wait a moment and try again.",
@@ -82,7 +83,7 @@ const jobCopy = {
     processing: "正在准备媒体文件…",
     processingCopy: "Pullvio 正在检查来源、格式并生成文件。",
     ready: "文件已准备好。",
-    readyCopy: "文件仅保留 24 小时，之后会自动删除，请尽快下载。",
+    readyCopy: "这是临时下载链接，请在链接失效前尽快保存文件。",
     artifact: { video: "下载视频", audio: "下载音频", thumbnail: "下载封面" },
     failed: "暂时无法处理这个媒体。",
     canceled: "该媒体任务已取消。",
@@ -103,6 +104,7 @@ const jobCopy = {
       INVALID_URL: "请粘贴完整的 HTTPS 媒体链接。",
       UNSUPPORTED_SOURCE: "暂不支持此来源，请使用 Pullvio 已列出的平台专用下载工具。",
       AUDIO_ONLY_SOURCE: "SoundCloud 链接仅支持音频模式，请选择“音频”后重试。",
+      AUDIO_UNAVAILABLE: "目前仅 YouTube 链接支持音频输出。",
       QUOTA_EXCEEDED: "过去 24 小时内，访客的 5 次下载额度已用完。",
       ACTIVE_JOB_LIMIT: "请等待当前任务完成后再提交新任务。",
       RATE_LIMITED: "提交过于频繁，请稍后再试。",
@@ -122,7 +124,7 @@ const jobCopy = {
     processing: "Preparando el archivo…",
     processingCopy: "Pullvio está comprobando la fuente, el formato y el resultado.",
     ready: "La descarga está lista.",
-    readyCopy: "Los archivos se conservan solo 24 horas. Descárgalos antes de que se eliminen automáticamente.",
+    readyCopy: "Este enlace de descarga es temporal. Guarda el archivo antes de que caduque.",
     artifact: { video: "Descargar vídeo", audio: "Descargar audio", thumbnail: "Descargar portada" },
     failed: "No hemos podido preparar este contenido.",
     canceled: "La tarea se ha cancelado.",
@@ -143,6 +145,7 @@ const jobCopy = {
       INVALID_URL: "Pega un enlace multimedia HTTPS completo.",
       UNSUPPORTED_SOURCE: "Esta fuente aún no es compatible. Usa uno de los descargadores de plataforma publicados.",
       AUDIO_ONLY_SOURCE: "Los enlaces de SoundCloud solo están disponibles en el modo Audio.",
+      AUDIO_UNAVAILABLE: "La salida de audio está disponible actualmente solo para enlaces de YouTube.",
       QUOTA_EXCEEDED: "Has usado las cinco descargas de invitado en las últimas 24 horas.",
       ACTIVE_JOB_LIMIT: "Espera a que termine la tarea actual antes de iniciar otra.",
       RATE_LIMITED: "Se han enviado demasiadas solicitudes. Espera un momento.",
@@ -162,11 +165,13 @@ export default function MediaStudio({
   locale,
   placeholder,
   audioOnly = false,
+  videoOnly = false,
   showQualitySelector = false,
 }: {
   locale: Locale;
   placeholder?: string;
   audioOnly?: boolean;
+  videoOnly?: boolean;
   showQualitySelector?: boolean;
 }) {
   const t = homeContent[locale].studio;
@@ -321,7 +326,7 @@ export default function MediaStudio({
         <div className="studio-topline">
           <div className="mode-switch">
             {!audioOnly && <button className={mode === "video" ? "active" : ""} onClick={() => setMode("video")} type="button" disabled={status === "submitting" || status === "queued" || status === "processing"}><Video size={16} />{t.video}</button>}
-            <button className={mode === "audio" ? "active" : ""} onClick={() => setMode("audio")} type="button" disabled={status === "submitting" || status === "queued" || status === "processing"}><Headphones size={16} />{t.audio}</button>
+            {!videoOnly && <button className={mode === "audio" ? "active" : ""} onClick={() => setMode("audio")} type="button" disabled={status === "submitting" || status === "queued" || status === "processing"}><Headphones size={16} />{t.audio}</button>}
           </div>
           <span className="quota"><span />{quotaText}</span>
         </div>
@@ -368,15 +373,15 @@ export default function MediaStudio({
             </div>
             <div className="media-job-actions">
               {(status === "queued" || status === "processing") && <button type="button" className="secondary" onClick={cancel}>{copy.cancel}</button>}
-              {status === "ready" && job?.artifacts?.map((artifact) => <a key={artifact.kind} href={artifact.downloadUrl}><Download size={17} />{copy.artifact[artifact.kind]}</a>)}
-              {status === "ready" && !job?.artifacts?.length && job?.downloadUrl && <a href={job.downloadUrl}><Download size={17} />{t.download}</a>}
+              {status === "ready" && job?.artifacts?.map((artifact) => <a key={artifact.kind} href={artifact.downloadUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><Download size={17} />{copy.artifact[artifact.kind]}</a>)}
+              {status === "ready" && !job?.artifacts?.length && job?.downloadUrl && <a href={job.downloadUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><Download size={17} />{t.download}</a>}
               {(status === "failed" || status === "canceled" || (status === "ready" && !job?.downloadUrl)) && <button type="button" onClick={reset}><RotateCcw size={17} />{copy.retry}</button>}
               {status === "failed" && errorCode === "QUOTA_EXCEEDED" && <a href={localePath(locale, "/login")}>{copy.signIn}</a>}
             </div>
           </div>
         )}
 
-        <div className="studio-footer"><p><LockKeyhole size={15} />{t.legal}</p><div>{audioOnly ? <><span>MP3</span><span>SOURCE <b>AUDIO</b></span></> : <><span>MP4</span><span>MP3</span><span>4K <b>SOURCE</b></span></>}</div></div>
+        <div className="studio-footer"><p><LockKeyhole size={15} />{t.legal}</p><div>{audioOnly ? <><span>MP3</span><span>SOURCE <b>AUDIO</b></span></> : videoOnly ? <><span>MP4</span><span>SOURCE <b>VIDEO</b></span></> : <><span>MP4</span><span>MP3</span><span>4K <b>SOURCE</b></span></>}</div></div>
       </div>
     </div>
   );

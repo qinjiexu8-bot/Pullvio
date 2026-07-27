@@ -24,7 +24,7 @@ const deletableStatuses = new Set(["ready", "failed", "canceled", "expired"]);
 const artifactOrder: Record<string, number> = { video: 0, audio: 1, thumbnail: 2 };
 
 function formatBytes(bytes: number | null, locale: Locale) {
-  if (bytes === null) return null;
+  if (bytes === null || bytes <= 0) return null;
   if (bytes < 1024) return `${bytes} B`;
   const units = ["KB", "MB", "GB"];
   let value = bytes / 1024;
@@ -49,23 +49,45 @@ export default function DownloadHistory({ locale, initialJobs, page, pageSize, t
       : { rows: "Rows per page", previous: "Previous", next: "Next", of: "of" };
 
   useEffect(() => {
-    if (!supabase || !activeJobKey) return;
+    if (!activeJobKey) return;
     let canceled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const ids = activeJobKey.split(",");
 
     const poll = async () => {
-      const { data, error: pollError } = await supabase.from("download_jobs")
-        .select("id,status,processing_stage,progress_percent,started_at")
-        .in("id", ids);
+      const results = await Promise.all(ids.map(async (id) => {
+        try {
+          const response = await fetch(`/api/media/jobs/${id}`, { cache: "no-store" });
+          if (!response.ok) return null;
+          const payload = await response.json() as {
+            job: {
+              id: string;
+              status: string;
+              processingStage: string;
+              progressPercent: number;
+              startedAt: string | null;
+            };
+          };
+          return payload.job;
+        } catch {
+          return null;
+        }
+      }));
       if (canceled) return;
-      if (!pollError && data) {
+      const data = results.filter((result): result is NonNullable<typeof result> => Boolean(result));
+      if (data.length > 0) {
         let becameTerminal = false;
         setJobs((current) => current.map((job) => {
           const update = data.find((row) => row.id === job.id);
           if (!update) return job;
           if (job.status !== update.status && !["queued", "processing"].includes(update.status)) becameTerminal = true;
-          return { ...job, ...update };
+          return {
+            ...job,
+            status: update.status,
+            processing_stage: update.processingStage,
+            progress_percent: update.progressPercent,
+            started_at: update.startedAt,
+          };
         }));
         if (becameTerminal) {
           router.refresh();
@@ -80,7 +102,7 @@ export default function DownloadHistory({ locale, initialJobs, page, pageSize, t
       canceled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [activeJobKey, router, supabase]);
+  }, [activeJobKey, router]);
 
   function pageHref(nextPage: number, nextSize = pageSize) {
     return `${localePath(locale, "/account")}?page=${nextPage}&pageSize=${nextSize}`;
@@ -107,7 +129,7 @@ export default function DownloadHistory({ locale, initialJobs, page, pageSize, t
         const label = statusCopy[locale][job.status as keyof typeof statusCopy.en] ?? job.status;
         const size = formatBytes(job.file_size_bytes, locale);
         const artifacts = [...(job.artifacts ?? [])].sort((left, right) => (artifactOrder[left.kind] ?? 99) - (artifactOrder[right.kind] ?? 99));
-        return <article key={job.id} className="account-history-row"><div className="account-history-main"><span className={`account-job-status status-${job.status}`}>{label}</span><div><a href={job.source_url} target="_blank" rel="noopener noreferrer nofollow"><strong>{job.title || job.source_host}</strong><ExternalLink size={13} /></a><span>{job.source_host} · {job.requested_format.toUpperCase()} · {job.requested_quality}{size ? ` · ${size}` : ""}</span>{(job.status === "queued" || job.status === "processing") && <MediaJobProgress locale={locale} stage={job.processing_stage as ProcessingStage} percent={job.progress_percent} compact />}{artifacts.length > 0 && <div className="account-artifact-links">{artifacts.map((artifact) => <a key={artifact.kind} href={artifact.downloadUrl}><Download size={14} />{copy.artifact[artifact.kind] ?? artifact.kind}<small>{formatBytes(artifact.fileSizeBytes, locale)}</small></a>)}</div>}</div></div><div className="account-history-actions"><time dateTime={job.created_at}>{dateFormatter.format(new Date(job.created_at))}</time>{deletableStatuses.has(job.status) && <button type="button" onClick={() => remove(job.id)} disabled={deleting === job.id} aria-label={copy.delete} title={copy.delete}>{deleting === job.id ? <LoaderCircle className="spinner-icon" size={16} /> : <Trash2 size={16} />}</button>}</div></article>;
+        return <article key={job.id} className="account-history-row"><div className="account-history-main"><span className={`account-job-status status-${job.status}`}>{label}</span><div><a href={job.source_url} target="_blank" rel="noopener noreferrer nofollow"><strong>{job.title || job.source_host}</strong><ExternalLink size={13} /></a><span>{job.source_host} · {job.requested_format.toUpperCase()} · {job.requested_quality}{size ? ` · ${size}` : ""}</span>{(job.status === "queued" || job.status === "processing") && <MediaJobProgress locale={locale} stage={job.processing_stage as ProcessingStage} percent={job.progress_percent} compact />}{artifacts.length > 0 && <div className="account-artifact-links">{artifacts.map((artifact) => <a key={artifact.kind} href={artifact.downloadUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><Download size={14} />{copy.artifact[artifact.kind] ?? artifact.kind}<small>{formatBytes(artifact.fileSizeBytes, locale)}</small></a>)}</div>}</div></div><div className="account-history-actions"><time dateTime={job.created_at}>{dateFormatter.format(new Date(job.created_at))}</time>{deletableStatuses.has(job.status) && <button type="button" onClick={() => remove(job.id)} disabled={deleting === job.id} aria-label={copy.delete} title={copy.delete}>{deleting === job.id ? <LoaderCircle className="spinner-icon" size={16} /> : <Trash2 size={16} />}</button>}</div></article>;
       })}</div>}
       {totalJobs > 0 && <nav className="account-history-pagination" aria-label={copy.title}>
         <label>{pageLabels.rows}<select value={pageSize} onChange={(event) => router.push(pageHref(1, Number(event.target.value)))}>{ACCOUNT_PAGE_SIZES.map((sizeOption) => <option key={sizeOption} value={sizeOption}>{sizeOption}</option>)}</select></label>

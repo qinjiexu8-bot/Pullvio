@@ -302,6 +302,7 @@ export type Database = {
           provider_job_id: string | null
           provider_platform: string
           provider_progress: number
+          result_expires_at: string | null
           result_url: string | null
           status: string
           submit_count: number
@@ -325,6 +326,7 @@ export type Database = {
           provider_job_id?: string | null
           provider_platform?: string
           provider_progress?: number
+          result_expires_at?: string | null
           result_url?: string | null
           status?: string
           submit_count?: number
@@ -348,6 +350,7 @@ export type Database = {
           provider_job_id?: string | null
           provider_platform?: string
           provider_progress?: number
+          result_expires_at?: string | null
           result_url?: string | null
           status?: string
           submit_count?: number
@@ -528,6 +531,25 @@ export type Database = {
           result_url: string | null
         }[]
       }
+      begin_direct_provider_run: {
+        Args: {
+          p_job_id: string
+          p_provider_format: string
+        }
+        Returns: {
+          provider_job_id: string | null
+          provider_progress: number
+          provider_run_id: string
+          provider_status: string
+          result_code: string
+          result_expires_at: string | null
+          result_url: string | null
+        }[]
+      }
+      cancel_direct_provider_job: {
+        Args: { p_job_id: string }
+        Returns: boolean
+      }
       claim_media_job: {
         Args: {
           p_job_id: string
@@ -599,6 +621,23 @@ export type Database = {
         Args: { p_job_id: string; p_worker_id: string }
         Returns: boolean
       }
+      expire_direct_provider_results: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      fail_direct_provider_balance: {
+        Args: { p_job_id: string }
+        Returns: boolean
+      }
+      fail_direct_provider_job: {
+        Args: {
+          p_error_info: Json
+          p_failure_code: string
+          p_http_status: number | null
+          p_job_id: string
+        }
+        Returns: boolean
+      }
       fail_youtube_provider_balance: {
         Args: { p_job_id: string; p_worker_id: string }
         Returns: boolean
@@ -621,6 +660,10 @@ export type Database = {
       }
       mark_media_provider_submission_started: {
         Args: { p_run_id: string; p_worker_id: string }
+        Returns: boolean
+      }
+      mark_direct_provider_submission_started: {
+        Args: { p_job_id: string }
         Returns: boolean
       }
       media_job_should_cancel: {
@@ -671,6 +714,10 @@ export type Database = {
         Args: { p_job_id: string }
         Returns: boolean
       }
+      reuse_direct_provider_result: {
+        Args: { p_job_id: string }
+        Returns: boolean
+      }
       resolve_youtube_provider_balance_incident: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -695,6 +742,25 @@ export type Database = {
           p_result_url: string | null
           p_run_id: string
           p_worker_id: string
+        }
+        Returns: boolean
+      }
+      record_direct_provider_progress: {
+        Args: {
+          p_job_id: string
+          p_progress: number
+          p_provider_info: Json
+          p_result_ttl_seconds?: number
+          p_result_url: string | null
+          p_status_text: string | null
+        }
+        Returns: boolean
+      }
+      record_direct_provider_submission: {
+        Args: {
+          p_job_id: string
+          p_provider_info: Json
+          p_provider_job_id: string
         }
         Returns: boolean
       }

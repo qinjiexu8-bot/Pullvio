@@ -48,7 +48,7 @@ function TechnicalArticle({
   );
 }
 
-export const technicalBlogPosts: BlogPost[] = [
+const allTechnicalBlogPosts: BlogPost[] = [
   {
     slug: "soundcloud-mp3-quality-and-bitrate",
     published: "2026-07-21",
@@ -189,13 +189,10 @@ export const technicalBlogPosts: BlogPost[] = [
                     If the creator has enabled SoundCloud&apos;s official download,
                     use it when you need the uploaded file. If you are saving
                     your own public track or another track you are authorized
-                    to keep as a convenient MP3, Pullvio&apos;s{" "}
-                    <Link href="/soundcloud-downloader">
-                      SoundCloud downloader
-                    </Link>{" "}
-                    provides an audio-only browser workflow. It does not claim
-                    that a converted public source is lossless or a genuine 320
-                    kbps master.
+                    to keep, ask the creator for the original file or use the
+                    official download control when it is available. A
+                    playback-stream conversion is not lossless or a genuine
+                    320 kbps master.
                   </p>
                   <p>
                     Downloading does not grant publishing, sampling, remixing,
@@ -338,11 +335,7 @@ export const technicalBlogPosts: BlogPost[] = [
                 "选择正确的 SoundCloud 保存方式",
                 <>
                   <p>
-                    如果创作者开放了 SoundCloud 官方下载，并且您需要上传文件本身，应优先使用官方入口。如果您要保存自己的公开音轨，或有权把其他公开音轨保存为方便使用的 MP3，可使用 Pullvio 的
-                    <Link href="/zh-cn/soundcloud-downloader">
-                      SoundCloud 下载器
-                    </Link>
-                    。它不会把公开来源转换后的文件宣传成无损或真正的 320 kbps 母带。
+                    如果创作者开放了 SoundCloud 官方下载，并且您需要上传文件本身，应优先使用官方入口。如果您要保存自己的公开音轨，或有权保存其他公开音轨，请向创作者索取原始文件，或使用页面提供的官方下载按钮。播放流转换并不等于无损或真正的 320 kbps 母带。
                   </p>
                   <p>
                     下载不会自动授予发布、采样、混音或商业使用权。请保留艺术家、来源链接、许可与授权记录，并在复用前阅读
@@ -513,13 +506,10 @@ export const technicalBlogPosts: BlogPost[] = [
                   <p>
                     Si el autor habilitó la descarga oficial y necesitas la
                     subida original, usa esa opción. Para descargar de
-                    SoundCloud una pista pública propia o autorizada como MP3,
-                    abre el{" "}
-                    <Link href="/es/soundcloud-downloader">
-                      descargador de SoundCloud
-                    </Link>
-                    . Pullvio no presenta una conversión de audio público como
-                    máster sin pérdida o 320 kbps genuinos.
+                    SoundCloud una pista pública propia o autorizada, pide el
+                    archivo original al creador o usa el control de descarga
+                    oficial cuando esté disponible. Convertir una reproducción
+                    pública no crea un máster sin pérdida ni 320 kbps genuinos.
                   </p>
                   <p>
                     Descargar música de SoundCloud no concede derechos para
@@ -786,8 +776,8 @@ export const technicalBlogPosts: BlogPost[] = [
                 <strong>Try the workflow responsibly</strong>
                 <p>
                   Use Pullvio’s{" "}
-                  <Link href="/vimeo-video-downloader">
-                    Vimeo video downloader
+                  <Link href="/youtube-video-downloader">
+                    YouTube video downloader
                   </Link>{" "}
                   or{" "}
                   <Link href="/tiktok-video-downloader">
@@ -946,8 +936,8 @@ export const technicalBlogPosts: BlogPost[] = [
                 <strong>负责任地体验处理流程</strong>
                 <p>
                   请仅使用{" "}
-                  <Link href="/zh-cn/vimeo-video-downloader">
-                    Vimeo 视频下载器
+                  <Link href="/zh-cn/youtube-video-downloader">
+                    YouTube 视频下载器
                   </Link>
                   或{" "}
                   <Link href="/zh-cn/tiktok-video-downloader">
@@ -1107,8 +1097,8 @@ export const technicalBlogPosts: BlogPost[] = [
                 <strong>Utiliza fuentes autorizadas</strong>
                 <p>
                   Prueba el{" "}
-                  <Link href="/es/vimeo-video-downloader">
-                    descargador de Vimeo
+                  <Link href="/es/youtube-video-downloader">
+                    descargador de YouTube
                   </Link>{" "}
                   o el{" "}
                   <Link href="/es/tiktok-video-downloader">
@@ -2471,3 +2461,7 @@ export const technicalBlogPosts: BlogPost[] = [
     },
   },
 ];
+
+export const technicalBlogPosts: BlogPost[] = allTechnicalBlogPosts.filter(
+  ({ slug }) => slug !== "soundcloud-mp3-quality-and-bitrate",
+);

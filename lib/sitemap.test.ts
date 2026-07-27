@@ -41,13 +41,13 @@ describe("buildSitemap", () => {
     expect(entry?.lastModified).toEqual(new Date(`${post.modified ?? post.published}T00:00:00.000Z`));
   });
 
-  it("publishes the SoundCloud quality guide in every supported locale", () => {
+  it("does not publish content for an unavailable SoundCloud workflow", () => {
     const slug = "soundcloud-mp3-quality-and-bitrate";
     const urls = new Set(sitemap.map(({ url }) => url));
 
-    expect(urls.has(`https://pullvio.com/blog/${slug}`)).toBe(true);
-    expect(urls.has(`https://pullvio.com/zh-cn/blog/${slug}`)).toBe(true);
-    expect(urls.has(`https://pullvio.com/es/blog/${slug}`)).toBe(true);
+    expect(urls.has(`https://pullvio.com/blog/${slug}`)).toBe(false);
+    expect(urls.has(`https://pullvio.com/zh-cn/blog/${slug}`)).toBe(false);
+    expect(urls.has(`https://pullvio.com/es/blog/${slug}`)).toBe(false);
   });
 
   it("does not emit ignored priority or change-frequency hints", () => {

@@ -50,7 +50,7 @@ export const policyPages: Record<string, PolicyPage> = {
       <h2>Service providers</h2>
       <p>The service may rely on hosting, media-processing, storage, authentication, email, security, and analytics providers. These providers process data only for the services they supply to Pullvio.</p>
       <h2>Retention and requests</h2>
-      <p>Temporary processing files are retained only as long as reasonably needed to complete and deliver a job, then deleted automatically. Security and support records may be kept longer where needed for abuse prevention, dispute handling, or legal obligations. You may request access, correction, or deletion by emailing <a href="mailto:privacy@pullvio.com">privacy@pullvio.com</a>, subject to applicable law and necessary records.</p>
+      <p>Media processing and temporary result delivery may be performed by a service provider. Result links are temporary and should be saved promptly; their availability is controlled by that provider. Pullvio retains task metadata only as reasonably needed for account history, delivery, security, abuse prevention, dispute handling, or legal obligations. You may request access, correction, or deletion by emailing <a href="mailto:privacy@pullvio.com">privacy@pullvio.com</a>, subject to applicable law and necessary records.</p>
     </>,
   },
   terms: {

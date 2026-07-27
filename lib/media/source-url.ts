@@ -16,6 +16,17 @@ export type SourcePlatform =
   | "loom"
   | "dropbox";
 
+export const liveSourcePlatforms = [
+  "youtube",
+  "instagram",
+  "facebook",
+  "tiktok",
+  "snapchat",
+  "okru",
+] as const satisfies readonly SourcePlatform[];
+
+const LIVE_SOURCE_PLATFORMS = new Set<SourcePlatform>(liveSourcePlatforms);
+
 export class MediaInputError extends Error {
   readonly code: string;
 
@@ -105,7 +116,7 @@ export function normalizeSourceUrl(input: string): NormalizedSourceUrl {
 
   const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
   const platform = SOURCE_HOSTS[host];
-  if (!platform) {
+  if (!platform || !LIVE_SOURCE_PLATFORMS.has(platform)) {
     throw new MediaInputError("UNSUPPORTED_SOURCE", "This media source is not supported yet.");
   }
 

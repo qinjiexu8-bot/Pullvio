@@ -9,14 +9,11 @@ import {
   readSmallJson,
   resolveMediaIdentity,
 } from "@/lib/media/http";
-import { dispatchMediaJob } from "@/lib/media/queue";
 import {
-  failUndispatchedMediaJob,
-  markMediaJobDispatched,
   reserveMediaJob,
-  reuseCachedMediaJob,
   mediaProviderChallengeRequired,
 } from "@/lib/media/repository";
+import { startDirectProviderJob } from "@/lib/media/direct-provider";
 import { verifyTurnstileToken } from "@/lib/media/turnstile";
 import {
   createYoutubeChallengeCookieValue,
@@ -45,7 +42,7 @@ export async function POST(request: NextRequest) {
     let challengeCookieValue: string | null = null;
 
     if (
-      new Set(["youtube", "instagram", "facebook", "snapchat", "okru"]).has(input.sourcePlatform)
+      new Set(["youtube", "instagram", "facebook", "tiktok", "snapchat", "okru"]).has(input.sourcePlatform)
       && await mediaProviderChallengeRequired(identity.owner, identity.networkSubject)
     ) {
       const anonymousSecret = process.env.PULLVIO_ANONYMOUS_SECRET;
@@ -94,32 +91,18 @@ export async function POST(request: NextRequest) {
     }
 
     let cacheHit = false;
-    if (!reservation.duplicate) {
-      cacheHit = await reuseCachedMediaJob(reservation.jobId).catch(() => false);
-    }
-
-    if (!reservation.duplicate && !cacheHit) {
-      try {
-        await dispatchMediaJob(reservation.jobId);
-        await markMediaJobDispatched(reservation.jobId);
-      } catch {
-        await failUndispatchedMediaJob(reservation.jobId).catch(() => false);
-        const response = jsonNoStore(
-          { error: { code: "QUEUE_UNAVAILABLE", message: "The processing queue is temporarily unavailable." } },
-          { status: 503 },
-        );
-        return attachYoutubeChallengeCookie(
-          attachAnonymousCookie(response, identity.anonymousCookieValue),
-          challengeCookieValue,
-        );
-      }
+    let jobStatus = reservation.status;
+    if (!reservation.duplicate && reservation.status !== "ready") {
+      const started = await startDirectProviderJob(reservation.jobId, input);
+      cacheHit = started.cacheHit;
+      jobStatus = started.status;
     }
 
     const response = jsonNoStore(
       {
         job: {
           id: reservation.jobId,
-          status: cacheHit ? "ready" : reservation.status,
+          status: cacheHit ? "ready" : jobStatus,
           createdAt: reservation.createdAt,
           cacheHit,
         },

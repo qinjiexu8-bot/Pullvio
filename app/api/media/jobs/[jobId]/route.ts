@@ -8,6 +8,11 @@ import {
 import { createArtifactDownloadUrl } from "@/lib/media/delivery";
 import { cancelOwnedMediaJob, getMediaArtifacts, getOwnedMediaJob } from "@/lib/media/repository";
 import { clampProgress, estimateSecondsRemaining } from "@/lib/media/job-progress";
+import {
+  cancelDirectProviderJob,
+  getDirectProviderArtifact,
+  syncDirectProviderJob,
+} from "@/lib/media/direct-provider";
 
 export const runtime = "nodejs";
 
@@ -22,19 +27,29 @@ export async function GET(request: NextRequest, context: Context) {
     if (!UUID_PATTERN.test(jobId)) return notFound();
     const identity = await resolveMediaIdentity(request, { createAnonymous: false });
     if (!identity) return notFound();
-    const job = await getOwnedMediaJob(identity.owner, jobId);
+    let job = await getOwnedMediaJob(identity.owner, jobId);
     if (!job) return notFound();
+    if (job.status === "queued" || job.status === "processing" || job.status === "ready") {
+      await syncDirectProviderJob(jobId);
+      job = await getOwnedMediaJob(identity.owner, jobId);
+      if (!job) return notFound();
+    }
     let artifacts: SerializedArtifact[] = [];
     if (job.status === "ready") {
-      const rows = await getMediaArtifacts(jobId);
-      artifacts = (await Promise.all(rows.map(async (artifact) => ({
-        kind: artifact.artifact_kind,
-        contentType: artifact.content_type,
-        fileSizeBytes: artifact.file_size_bytes,
-        expiresAt: artifact.expires_at,
-        downloadUrl: await createArtifactDownloadUrl(artifact.storage_path, artifact.expires_at),
-      })))).filter((artifact) => Boolean(artifact.downloadUrl))
-        .sort((left, right) => (ARTIFACT_ORDER[left.kind] ?? 99) - (ARTIFACT_ORDER[right.kind] ?? 99));
+      const directArtifact = await getDirectProviderArtifact(jobId, job.media_kind);
+      if (directArtifact) {
+        artifacts = [directArtifact];
+      } else {
+        const rows = await getMediaArtifacts(jobId);
+        artifacts = (await Promise.all(rows.map(async (artifact) => ({
+          kind: artifact.artifact_kind,
+          contentType: artifact.content_type,
+          fileSizeBytes: artifact.file_size_bytes,
+          expiresAt: artifact.expires_at,
+          downloadUrl: await createArtifactDownloadUrl(artifact.storage_path, artifact.expires_at),
+        })))).filter((artifact) => Boolean(artifact.downloadUrl))
+          .sort((left, right) => (ARTIFACT_ORDER[left.kind] ?? 99) - (ARTIFACT_ORDER[right.kind] ?? 99));
+      }
     }
     return jsonNoStore({ job: serializeJob(job, artifacts) });
   } catch (error) {
@@ -49,7 +64,11 @@ export async function DELETE(request: NextRequest, context: Context) {
     if (!UUID_PATTERN.test(jobId)) return notFound();
     const identity = await resolveMediaIdentity(request, { createAnonymous: false });
     if (!identity) return notFound();
-    const job = await cancelOwnedMediaJob(identity.owner, jobId);
+    let job = await cancelOwnedMediaJob(identity.owner, jobId);
+    if (job?.status === "processing" && job.cancellation_requested_at) {
+      await cancelDirectProviderJob(jobId);
+      job = await getOwnedMediaJob(identity.owner, jobId);
+    }
     return job ? jsonNoStore({ job: serializeJob(job, []) }) : notFound();
   } catch (error) {
     return mediaErrorResponse(error);

@@ -8,17 +8,8 @@ describe("public platform catalog", () => {
       "Instagram",
       "Facebook",
       "TikTok",
-      "Vimeo",
-      "SoundCloud",
-      "Pinterest",
-      "Twitch Clips",
-      "Dailymotion",
-      "Streamable",
       "Snapchat",
       "OK.ru",
-      "Imgur",
-      "Loom",
-      "Dropbox",
     ]);
   });
 

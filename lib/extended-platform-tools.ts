@@ -23,9 +23,9 @@ const configs = {
     searchName: "Instagram video",
     relatedSlug: "facebook-video-downloader",
     keywords: {
-      en: ["instagram video downloader", "instagram reel downloader", "download instagram video", "instagram to mp4", "instagram to mp3", "instagram downloader online"],
-      "zh-cn": ["Instagram视频下载器", "Instagram视频下载", "Instagram Reels下载", "Instagram转MP4", "Instagram转MP3"],
-      es: ["descargador de videos de instagram", "descargar reels de instagram", "descargar video instagram", "instagram a mp4", "instagram a mp3"],
+      en: ["instagram video downloader", "instagram reel downloader", "download instagram video", "instagram to mp4", "instagram downloader online"],
+      "zh-cn": ["Instagram视频下载器", "Instagram视频下载", "Instagram Reels下载", "Instagram转MP4"],
+      es: ["descargador de videos de instagram", "descargar reels de instagram", "descargar video instagram", "instagram a mp4"],
     },
     details: {
       en: { subject: "Instagram Reel, video post, or public Story", accepted: "a direct public Instagram Reel, video-post, or Story link", excluded: "profiles, private accounts, Highlights, image-only posts, login-only media, and expired Stories", useCase: "your own Reels, campaign drafts, creator-approved posts, and licensed social clips", quality: "the video rendition made available for that public Instagram item" },
@@ -38,9 +38,9 @@ const configs = {
     searchName: "Facebook video",
     relatedSlug: "snapchat-video-downloader",
     keywords: {
-      en: ["facebook video downloader", "facebook reel downloader", "download facebook video", "facebook to mp4", "facebook to mp3", "fb video downloader"],
-      "zh-cn": ["Facebook视频下载器", "Facebook视频下载", "Facebook Reels下载", "Facebook转MP4", "Facebook转MP3"],
-      es: ["descargador de videos de facebook", "descargar reels de facebook", "descargar video facebook", "facebook a mp4", "facebook a mp3"],
+      en: ["facebook video downloader", "facebook reel downloader", "download facebook video", "facebook to mp4", "fb video downloader"],
+      "zh-cn": ["Facebook视频下载器", "Facebook视频下载", "Facebook Reels下载", "Facebook转MP4"],
+      es: ["descargador de videos de facebook", "descargar reels de facebook", "descargar video facebook", "facebook a mp4"],
     },
     details: {
       en: { subject: "Facebook video or Reel", accepted: "a direct public Facebook video, Reel, Watch, share, or fb.watch link", excluded: "feeds, profiles, groups, private posts, login-only videos, active Live streams, paid media, and deleted posts", useCase: "your own Page videos, approved campaign assets, licensed clips, and creator-authorized Reels", quality: "the public video rendition Facebook makes available for that link" },
@@ -93,9 +93,9 @@ const configs = {
     searchName: "Snapchat Spotlight video",
     relatedSlug: "okru-video-downloader",
     keywords: {
-      en: ["snapchat video downloader", "snapchat story downloader", "snapchat spotlight downloader", "download snapchat video", "snapchat to mp4", "snapchat to mp3"],
-      "zh-cn": ["Snapchat视频下载器", "Snapchat视频下载", "Snapchat Story下载", "Snapchat Spotlight下载", "Snapchat转MP4", "Snapchat转MP3"],
-      es: ["descargador de videos de snapchat", "descargar stories de snapchat", "descargador de snapchat spotlight", "descargar video snapchat", "snapchat a mp4", "snapchat a mp3"],
+      en: ["snapchat video downloader", "snapchat story downloader", "snapchat spotlight downloader", "download snapchat video", "snapchat to mp4"],
+      "zh-cn": ["Snapchat视频下载器", "Snapchat视频下载", "Snapchat Story下载", "Snapchat Spotlight下载", "Snapchat转MP4"],
+      es: ["descargador de videos de snapchat", "descargar stories de snapchat", "descargador de snapchat spotlight", "descargar video snapchat", "snapchat a mp4"],
     },
     details: {
       en: { subject: "Snapchat Spotlight video or public Story", accepted: "a direct public Snapchat Spotlight or Story link", excluded: "profiles, chat media, private Snaps, friends-only Stories, expired Stories, and deleted posts", useCase: "your own Spotlight uploads, public Stories, or posts the creator authorizes you to save", quality: "the public video rendition available for that Snapchat item" },
@@ -108,9 +108,9 @@ const configs = {
     searchName: "OK.ru video",
     relatedSlug: "instagram-video-downloader",
     keywords: {
-      en: ["okru video downloader", "ok.ru video downloader", "download ok.ru video", "okru to mp4", "okru to mp3", "odnoklassniki video downloader"],
-      "zh-cn": ["OKRU视频下载器", "OK.ru视频下载", "Odnoklassniki视频下载", "OKRU转MP4", "OKRU转MP3"],
-      es: ["descargador de videos de okru", "descargar video de ok.ru", "descargador de odnoklassniki", "okru a mp4", "okru a mp3"],
+      en: ["okru video downloader", "ok.ru video downloader", "download ok.ru video", "okru to mp4", "odnoklassniki video downloader"],
+      "zh-cn": ["OKRU视频下载器", "OK.ru视频下载", "Odnoklassniki视频下载", "OKRU转MP4"],
+      es: ["descargador de videos de okru", "descargar video de ok.ru", "descargador de odnoklassniki", "okru a mp4"],
     },
     details: {
       en: { subject: "OK.ru (Odnoklassniki) video", accepted: "a direct public OK.ru video or videoembed link", excluded: "profiles, group feeds, private videos, login-only media, paid content, active Live streams, and deleted videos", useCase: "your own OK.ru uploads, public-domain footage, licensed videos, and creator-approved posts", quality: "the public video rendition OK.ru provides for that item" },
@@ -154,60 +154,60 @@ function buildCopy(config: ExtendedPlatformConfig, locale: Locale): PlatformCopy
   const d = config.details[locale];
   if (locale === "zh-cn") {
     return {
-      title: `${config.platform} 视频下载器 - 在线下载 MP4/MP3 | Pullvio`,
-      description: `免费的 ${config.platform} 视频下载器。粘贴${d.accepted}，将有权保存的内容下载为 MP4，并在音轨存在时获取 MP3。`,
-      keywords: config.keywords?.[locale] ?? [`${config.platform}视频下载器`, `${config.platform}视频下载`, `${config.platform}转MP4`, `${config.platform}转MP3`, "在线视频下载器"],
-      eyebrow: `${config.platform.toUpperCase()} 视频下载器`, h1: `在线下载 ${config.platform} 视频。`, accent: `将获得授权的内容保存为 HD MP4 或 MP3。`,
-      intro: `粘贴${d.accepted}。Pullvio 会处理您自己拥有、符合许可条件或已获得保存授权的${d.subject}，并在浏览器中提供可用的视频、封面和音频文件。`,
+      title: `${config.platform} 视频下载器 - 在线下载 MP4 | Pullvio`,
+      description: `免费的 ${config.platform} 视频下载器。粘贴${d.accepted}，将有权保存的公开内容下载为来源提供的视频文件。`,
+      keywords: config.keywords?.[locale] ?? [`${config.platform}视频下载器`, `${config.platform}视频下载`, `${config.platform}转MP4`, "在线视频下载器"],
+      eyebrow: `${config.platform.toUpperCase()} 视频下载器`, h1: `在线下载 ${config.platform} 视频。`, accent: "将获得授权的公开视频保存为 MP4。",
+      intro: `粘贴${d.accepted}。Pullvio 会处理您自己拥有、符合许可条件或已获得保存授权的${d.subject}，并提供临时视频下载链接。`,
       placeholder: `粘贴${config.platform}公开链接`, benefits: [`支持${d.accepted}`, `输出以${d.quality}为准`, "无需安装 App 或浏览器扩展"],
       howEyebrow: `如何下载 ${config.platform} 视频`, howTitle: "三个步骤，从公开链接获得媒体文件。",
-      steps: [["复制单个公开链接", `打开${d.accepted}并复制完整 HTTPS 地址。`], ["粘贴并开始处理", "提交链接，Pullvio 会检查来源并准备 MP4、封面以及存在音轨时的 MP3。"], ["及时下载文件", "完成后将文件保存到设备；临时结果只保留24小时。"]],
-      formatsEyebrow: "格式与源画质", formatsTitle: "只提供来源真实存在的文件。", formatsIntro: `可用格式取决于${d.quality}。Pullvio 不会凭空制造分辨率、音轨或无损音质。`,
-      formats: [["MP4", "视频与声音", "适合在手机、电脑、编辑软件和个人档案中使用。"], ["MP3", "来源含音轨时提供", "提取音频不会授予音乐或语音的复用权。"], ["封面", "独立保存预览图", "来源提供封面时，可与视频一起及时下载。"]],
+      steps: [["复制单个公开链接", `打开${d.accepted}并复制完整 HTTPS 地址。`], ["粘贴并开始处理", "提交链接，Pullvio 会检查来源并请求可用的原始视频。"], ["及时下载文件", "完成后立即将视频保存到设备；临时链接的有效期由来源决定。"]],
+      formatsEyebrow: "格式与源画质", formatsTitle: "只提供来源真实存在的视频。", formatsIntro: `输出取决于${d.quality}。Pullvio 不会凭空制造分辨率或无损画质。`,
+      formats: [["MP4", "广泛兼容的视频", "适合在手机、电脑、编辑软件和个人档案中使用。"], ["源视频", "以平台返回为准", "保留来源实际提供的尺寸和编码，不进行虚假放大。"], ["临时链接", "完成后请及时保存", "下载链接由处理服务临时提供，可能在没有通知的情况下失效。"]],
       boundariesEyebrow: "支持范围", boundariesTitle: "只处理单个、公开且已获授权的媒体。", worksTitle: "适合：公开直达链接", worksCopy: `用于${d.useCase}。`, limitsTitle: "不支持：受限页面", limitsCopy: `当前不处理${d.excluded}。`, responsibleTitle: "可访问不等于可自由使用", responsibleCopy: "下载前请确认所有权、许可、平台条款和当地法律；不要绕过访问控制或冒充原作者。",
       guideEyebrow: "负责任使用", guideTitle: "下载前先确认许可。", guideCopy: "阅读授权指南，了解自有作品、开放许可、公共领域、署名与受限内容之间的区别。", guideCta: "阅读负责任使用指南",
       relatedEyebrow: "更多平台工具", relatedTitle: "还需要处理其他公开媒体？", relatedCopy: "使用另一个经过验证的平台下载页，并继续遵守来源和授权范围。", relatedCta: "打开相关下载器",
-      faqEyebrow: `${config.platform.toUpperCase()} 下载常见问题`, faqTitle: `关于 ${config.platform} 视频下载的问题。`, faqIntro: "说明公开链接、MP4、MP3、画质、设备、保留期限和使用边界。",
-      faqs: [[`Pullvio ${config.platform} 下载器免费吗？`, "免费。访客可完成5次下载；免费账号可在合理使用、安全和来源可用范围内继续。"], [`支持哪些 ${config.platform} 链接？`, `当前只接受${d.accepted}。`], ["可以下载 MP4 和 MP3 吗？", "视频会准备为 MP4；只有来源实际包含音轨时，才会提供或生成 MP3。"], ["为什么某些链接无法处理？", `常见原因包括${d.excluded}，以及来源删除、地区限制或临时风控。`], ["文件会保留多久？", "处理结果只保留24小时，请完成后尽快下载。"], ["手机上可以使用吗？", "可以，支持现代 iPhone、Android、Mac 与 Windows 浏览器，无需扩展。"], ["下载后可以重新发布吗？", "只有所有权、许可或权利人明确允许时才可以；下载本身不会授予传播或商业使用权。"]],
+      faqEyebrow: `${config.platform.toUpperCase()} 下载常见问题`, faqTitle: `关于 ${config.platform} 视频下载的问题。`, faqIntro: "说明公开链接、视频格式、源画质、设备、临时链接和使用边界。",
+      faqs: [[`Pullvio ${config.platform} 下载器免费吗？`, "免费。访客可完成5次下载；免费账号可在合理使用、安全和来源可用范围内继续。"], [`支持哪些 ${config.platform} 链接？`, `当前只接受${d.accepted}。`], ["可以下载什么格式？", "当前专用页面只提供来源返回的视频文件，不提供独立 MP3 或封面文件。"], ["为什么某些链接无法处理？", `常见原因包括${d.excluded}，以及来源删除、地区限制或临时风控。`], ["下载链接会保留多久？", "链接是临时的，具体有效期由来源和处理服务决定，请完成后立即保存。"], ["手机上可以使用吗？", "可以，支持现代 iPhone、Android、Mac 与 Windows 浏览器，无需扩展。"], ["下载后可以重新发布吗？", "只有所有权、许可或权利人明确允许时才可以；下载本身不会授予传播或商业使用权。"]],
     };
   }
 
   if (locale === "es") {
     return {
-      title: `Descargador de ${config.platform} – MP4 y MP3 | Pullvio`,
-      description: `Descarga ${config.searchName} público autorizado en MP4 y extrae MP3 cuando exista audio. Gratis, online y sin instalar aplicaciones.`,
-      keywords: config.keywords?.[locale] ?? [`descargador de ${config.platform.toLowerCase()}`, `descargar ${config.searchName.toLowerCase()}`, `${config.platform.toLowerCase()} a mp4`, `${config.platform.toLowerCase()} a mp3`, "descargador de videos online"],
-      eyebrow: `DESCARGADOR DE ${config.platform.toUpperCase()}`, h1: `Descarga videos de ${config.platform} online.`, accent: "Guarda contenido autorizado en MP4 o MP3.",
-      intro: `Pega ${d.accepted}. Pullvio procesa ${d.subject} que posees, que tienen licencia o que puedes guardar, y entrega video, portada y audio disponible desde el navegador.`,
+      title: `Descargador de ${config.platform} – Video MP4 | Pullvio`,
+      description: `Descarga enlaces públicos autorizados de ${config.searchName} como video. Gratis, online y sin instalar aplicaciones.`,
+      keywords: config.keywords?.[locale] ?? [`descargador de ${config.platform.toLowerCase()}`, `descargar ${config.searchName.toLowerCase()}`, `${config.platform.toLowerCase()} a mp4`, "descargador de videos online"],
+      eyebrow: `DESCARGADOR DE ${config.platform.toUpperCase()}`, h1: `Descarga videos de ${config.platform} online.`, accent: "Guarda videos públicos autorizados en MP4.",
+      intro: `Pega ${d.accepted}. Pullvio procesa ${d.subject} que posees, que tienen licencia o que puedes guardar, y entrega un enlace temporal al video disponible.`,
       placeholder: `Pega un enlace público de ${config.platform}`, benefits: [`Compatible con ${d.accepted}`, `Calidad según ${d.quality}`, "Sin aplicación ni extensión"],
       howEyebrow: `CÓMO DESCARGAR DE ${config.platform.toUpperCase()}`, howTitle: "Del enlace público al archivo en tres pasos.",
-      steps: [["Copia el enlace público", `Abre ${d.accepted} y copia la dirección HTTPS completa.`], ["Pega y procesa", "Pullvio verifica la fuente y prepara MP4, portada y MP3 cuando existe audio."], ["Descarga sin demora", "Guarda los archivos en tu dispositivo; los resultados temporales duran 24 horas."]],
-      formatsEyebrow: "FORMATO Y CALIDAD", formatsTitle: "Archivos fieles a la fuente pública.", formatsIntro: `Los formatos dependen de ${d.quality}. Pullvio no inventa resolución, audio ni calidad sin pérdida.`,
-      formats: [["MP4", "Video compatible", "Para reproducción, edición y archivo autorizado."], ["MP3", "Audio cuando existe", "Extraer audio no concede derechos sobre música o voz."], ["PORTADA", "Imagen de vista previa", "Disponible por separado cuando la fuente la proporciona."]],
+      steps: [["Copia el enlace público", `Abre ${d.accepted} y copia la dirección HTTPS completa.`], ["Pega y procesa", "Pullvio verifica la fuente y solicita el video disponible."], ["Descarga sin demora", "Guarda el video enseguida; la duración del enlace temporal depende de la fuente."]],
+      formatsEyebrow: "FORMATO Y CALIDAD", formatsTitle: "Video fiel a la fuente pública.", formatsIntro: `El resultado depende de ${d.quality}. Pullvio no inventa resolución ni calidad sin pérdida.`,
+      formats: [["MP4", "Video compatible", "Para reproducción, edición y archivo autorizado."], ["ORIGEN", "Calidad disponible", "Conserva el tamaño y la codificación que entrega la plataforma."], ["ENLACE TEMPORAL", "Guárdalo pronto", "El enlace puede caducar sin aviso cuando lo retire el proveedor."]],
       boundariesEyebrow: "ALCANCE COMPATIBLE", boundariesTitle: "Solo un medio público y autorizado.", worksTitle: "Adecuado: enlace público directo", worksCopy: `Úsalo para ${d.useCase}.`, limitsTitle: "No compatible: acceso restringido", limitsCopy: `No se procesan ${d.excluded}.`, responsibleTitle: "Accesible no significa libre de derechos", responsibleCopy: "Comprueba propiedad, licencia, condiciones y ley local; no evites controles ni atribuyas obras ajenas.",
       guideEyebrow: "USO RESPONSABLE", guideTitle: "Comprueba el permiso antes de descargar.", guideCopy: "Distingue obras propias, licencias abiertas, dominio público, atribución y fuentes restringidas.", guideCta: "Leer la guía responsable",
       relatedEyebrow: "MÁS HERRAMIENTAS", relatedTitle: "¿Necesitas otra fuente pública?", relatedCopy: "Abre otro descargador verificado y conserva el mismo criterio de permiso.", relatedCta: "Abrir herramienta relacionada",
-      faqEyebrow: `PREGUNTAS SOBRE ${config.platform.toUpperCase()}`, faqTitle: `Dudas sobre descargar de ${config.platform}.`, faqIntro: "Enlaces públicos, MP4, MP3, calidad, dispositivos, retención y permisos.",
-      faqs: [[`¿El descargador de ${config.platform} es gratis?`, "Sí. Los visitantes tienen cinco descargas y una cuenta gratuita continúa dentro de límites razonables."], [`¿Qué enlaces de ${config.platform} funcionan?`, `Solo se acepta ${d.accepted}.`], ["¿Puedo obtener MP4 y MP3?", "Se prepara MP4; MP3 solo está disponible si la fuente contiene audio."], ["¿Por qué falla un enlace?", `Puede tratarse de ${d.excluded}, contenido eliminado, restricción regional o un límite temporal.`], ["¿Cuánto tiempo se guardan los archivos?", "Solo 24 horas. Descárgalos en cuanto estén listos."], ["¿Funciona en móvil?", "Sí, en navegadores modernos de iPhone, Android, Mac y Windows."], ["¿Puedo volver a publicar el archivo?", "Solo si eres titular o tienes una licencia o permiso que lo permita."]],
+      faqEyebrow: `PREGUNTAS SOBRE ${config.platform.toUpperCase()}`, faqTitle: `Dudas sobre descargar de ${config.platform}.`, faqIntro: "Enlaces públicos, video, calidad, dispositivos, enlaces temporales y permisos.",
+      faqs: [[`¿El descargador de ${config.platform} es gratis?`, "Sí. Los visitantes tienen cinco descargas y una cuenta gratuita continúa dentro de límites razonables."], [`¿Qué enlaces de ${config.platform} funcionan?`, `Solo se acepta ${d.accepted}.`], ["¿Qué archivo obtengo?", "La página dedicada entrega el video disponible de la fuente; no ofrece MP3 ni portada por separado."], ["¿Por qué falla un enlace?", `Puede tratarse de ${d.excluded}, contenido eliminado, restricción regional o un límite temporal.`], ["¿Cuánto dura el enlace?", "Es temporal y depende de la fuente y del proveedor. Guarda el video en cuanto esté listo."], ["¿Funciona en móvil?", "Sí, en navegadores modernos de iPhone, Android, Mac y Windows."], ["¿Puedo volver a publicar el archivo?", "Solo si eres titular o tienes una licencia o permiso que lo permita."]],
     };
   }
 
   return {
-    title: `Free ${config.platform} Downloader – MP4 & MP3 | Pullvio`,
-    description: `Download permitted public ${config.searchName} links as MP4 and extract MP3 when audio exists. Free, browser-based, and no app or extension required.`,
-    keywords: config.keywords?.[locale] ?? [`${config.searchName.toLowerCase()} downloader`, `download ${config.searchName.toLowerCase()}`, `${config.platform.toLowerCase()} to mp4`, `${config.platform.toLowerCase()} to mp3`, "online video downloader"],
-    eyebrow: `${config.platform.toUpperCase()} VIDEO DOWNLOADER`, h1: `Download ${config.platform} videos online.`, accent: "Save permitted public media as MP4 or MP3.",
-    intro: `Paste ${d.accepted}. Pullvio processes a ${d.subject} you own, licensed material, or media you have permission to save, then delivers available video, cover, and audio files in your browser.`,
+    title: `Free ${config.platform} Video Downloader – MP4 | Pullvio`,
+    description: `Download permitted public ${config.searchName} links as video. Free, browser-based, and no app or extension required.`,
+    keywords: config.keywords?.[locale] ?? [`${config.searchName.toLowerCase()} downloader`, `download ${config.searchName.toLowerCase()}`, `${config.platform.toLowerCase()} to mp4`, "online video downloader"],
+    eyebrow: `${config.platform.toUpperCase()} VIDEO DOWNLOADER`, h1: `Download ${config.platform} videos online.`, accent: "Save permitted public videos as MP4.",
+    intro: `Paste ${d.accepted}. Pullvio processes a ${d.subject} you own, licensed material, or media you have permission to save, then returns a temporary link to the available video.`,
     placeholder: `Paste a public ${config.platform} link`, benefits: [`Supports ${d.accepted}`, `Quality follows ${d.quality}`, "No app or browser extension"],
     howEyebrow: `HOW TO DOWNLOAD ${config.platform.toUpperCase()} VIDEO`, howTitle: "A public link becomes a useful file in three steps.",
-    steps: [["Copy the single public link", `Open ${d.accepted} and copy the complete HTTPS URL.`], ["Paste and process", "Pullvio validates the source and prepares MP4, a cover, and MP3 when an audio track exists."], ["Download promptly", "Save the files to your device; temporary results are retained for only 24 hours."]],
-    formatsEyebrow: "FORMAT & SOURCE QUALITY", formatsTitle: "Download only what the source genuinely provides.", formatsIntro: `Available formats depend on ${d.quality}. Pullvio does not manufacture resolution, audio tracks, or lossless detail.`,
-    formats: [["MP4", "Video with available sound", "A compatible file for playback, editing, and permitted archives."], ["MP3", "Audio when the source has it", "Audio extraction does not grant rights to music, speech, or other recordings."], ["COVER", "Separate preview image", "Download the cover alongside the video when the source publishes one."]],
+    steps: [["Copy the single public link", `Open ${d.accepted} and copy the complete HTTPS URL.`], ["Paste and process", "Pullvio validates the source and requests the available video."], ["Download promptly", "Save the video immediately; the temporary link lifetime depends on the source."]],
+    formatsEyebrow: "FORMAT & SOURCE QUALITY", formatsTitle: "Download only the video the source genuinely provides.", formatsIntro: `The result depends on ${d.quality}. Pullvio does not manufacture resolution or lossless detail.`,
+    formats: [["MP4", "Compatible video", "A practical file for playback, editing, and permitted archives."], ["SOURCE", "Available source quality", "Keeps the dimensions and encoding returned by the platform without artificial upscaling."], ["TEMPORARY LINK", "Save it promptly", "The provider-hosted result can expire without notice."]],
     boundariesEyebrow: "SUPPORTED PUBLIC LINKS", boundariesTitle: "One accessible media item you are allowed to save.", worksTitle: "Good fit: a direct public link", worksCopy: `Use it for ${d.useCase}.`, limitsTitle: "Unavailable: restricted pages", limitsCopy: `The first release does not process ${d.excluded}.`, responsibleTitle: "Accessible does not mean free to reuse", responsibleCopy: "Check ownership, licenses, platform terms, and local law. Do not bypass access controls or present another creator's work as your own.",
     guideEyebrow: "RESPONSIBLE USE", guideTitle: "Confirm permission before downloading.", guideCopy: "Review ownership, open licenses, public-domain status, attribution, and restricted sources before keeping an offline copy.", guideCta: "Read the responsible-use guide",
     relatedEyebrow: "MORE PLATFORM TOOLS", relatedTitle: "Need another verified public source?", relatedCopy: "Open another dedicated downloader and keep the same permission-first workflow.", relatedCta: "Open related downloader",
-    faqEyebrow: `${config.platform.toUpperCase()} DOWNLOADER FAQ`, faqTitle: `Common ${config.platform} download questions.`, faqIntro: "Public links, MP4, MP3, source quality, devices, retention, and responsible use.",
-    faqs: [[`Is the Pullvio ${config.platform} downloader free?`, "Yes. Guests can complete five downloads and a free account continues within fair-use, security, and source-availability limits."], [`Which ${config.platform} links are supported?`, `The current workflow accepts ${d.accepted}.`], ["Can I download MP4 and MP3?", "Pullvio prepares MP4 video. MP3 is available only when the source genuinely contains an audio track."], ["Why might a link fail?", `Common causes include ${d.excluded}, removed media, regional restrictions, or temporary source limits.`], ["How long are files available?", "Only 24 hours. Download completed video, audio, and cover files promptly."], ["Does it work on mobile?", "Yes. Use a modern iPhone, Android, Mac, or Windows browser without an extension."], ["Can I republish the downloaded media?", "Only if ownership, a license, or the rights holder gives you permission. Downloading alone grants no reuse rights."]],
+    faqEyebrow: `${config.platform.toUpperCase()} DOWNLOADER FAQ`, faqTitle: `Common ${config.platform} download questions.`, faqIntro: "Public links, video format, source quality, devices, temporary links, and responsible use.",
+    faqs: [[`Is the Pullvio ${config.platform} downloader free?`, "Yes. Guests can complete five downloads and a free account continues within fair-use, security, and source-availability limits."], [`Which ${config.platform} links are supported?`, `The current workflow accepts ${d.accepted}.`], ["What file do I receive?", "The dedicated page returns the video available from the source. Separate MP3 and cover downloads are not offered."], ["Why might a link fail?", `Common causes include ${d.excluded}, removed media, regional restrictions, or temporary source limits.`], ["How long is the link available?", "It is temporary and controlled by the source and processing provider. Save the video as soon as it is ready."], ["Does it work on mobile?", "Yes. Use a modern iPhone, Android, Mac, or Windows browser without an extension."], ["Can I republish the downloaded media?", "Only if ownership, a license, or the rights holder gives you permission. Downloading alone grants no reuse rights."]],
   };
 }
 

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createArtifactDownloadUrl } from "@/lib/media/delivery";
+import { getDirectProviderArtifacts } from "@/lib/media/direct-provider";
 import { localePath, type Locale } from "@/lib/i18n";
 import AccountProfileForm from "./account-profile-form";
 import DownloadHistory from "./download-history";
@@ -14,15 +15,15 @@ import SiteHeader from "./site-header";
 const accountCopy = {
   en: {
     eyebrow: "YOUR ACCOUNT", title: "Your Pullvio workspace.", pending: "Supabase connection pending", authReady: "Authentication is ready", authReadyCopy: "Add the Supabase environment variables to load real account data.", dataError: "We could not refresh all account data. Try reloading this page.",
-    plan: "FREE ACCOUNT", free: "Pullvio Free Account", freeCopy: "No fixed download cap · MP4 and MP3 · up to 4K when the source provides it", explore: "Start downloading", usage: "ACCOUNT USAGE", usageTitle: "Fair-use activity", used: "Started", succeeded: "Completed", remaining: "Access", fairUse: "Fair use", downloads: "DOWNLOAD HISTORY", downloadsTitle: "Your recent media jobs", downloadsCopy: "Download available video, audio, and cover files. Files are kept for 24 hours only, so save them promptly.", emptyHistory: "No account downloads yet", emptyHistoryCopy: "Your first signed-in download will appear here.", start: "Start a download", delete: "Remove from history", deleteError: "This record could not be removed. Please try again.", retention: "Files are automatically deleted after 24 hours.", artifact: { video: "Video", audio: "Audio", thumbnail: "Cover" },
+    plan: "FREE ACCOUNT", free: "Pullvio Free Account", freeCopy: "No fixed download cap · YouTube MP4 or MP3 · original video from supported social platforms", explore: "Start downloading", usage: "ACCOUNT USAGE", usageTitle: "Fair-use activity", used: "Started", succeeded: "Completed", remaining: "Access", fairUse: "Fair use", downloads: "DOWNLOAD HISTORY", downloadsTitle: "Your recent media jobs", downloadsCopy: "Completed jobs include a temporary provider download link. Save the file promptly because link lifetime varies by source.", emptyHistory: "No account downloads yet", emptyHistoryCopy: "Your first signed-in download will appear here.", start: "Start a download", delete: "Remove from history", deleteError: "This record could not be removed. Please try again.", retention: "Download links are temporary and may expire without notice. Save completed files promptly.", artifact: { video: "Video", audio: "Audio", thumbnail: "Cover" },
   },
   "zh-cn": {
     eyebrow: "个人中心", title: "您的 Pullvio 工作区。", pending: "Supabase 连接等待中", authReady: "认证服务已经就绪", authReadyCopy: "添加 Supabase 环境变量后即可读取真实账户数据。", dataError: "部分账户数据暂时无法刷新，请重新加载页面。",
-    plan: "免费账号", free: "Pullvio 免费账号", freeCopy: "不设固定下载次数 · 支持 MP4 与 MP3 · 来源提供时最高可选 4K", explore: "开始下载", usage: "账号用量", usageTitle: "合理使用记录", used: "已发起", succeeded: "已完成", remaining: "使用额度", fairUse: "合理使用", downloads: "下载记录", downloadsTitle: "最近的媒体任务", downloadsCopy: "可下载任务对应的视频、音频和封面文件。文件仅保留 24 小时，请及时保存。", emptyHistory: "暂无账户下载记录", emptyHistoryCopy: "登录状态下完成的第一个下载任务会显示在这里。", start: "开始下载", delete: "从历史中删除", deleteError: "暂时无法删除这条记录，请重试。", retention: "文件将在 24 小时后自动删除。", artifact: { video: "视频", audio: "音频", thumbnail: "封面" },
+    plan: "免费账号", free: "Pullvio 免费账号", freeCopy: "不设固定下载次数 · YouTube 支持 MP4 或 MP3 · 社交平台提供原始视频", explore: "开始下载", usage: "账号用量", usageTitle: "合理使用记录", used: "已发起", succeeded: "已完成", remaining: "使用额度", fairUse: "合理使用", downloads: "下载记录", downloadsTitle: "最近的媒体任务", downloadsCopy: "已完成任务会提供临时下载链接；不同来源的有效期可能不同，请及时保存。", emptyHistory: "暂无账户下载记录", emptyHistoryCopy: "登录状态下完成的第一个下载任务会显示在这里。", start: "开始下载", delete: "从历史中删除", deleteError: "暂时无法删除这条记录，请重试。", retention: "下载链接为临时链接，可能随时失效，请及时保存已完成文件。", artifact: { video: "视频", audio: "音频", thumbnail: "封面" },
   },
   es: {
     eyebrow: "TU CUENTA", title: "Tu espacio de Pullvio.", pending: "Conexión con Supabase pendiente", authReady: "La autenticación está lista", authReadyCopy: "Añade las variables de Supabase para cargar datos reales de la cuenta.", dataError: "No se han podido actualizar todos los datos. Recarga la página.",
-    plan: "CUENTA GRATUITA", free: "Cuenta gratuita de Pullvio", freeCopy: "Sin límite fijo · MP4 y MP3 · hasta 4K cuando la fuente lo ofrece", explore: "Empezar a descargar", usage: "USO DE LA CUENTA", usageTitle: "Actividad de uso razonable", used: "Iniciadas", succeeded: "Completadas", remaining: "Acceso", fairUse: "Uso razonable", downloads: "HISTORIAL", downloadsTitle: "Tus tareas recientes", downloadsCopy: "Descarga los archivos de vídeo, audio y portada disponibles. Solo se conservan durante 24 horas.", emptyHistory: "Aún no hay descargas", emptyHistoryCopy: "Tu primera descarga con sesión iniciada aparecerá aquí.", start: "Iniciar una descarga", delete: "Eliminar del historial", deleteError: "No se ha podido eliminar este registro. Inténtalo de nuevo.", retention: "Los archivos se eliminan automáticamente después de 24 horas.", artifact: { video: "Vídeo", audio: "Audio", thumbnail: "Portada" },
+    plan: "CUENTA GRATUITA", free: "Cuenta gratuita de Pullvio", freeCopy: "Sin límite fijo · YouTube en MP4 o MP3 · vídeo original de las plataformas compatibles", explore: "Empezar a descargar", usage: "USO DE LA CUENTA", usageTitle: "Actividad de uso razonable", used: "Iniciadas", succeeded: "Completadas", remaining: "Acceso", fairUse: "Uso razonable", downloads: "HISTORIAL", downloadsTitle: "Tus tareas recientes", downloadsCopy: "Las tareas terminadas incluyen un enlace temporal. Guárdalas pronto porque su duración depende de la fuente.", emptyHistory: "Aún no hay descargas", emptyHistoryCopy: "Tu primera descarga con sesión iniciada aparecerá aquí.", start: "Iniciar una descarga", delete: "Eliminar del historial", deleteError: "No se ha podido eliminar este registro. Inténtalo de nuevo.", retention: "Los enlaces son temporales y pueden caducar sin aviso. Guarda pronto los archivos.", artifact: { video: "Vídeo", audio: "Audio", thumbnail: "Portada" },
   },
 } as const;
 
@@ -43,6 +44,7 @@ export default async function AccountPage({ locale, page, pageSize }: { locale: 
   let hasDataError = false;
 
   if (supabase) {
+    await createAdminClient().rpc("expire_direct_provider_results");
     const today = new Date().toISOString().slice(0, 10);
     const [profileResult, usageResult] = await Promise.all([
       supabase.from("profiles").select("display_name, avatar_url, locale, theme").eq("id", userId).maybeSingle(),
@@ -78,9 +80,12 @@ export default async function AccountPage({ locale, page, pageSize }: { locale: 
     }
     const readyJobIds = recentJobs.filter((job) => job.status === "ready").map((job) => job.id);
     if (readyJobIds.length > 0) {
-      const artifactsResult = await createAdminClient().from("download_artifacts")
-        .select("job_id,artifact_kind,content_type,file_size_bytes,storage_path,expires_at")
-        .in("job_id", readyJobIds);
+      const [artifactsResult, directArtifacts] = await Promise.all([
+        createAdminClient().from("download_artifacts")
+          .select("job_id,artifact_kind,content_type,file_size_bytes,storage_path,expires_at")
+          .in("job_id", readyJobIds),
+        getDirectProviderArtifacts(readyJobIds),
+      ]);
       hasDataError ||= Boolean(artifactsResult.error);
       const signedArtifacts = await Promise.all((artifactsResult.data ?? []).map(async (artifact) => ({
         jobId: artifact.job_id,
@@ -90,16 +95,27 @@ export default async function AccountPage({ locale, page, pageSize }: { locale: 
         expiresAt: artifact.expires_at,
         downloadUrl: await createArtifactDownloadUrl(artifact.storage_path, artifact.expires_at),
       })));
-      recentJobs = recentJobs.map((job) => ({
-        ...job,
-        artifacts: signedArtifacts.filter((artifact) => artifact.jobId === job.id && artifact.downloadUrl).map((artifact) => ({
-          kind: artifact.kind,
-          contentType: artifact.contentType,
-          fileSizeBytes: artifact.fileSizeBytes,
-          expiresAt: artifact.expiresAt,
-          downloadUrl: artifact.downloadUrl as string,
-        })),
-      }));
+      recentJobs = recentJobs.map((job) => {
+        const directArtifact = directArtifacts.find((artifact) => artifact.job_id === job.id);
+        return {
+          ...job,
+          artifacts: directArtifact
+            ? [{
+                kind: job.media_kind,
+                contentType: job.media_kind === "audio" ? "audio/mpeg" : "video/mp4",
+                fileSizeBytes: 0,
+                expiresAt: directArtifact.result_expires_at,
+                downloadUrl: directArtifact.result_url as string,
+              }]
+            : signedArtifacts.filter((artifact) => artifact.jobId === job.id && artifact.downloadUrl).map((artifact) => ({
+                kind: artifact.kind,
+                contentType: artifact.contentType,
+                fileSizeBytes: artifact.fileSizeBytes,
+                expiresAt: artifact.expiresAt,
+                downloadUrl: artifact.downloadUrl as string,
+              })),
+        };
+      });
     }
   }
 

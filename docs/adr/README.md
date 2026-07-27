@@ -11,3 +11,4 @@ links back to the earlier decision instead of rewriting its history.
 - [ADR-0003: Reuse unexpired media artifacts](0003-reuse-unexpired-media-artifacts.md)
 - [ADR-0004: Use Visolix as the YouTube media provider](0004-use-visolix-for-youtube.md)
 - [ADR-0005: Expand Visolix to supported social platforms](0005-expand-visolix-social-platforms.md)
+- [ADR-0006: Use direct Visolix delivery for the low-cost launch](0006-use-direct-visolix-delivery.md)

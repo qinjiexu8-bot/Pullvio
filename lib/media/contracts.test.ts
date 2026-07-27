@@ -33,27 +33,27 @@ describe("parseSubmitJobBody", () => {
     expect(() => parseSubmitJobBody(input)).toThrow(MediaInputError);
   });
 
-  it("accepts SoundCloud in audio mode", () => {
+  it("accepts YouTube in audio mode", () => {
     expect(
       parseSubmitJobBody({
-        sourceUrl: "https://soundcloud.com/scottbuckley/simplicity-cc-by",
+        sourceUrl: "https://youtu.be/abc",
         mediaKind: "audio",
         format: "mp3",
         quality: "best",
         idempotencyKey: "7a3fc784-77f1-48f3-a601-718a0357bf49",
       }),
-    ).toMatchObject({ sourcePlatform: "soundcloud", mediaKind: "audio" });
+    ).toMatchObject({ sourcePlatform: "youtube", mediaKind: "audio" });
   });
 
-  it("rejects SoundCloud in video mode", () => {
+  it("rejects audio mode for non-YouTube platforms", () => {
     expect(() =>
       parseSubmitJobBody({
-        sourceUrl: "https://soundcloud.com/scottbuckley/simplicity-cc-by",
-        mediaKind: "video",
-        format: "mp4",
+        sourceUrl: "https://www.tiktok.com/@owner/video/123",
+        mediaKind: "audio",
+        format: "mp3",
         quality: "best",
         idempotencyKey: "7a3fc784-77f1-48f3-a601-718a0357bf49",
       }),
-    ).toThrowError(expect.objectContaining({ code: "AUDIO_ONLY_SOURCE" }));
+    ).toThrowError(expect.objectContaining({ code: "AUDIO_UNAVAILABLE" }));
   });
 });

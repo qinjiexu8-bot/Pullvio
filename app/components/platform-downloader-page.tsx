@@ -87,6 +87,7 @@ export default function PlatformDownloaderPage({ slug, locale = "en" }: { slug: 
             locale={locale}
             placeholder={t.placeholder}
             audioOnly={tool.audioOnly}
+            videoOnly={slug !== "youtube-video-downloader"}
             showQualitySelector={slug === "youtube-video-downloader"}
           />
         </div>
