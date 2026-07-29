@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import type { Locale } from "./i18n";
 import { technicalBlogPosts } from "./blog-posts-technical";
+import { approvedEditorialPosts } from "./blog-editorial";
+import { platformHelpCandidates } from "./blog-posts-platform-help";
 
 export type BlogPostCopy = {
   eyebrow: string;
@@ -43,7 +45,20 @@ export const blogIndexCopy = {
   },
 } satisfies Record<Locale, Record<string, string>>;
 
+const platformHelpOrder = [
+  "youtube-video-download-not-working",
+  "instagram-reel-link-not-working",
+  "facebook-private-video-download",
+  "copy-snapchat-spotlight-link",
+  "okru-video-download-failed",
+  "youtube-shorts-link-and-quality",
+];
+
+const approvedPlatformHelpPosts = approvedEditorialPosts(platformHelpCandidates)
+  .sort((a, b) => platformHelpOrder.indexOf(a.slug) - platformHelpOrder.indexOf(b.slug));
+
 export const blogPosts: BlogPost[] = [
+  ...approvedPlatformHelpPosts,
   {
     slug: "tiktok-video-quality-watermarks-and-formats",
     published: "2026-07-17",
