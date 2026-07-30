@@ -4,7 +4,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createArtifactDownloadUrl } from "@/lib/media/delivery";
 import { getDirectProviderArtifacts } from "@/lib/media/direct-provider";
 import { localePath, type Locale } from "@/lib/i18n";
 import AccountProfileForm from "./account-profile-form";
@@ -80,21 +79,7 @@ export default async function AccountPage({ locale, page, pageSize }: { locale: 
     }
     const readyJobIds = recentJobs.filter((job) => job.status === "ready").map((job) => job.id);
     if (readyJobIds.length > 0) {
-      const [artifactsResult, directArtifacts] = await Promise.all([
-        createAdminClient().from("download_artifacts")
-          .select("job_id,artifact_kind,content_type,file_size_bytes,storage_path,expires_at")
-          .in("job_id", readyJobIds),
-        getDirectProviderArtifacts(readyJobIds),
-      ]);
-      hasDataError ||= Boolean(artifactsResult.error);
-      const signedArtifacts = await Promise.all((artifactsResult.data ?? []).map(async (artifact) => ({
-        jobId: artifact.job_id,
-        kind: artifact.artifact_kind,
-        contentType: artifact.content_type,
-        fileSizeBytes: artifact.file_size_bytes,
-        expiresAt: artifact.expires_at,
-        downloadUrl: await createArtifactDownloadUrl(artifact.storage_path, artifact.expires_at),
-      })));
+      const directArtifacts = await getDirectProviderArtifacts(readyJobIds);
       recentJobs = recentJobs.map((job) => {
         const directArtifact = directArtifacts.find((artifact) => artifact.job_id === job.id);
         return {
@@ -107,13 +92,7 @@ export default async function AccountPage({ locale, page, pageSize }: { locale: 
                 expiresAt: directArtifact.result_expires_at,
                 downloadUrl: directArtifact.result_url as string,
               }]
-            : signedArtifacts.filter((artifact) => artifact.jobId === job.id && artifact.downloadUrl).map((artifact) => ({
-                kind: artifact.kind,
-                contentType: artifact.contentType,
-                fileSizeBytes: artifact.fileSizeBytes,
-                expiresAt: artifact.expiresAt,
-                downloadUrl: artifact.downloadUrl as string,
-              })),
+            : [],
         };
       });
     }

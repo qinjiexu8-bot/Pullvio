@@ -5,8 +5,7 @@ import {
   mediaErrorResponse,
   resolveMediaIdentity,
 } from "@/lib/media/http";
-import { createArtifactDownloadUrl } from "@/lib/media/delivery";
-import { cancelOwnedMediaJob, getMediaArtifacts, getOwnedMediaJob } from "@/lib/media/repository";
+import { cancelOwnedMediaJob, getOwnedMediaJob } from "@/lib/media/repository";
 import { clampProgress, estimateSecondsRemaining } from "@/lib/media/job-progress";
 import {
   cancelDirectProviderJob,
@@ -19,7 +18,6 @@ export const runtime = "nodejs";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type Context = { params: Promise<{ jobId: string }> };
-const ARTIFACT_ORDER: Record<string, number> = { video: 0, audio: 1, thumbnail: 2 };
 
 export async function GET(request: NextRequest, context: Context) {
   try {
@@ -37,19 +35,7 @@ export async function GET(request: NextRequest, context: Context) {
     let artifacts: SerializedArtifact[] = [];
     if (job.status === "ready") {
       const directArtifact = await getDirectProviderArtifact(jobId, job.media_kind);
-      if (directArtifact) {
-        artifacts = [directArtifact];
-      } else {
-        const rows = await getMediaArtifacts(jobId);
-        artifacts = (await Promise.all(rows.map(async (artifact) => ({
-          kind: artifact.artifact_kind,
-          contentType: artifact.content_type,
-          fileSizeBytes: artifact.file_size_bytes,
-          expiresAt: artifact.expires_at,
-          downloadUrl: await createArtifactDownloadUrl(artifact.storage_path, artifact.expires_at),
-        })))).filter((artifact) => Boolean(artifact.downloadUrl))
-          .sort((left, right) => (ARTIFACT_ORDER[left.kind] ?? 99) - (ARTIFACT_ORDER[right.kind] ?? 99));
-      }
+      if (directArtifact) artifacts = [directArtifact];
     }
     return jsonNoStore({ job: serializeJob(job, artifacts) });
   } catch (error) {

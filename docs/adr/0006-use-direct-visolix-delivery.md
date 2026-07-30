@@ -74,12 +74,12 @@ quota. Reuse never extends the provider URL lifetime.
 
 1. Apply the Supabase migrations.
 2. Configure server-only Visolix, Feishu, and cron secrets in Vercel.
-3. Deploy the application while the legacy AWS path remains intact.
+3. Deploy the application and verify direct provider delivery.
 4. Test all six platforms, browser polling, cron polling, account history,
    Turnstile, cache reuse, expiry, and the 402 circuit breaker.
 5. Close the old queue and confirm no legacy job remains active.
-6. Retain old S3/CloudFront delivery only until existing artifacts expire.
-7. Stop EC2 and remove unused paid AWS resources after the observation window.
+6. Remove the expired S3/CloudFront compatibility path from application code.
+7. Stop EC2 and review remaining AWS resources separately before deletion.
 
 ## Supersedes
 
@@ -89,8 +89,10 @@ quota. Reuse never extends the provider URL lifetime.
 - [ADR-0004](0004-use-visolix-for-youtube.md)
 - [ADR-0005](0005-expand-visolix-social-platforms.md)
 
-Legacy AWS records remain valid documentation for historical artifacts and a
-possible future return to private delivery.
+The migration completed on 2026-07-30: EC2 was shut down and AWS runtime
+dependencies were removed from the web application. Legacy AWS records remain
+valid documentation for historical artifacts and a possible future return to
+private delivery.
 
 ## References
 

@@ -1,6 +1,6 @@
 # Pullvio
 
-Pullvio is a responsive, multilingual frontend for a browser-based video and audio downloader with Free and Pro plans.
+Pullvio is a responsive, multilingual browser-based video and audio downloader.
 
 ## Current scope
 
@@ -13,7 +13,7 @@ Pullvio is a responsive, multilingual frontend for a browser-based video and aud
 - Original guides covering MP4 vs MP3, video resolution, and responsible media use
 - Clerk authentication with a Supabase-backed account shell
 - Same-origin media job API with anonymous and signed-in quota controls
-- SQS-backed yt-dlp/FFmpeg worker and private signed-file delivery
+- Direct Visolix processing with asynchronous progress and temporary result links
 
 ## Tech stack
 
@@ -21,7 +21,9 @@ Pullvio is a responsive, multilingual frontend for a browser-based video and aud
 - React 19
 - TypeScript
 - Clerk authentication and Supabase PostgreSQL with RLS
-- AWS SQS, EC2, S3, CloudFront, Secrets Manager, and Vercel OIDC
+- Vercel server functions and Supabase Cron
+- Visolix media-provider API
+- Cloudflare Turnstile
 - Lucide icons
 
 ## Local development
@@ -46,7 +48,8 @@ NEXT_PUBLIC_SITE_URL=https://pullvio.com
 ```
 
 Set `NEXT_PUBLIC_SITE_URL` to `https://pullvio.com` in Vercel production. Never
-expose `CLERK_SECRET_KEY` or any AWS credential through a `NEXT_PUBLIC_` variable.
+expose `CLERK_SECRET_KEY`, `SUPABASE_SECRET_KEY`, `VISOLIX_API_KEY`, or webhook
+secrets through a `NEXT_PUBLIC_` variable.
 
 ## Database migrations
 
@@ -78,24 +81,21 @@ npm run build
 
 ## Implementation note
 
-The media control plane and worker are implemented and deployed. Browser traffic
-uses the same-origin endpoint `https://pullvio.com/api/media/jobs`; EC2 has no
-public API listener. Completed files are delivered from `media.pullvio.com`
-through short-lived CloudFront signed URLs, while direct S3 and unsigned
-CloudFront access remain blocked.
+Browser traffic uses the same-origin endpoint
+`https://pullvio.com/api/media/jobs`. Vercel calls Visolix from server-side
+functions, Supabase stores account and job state, and Supabase Cron advances
+asynchronous jobs after a user leaves the page. Completed jobs expose temporary
+provider URLs; users should save results promptly.
 
-Public media processing is deliberately disabled by the database kill switch.
-The AWS worker has passed queue, lifecycle, FFmpeg, private S3, signed URL, and
-CloudFront delivery tests. YouTube currently presents `LOGIN_REQUIRED` bot
-challenges to the AWS public IP even with Deno and yt-dlp EJS installed, so a
-policy-reviewed dedicated egress solution is required before activation. Do not
-put personal browser cookies on the worker. CloudFront remains on the Free plan
-until real usage justifies an upgrade.
+The former EC2/SQS/S3/CloudFront worker path was retired on 2026-07-30. It is
+not part of the production request path and the application no longer requires
+AWS runtime credentials or SDKs.
 
 ## Architecture documents
 
-- [AWS media processing and delivery plan](docs/plans/2026-07-17-aws-media-processing-production-design.md)
-- [EC2 worker maintenance runbook](docs/runbooks/ec2-worker-maintenance.md)
+- [Current production runtime](docs/runbooks/production-runtime.md)
+- [Visolix provider operations](docs/runbooks/visolix-media-provider.md)
+- [Archived EC2 worker runbook](docs/runbooks/ec2-worker-maintenance.md)
 - [Architecture decision records](docs/adr/README.md)
 
 ## Responsible use

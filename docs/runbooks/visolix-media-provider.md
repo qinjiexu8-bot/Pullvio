@@ -54,7 +54,8 @@ before treating the launch configuration as final.
 7. Confirm account history exposes the temporary result to the correct owner.
 8. Confirm a repeated identical request reuses the unexpired result without a
    second provider submission.
-9. Keep the AWS worker available until active legacy jobs and artifacts drain.
+9. Confirm the retired AWS worker path remains absent from application runtime
+   dependencies.
 
 ## Provider result lifetime
 
@@ -124,12 +125,15 @@ coordinated rollback; do not point the direct schema at the old worker.
 
 ## AWS decommission checklist
 
-Only after production verification:
+The EC2 worker was shut down on 2026-07-30. The application runtime no longer
+dispatches SQS messages or reads S3/CloudFront artifacts. Before deleting any
+remaining AWS resource, confirm it has no unrelated billing, audit, or retention
+purpose:
 
-- stop new SQS dispatch;
-- wait for visible and in-flight messages to reach zero;
-- retain the dead-letter queue during the observation window;
-- allow existing signed S3/CloudFront artifacts to expire;
-- stop EC2/ECS;
-- remove unused SQS, S3, CloudFront, log, alarm, and networking resources only
-  after confirming billing and rollback requirements.
+- confirm the EC2 instance is stopped or terminated;
+- confirm SQS and dead-letter queues have no visible or in-flight messages;
+- confirm all historical 24-hour artifacts have expired;
+- inventory S3, CloudFront, log, alarm, networking, IAM, and DNS resources;
+- remove paid resources only after a separate, reviewed AWS cleanup;
+- never delete the `pullvio` bucket without first confirming whether it contains
+  non-media data that must be retained.

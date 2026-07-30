@@ -1,8 +1,17 @@
 # Pullvio EC2 worker maintenance runbook
 
+> **Archived — do not use for current production operations.**
+>
+> The EC2 worker was shut down on 2026-07-30 after Pullvio moved new media jobs
+> to direct Visolix delivery. The application no longer dispatches SQS messages
+> or signs S3/CloudFront artifacts. This file is retained only as historical
+> infrastructure and incident context. See
+> [Current production runtime](production-runtime.md) for active operations.
+
 ## Scope
 
-This runbook describes how to maintain the Pullvio media worker host. It covers
+This historical runbook describes how the retired Pullvio media worker host was
+maintained. It covers
 direct SSH access, source-IP changes, routine health checks, safe restarts, the
 SSM recovery path, and the containerized media-worker service.
 
