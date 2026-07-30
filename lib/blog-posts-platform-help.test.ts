@@ -25,23 +25,23 @@ const expectedScreenshots: Record<string, string> = {
 };
 
 describe("platform help editorial batch", () => {
-  it("contains six unique, fully approved single-problem articles", () => {
+  it("contains seven unique, fully approved single-problem articles", () => {
     const slugs = platformHelpCandidates.map(({ post }) => post.slug);
 
-    expect(slugs).toHaveLength(6);
-    expect(new Set(slugs).size).toBe(6);
+    expect(slugs).toHaveLength(7);
+    expect(new Set(slugs).size).toBe(7);
     for (const { review } of platformHelpCandidates) {
       expect(review).toMatchObject({
         status: "approved",
         standardVersion: editorialStandardVersion,
-        reviewedAt: "2026-07-29",
         reviewer: "Pullvio Editorial",
       });
+      expect(review.reviewedAt).toMatch(/^2026-07-(29|30)$/);
       expect((review.notes ?? "").length).toBeGreaterThan(40);
     }
   });
 
-  it("gives every localization a direct answer, useful screenshot, and constrained link set", () => {
+  it("gives every localization a direct answer, first-party evidence, and constrained link set", () => {
     for (const { post } of platformHelpCandidates) {
       for (const locale of locales) {
         const copy = post.copy[locale];
@@ -49,7 +49,9 @@ describe("platform help editorial batch", () => {
         const plain = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
         const figure = html.match(/<figure class="article-figure">([\s\S]*?)<\/figure>/);
         const internalLinks = html.match(/href="\/[^"]+"/g) ?? [];
+        const externalLinks = html.match(/href="https:\/\/[^"]+"/g) ?? [];
         const headingCount = (html.match(/<h2>/g) ?? []).length;
+        const screenshot = expectedScreenshots[post.slug];
 
         expect(copy.title).toMatch(/[?？]$/);
         expect(copy.description.length).toBeGreaterThan(locale === "zh-cn" ? 35 : 80);
@@ -58,15 +60,21 @@ describe("platform help editorial batch", () => {
           `${post.slug}/${locale} should contain substantive problem-solving detail`,
         ).toBeGreaterThan(locale === "en" ? 2200 : 900);
         expect(headingCount).toBeGreaterThanOrEqual(4);
-        expect(figure).not.toBeNull();
-        expect(figure?.[1]).toContain("alt=");
-        expect(figure?.[1]).toContain("<figcaption>");
-        expect(html).toContain(expectedScreenshots[post.slug]);
-        expect(fs.existsSync(path.join(
-          process.cwd(),
-          "public/images/blog",
-          expectedScreenshots[post.slug],
-        ))).toBe(true);
+        expect(plain).toContain("Pullvio");
+        if (screenshot) {
+          expect(figure).not.toBeNull();
+          expect(figure?.[1]).toContain("alt=");
+          expect(figure?.[1]).toContain("<figcaption>");
+          expect(html).toContain(screenshot);
+          expect(fs.existsSync(path.join(
+            process.cwd(),
+            "public/images/blog",
+            screenshot,
+          ))).toBe(true);
+        } else {
+          expect(figure).toBeNull();
+          expect(externalLinks.length).toBeGreaterThanOrEqual(2);
+        }
         expect(internalLinks.length).toBeGreaterThanOrEqual(1);
         expect(internalLinks.length).toBeLessThanOrEqual(5);
         for (const phrase of bannedPhrases) {

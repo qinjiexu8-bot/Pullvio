@@ -46,6 +46,7 @@ export const blogIndexCopy = {
 } satisfies Record<Locale, Record<string, string>>;
 
 const platformHelpOrder = [
+  "downloaded-video-has-no-sound",
   "youtube-video-download-not-working",
   "instagram-reel-link-not-working",
   "facebook-private-video-download",

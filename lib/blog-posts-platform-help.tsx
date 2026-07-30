@@ -31,6 +31,14 @@ const approvedReview = {
   notes: "Passed single-intent, first-party evidence, screenshot, factual, localization, SEO, safety, and anti-template review.",
 } as const;
 
+const approvedTextReview = {
+  status: "approved",
+  standardVersion: editorialStandardVersion,
+  reviewedAt: "2026-07-30",
+  reviewer: "Pullvio Editorial",
+  notes: "Passed single-intent, first-party product behavior, official-source, localization, SEO, safety, and anti-template review. A screenshot was intentionally omitted because it would not clarify the audio-track diagnosis.",
+} as const;
+
 export const platformHelpCandidates: ReviewedCandidate<BlogPost>[] = [
   {
     review: approvedReview,
@@ -484,6 +492,133 @@ export const platformHelpCandidates: ReviewedCandidate<BlogPost>[] = [
             <h2>Qué enviar al informar del fallo</h2>
             <p>Incluye la URL pública, hora aproximada, mensaje de Pullvio y si se reproduce sin sesión. No envíes contraseña, cookies ni acceso a grupos privados.</p>
             <p>Prueba la dirección verificada en el <Link href="/es/okru-video-downloader">descargador de OK.ru</Link>. Si sigue pública y falla de forma constante, contacta con Pullvio para revisar el comportamiento del proveedor.</p>
+          </>,
+        },
+      },
+    },
+  },
+  {
+    review: approvedTextReview,
+    post: {
+      slug: "downloaded-video-has-no-sound",
+      published: "2026-07-30",
+      category: {
+        en: "Audio troubleshooting",
+        "zh-cn": "音频排错",
+        es: "Problemas de audio",
+      },
+      copy: {
+        en: {
+          eyebrow: "AUDIO TROUBLESHOOTING",
+          title: "Why does my downloaded video have no sound?",
+          description: "Find out whether a silent downloaded video is missing an audio track, using an unsupported codec, or playing through the wrong audio output.",
+          readingTime: "8 min read",
+          body: <>
+            <p>A downloaded video with no sound has one of two broad problems: the file contains no usable audio track, or the track exists but your current player or audio output is not playing it. Do not start by downloading the same link repeatedly. First play a known-good file on the same device, then open the silent file in a second player. Those two checks tell you whether to investigate the device, the player, or the file itself.</p>
+            <div className="content-callout"><strong>The useful distinction</strong><p>If every video is silent, inspect volume, Bluetooth, AirPlay, HDMI, and app-level mute controls. If one downloaded file is silent everywhere, inspect its audio track. If it works in one player but not another, the track probably exists and codec support is the likely difference.</p></div>
+
+            <h2>First decide whether the file or the playback path is silent</h2>
+            <p>Start with the boring checks because they prevent unnecessary processing. Raise media volume while the file is playing, not before. Disconnect Bluetooth headphones you are not using, check whether sound is routed to an HDMI display without speakers, and make sure the player itself is not muted. On phones, the ringtone switch and media volume are separate controls; a device can also keep sending audio to earbuds after the video appears on screen.</p>
+            <p>Next, play a different local video that you already know has sound. If that file is also silent, the download is not the first suspect. If the known-good file plays normally, open the problem file in another current player. A result that changes with the player usually points to audio decoding or track selection rather than a source with no audio.</p>
+
+            <h2>An MP4 extension does not prove that an audio track exists</h2>
+            <p>MP4 is a container, not a promise that picture and sound are both present. A container can hold video, audio, subtitles, metadata, or only some of those tracks. MDN&apos;s guide to <a href="https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Containers">media container formats</a> describes MP4 as a container that can use several audio and video codecs. Renaming a silent file from <code>.mp4</code> to another extension cannot add a missing track or change the codec inside it.</p>
+            <p>This is why file size and extension are weak evidence. A 200 MB MP4 can still be video-only, while a much smaller file may contain both H.264 video and AAC audio. You need to inspect the streams or perform a controlled playback test.</p>
+            <p>For an exact check on a computer, FFmpeg&apos;s companion tool can list only audio streams:</p>
+            <pre><code>ffprobe -v error -select_streams a -show_entries stream=codec_name,channels,sample_rate -of default=noprint_wrappers=1 your-video.mp4</code></pre>
+            <p>If the command returns no audio stream, the file cannot produce sound without obtaining audio from a legitimate source. If it reports a codec and channels, the track exists; test player compatibility, track selection, or audio routing next. The <a href="https://www.ffmpeg.org/ffprobe-all.html">official ffprobe documentation</a> explains the <code>-select_streams a</code> selector.</p>
+
+            <h2>Why high-resolution video is more exposed to missing-audio mistakes</h2>
+            <p>Streaming services often prepare several renditions instead of one universal file. A high-resolution video rendition can be delivered separately from audio so the player can combine the appropriate tracks for the device and connection. Saving only that video rendition produces a perfectly moving but silent file. This is a packaging problem, not a volume problem.</p>
+            <p>Pullvio&apos;s article about <Link href="/blog/why-4k-video-needs-separate-audio">why 4K video can use separate audio streams</Link> explains the architecture in more detail. The practical lesson here is simpler: do not treat the largest video-only stream as a finished MP4. Picture and audio must both be present in the delivered result.</p>
+
+            <h2>Use one controlled Pullvio check instead of repeated downloads</h2>
+            <p>On Pullvio, YouTube has separate Video and Audio modes. If an authorized public YouTube link produces a silent MP4, make one controlled test in <Link href="/youtube-video-downloader">Audio mode</Link>. When the MP3 plays, the public source has usable audio and the investigation should move back to the video result or player. When the MP3 also fails, repeated MP4 requests are unlikely to add information.</p>
+            <p>Other supported platforms currently return the available source video rather than a separate Pullvio MP3 option. For those files, use the second-player test and, if possible, the <code>ffprobe</code> check. Do not assume that changing a URL parameter or choosing a larger quality label can create an audio track that the delivered source did not contain.</p>
+            <p>Keep the source URL, completion time, selected format, device, and player name if the same authorized public link fails twice. Those details are more useful on the <Link href="/contact">Pullvio contact page</Link> than a sequence of identical retries.</p>
+
+            <h2>When conversion helps—and when it cannot</h2>
+            <p>Conversion can help when the file contains an audio track that your usual player cannot decode. A broadly compatible MP4 combination commonly uses H.264 video and AAC audio; YouTube&apos;s own <a href="https://support.google.com/youtube/answer/58134?hl=en">audio and video troubleshooting guidance</a> recommends H.264 with AAC-LC for common uploads and notes that audio behavior can differ between computers and mobile devices. Re-encoding an existing track to a compatible codec may therefore solve a playback problem.</p>
+            <p>Conversion cannot reconstruct speech or music that is absent. It also cannot repair an audio track made entirely of silence, restore detail already removed by compression, or bypass a private source. Before converting, preserve the original file so you can compare results and avoid another generation of unnecessary quality loss.</p>
+
+            <h2>Stop when the source or permission is the boundary</h2>
+            <p>A removed post, private account, members-only video, paid source, DRM-protected media, or regional restriction is not an audio-codec problem. Pullvio does not import a user session or remove access controls. Use your original upload, the platform&apos;s official offline feature, or a copy supplied by the rights holder.</p>
+            <p>The shortest reliable path is: confirm the device can play other audio, test a second player, verify whether an audio stream exists, and make at most one format-specific Pullvio check where Audio mode is available. Once you know which layer is silent, you can fix the right problem instead of downloading the same file again.</p>
+          </>,
+        },
+        "zh-cn": {
+          eyebrow: "视频无声排查",
+          title: "下载的视频没有声音，应该怎么排查？",
+          description: "用最短路径判断下载视频是没有音轨、播放器不兼容、声音输出错误，还是高画质音视频没有正确组合。",
+          readingTime: "约 8 分钟",
+          body: <>
+            <p>下载的视频有画面却没有声音，先不要连续重新下载。最有用的判断是：文件里根本没有可用音轨，还是音轨存在、但当前播放器或声音输出没有播放它。先在同一设备上播放一个确定有声音的本地视频，再用另一个播放器打开问题文件，通常两步就能把范围缩小一半。</p>
+            <div className="content-callout"><strong>先看现象出现在哪里</strong><p>所有视频都无声，优先查系统音量、蓝牙、AirPlay、HDMI 和播放器静音；只有一个文件在所有播放器中无声，检查文件音轨；换播放器后恢复，则更像编解码器或音轨选择问题。</p></div>
+
+            <h2>先确认声音是不是被送到了别的设备</h2>
+            <p>播放视频时再调“媒体音量”，不要只看铃声音量。手机可能仍连接着蓝牙耳机，电脑可能把声音送到没有扬声器的显示器，播放器内部也可能单独静音。画面在当前屏幕出现，并不代表音频一定从同一设备输出。</p>
+            <p>找一个你之前播放过、确定有声音的本地视频做对照。如果它也无声，先处理设备或系统设置；如果它正常，再把问题文件交给另一个较新的播放器。文件只在某一个播放器无声，说明音轨大概率存在，只是当前软件没有正确解码或选中了错误音轨。</p>
+
+            <h2>文件名是 MP4，不等于里面一定有声音</h2>
+            <p>MP4 是容器，可以装视频、音频、字幕和元数据，也可以只装视频。MDN 对<a href="https://developer.mozilla.org/zh-CN/docs/Web/Media/Guides/Formats/Containers">媒体容器格式</a>的说明列出了 MP4 可使用的多种音视频编解码器。把 <code>.mp4</code> 改名为 <code>.mov</code> 或其他后缀，不会凭空增加音轨，也不会改变文件内部编码。</p>
+            <p>文件大小同样不能证明有声音。体积很大的高分辨率 MP4 可能只有画面；一个小得多的文件反而可能同时包含 H.264 视频和 AAC 音频。想得到确定答案，需要查看流信息。</p>
+            <p>电脑上安装 FFmpeg 后，可以只检查音频流：</p>
+            <pre><code>ffprobe -v error -select_streams a -show_entries stream=codec_name,channels,sample_rate -of default=noprint_wrappers=1 your-video.mp4</code></pre>
+            <p>命令没有返回音频流时，这个文件本身就没有可播放的声音；返回了 codec、channels 等信息，说明音轨存在，应继续检查播放器兼容性、音轨选择与输出设备。参数含义可以核对 <a href="https://www.ffmpeg.org/ffprobe-all.html">ffprobe 官方文档</a>中的 <code>-select_streams a</code>。</p>
+
+            <h2>为什么高画质视频更容易出现“有画面没声音”</h2>
+            <p>流媒体平台通常不会只准备一个万能文件，而是提供不同清晰度的视频流和音频流，播放器再按设备与网络组合。高分辨率版本尤其可能是独立视频流。如果工具只保存了画面流，却没有把对应音频一起装进最终文件，就会得到能正常播放画面、但没有声音的 MP4。</p>
+            <p>这与音量无关，也不是把 4K 改成 1080p 就一定能修好。想理解背后的交付方式，可以阅读<Link href="/zh-cn/blog/why-4k-video-needs-separate-audio">为什么 4K 视频经常使用独立音频流</Link>。真正需要确认的是最终文件同时拥有画面轨与音轨。</p>
+
+            <h2>在 Pullvio 里只做一次有信息量的对照</h2>
+            <p>Pullvio 的 YouTube 页面提供“视频”和“音频”两种模式。公开视频在“视频”模式得到的 MP4 无声时，可以对同一个已授权链接做一次<Link href="/zh-cn/youtube-video-downloader">音频模式</Link>测试。如果生成的 MP3 有声音，说明公开来源中存在可用音频，问题更可能在视频结果或播放器；如果 MP3 也失败，就不值得继续重复提交同一个 MP4 请求。</p>
+            <p>其他当前支持的平台以可用来源视频为主，没有单独的 Pullvio MP3 选择。此时先换播放器，再用 ffprobe 检查。不要通过修改 URL 参数或盲目选择更大的画质标签，试图制造来源中不存在的音轨。</p>
+            <p>同一公开链接连续出现两次相同结果后，应保留来源 URL、完成时间、所选格式、设备和播放器名称，再通过<Link href="/zh-cn/contact">联系页面</Link>反馈。这些信息比十次相同重试更容易定位问题，也能避免无意义地消耗请求。</p>
+
+            <h2>什么时候转码有用，什么时候没有用</h2>
+            <p>音轨确实存在、但播放器不支持它时，转成更常见的组合可能有效。YouTube 官方的<a href="https://support.google.com/youtube/answer/58134?hl=zh-Hans">音视频问题排查说明</a>把 H.264 视频与 AAC-LC 音频作为常见建议，并指出同一音频在电脑和移动设备上的表现可能不同。也就是说，“换播放器能听见”与“转码后能听见”都属于兼容性修复。</p>
+            <p>如果文件根本没有音轨，转码只会得到另一个无声文件。它也无法恢复本来就是静音的来源、找回已经被压缩丢失的细节，更不能突破私人内容、付费墙或 DRM。转码前保留原文件，避免多次处理继续损失画质。</p>
+
+            <h2>排查到什么程度就应该停止</h2>
+            <p>私人账号、会员内容、已删除帖子、地区限制和必须登录的来源，不属于音频格式故障。Pullvio 不会导入用户会话，也不会绕过访问控制。自己的作品应优先从原始工程或平台官方导出；他人内容则需要权利人提供文件或明确许可。</p>
+            <p>一条足够可靠的排查顺序是：确认设备能播放其他声音，换一个播放器，检查文件是否有音轨，在支持音频模式时只做一次对照。判断清楚声音丢在哪一层以后，再处理对应问题，而不是反复下载同一个结果。</p>
+          </>,
+        },
+        es: {
+          eyebrow: "DIAGNÓSTICO DE AUDIO",
+          title: "¿Por qué mi video descargado no tiene sonido?",
+          description: "Distingue un archivo sin pista de audio de un códec incompatible, una salida equivocada o una descarga de video sin la pista correspondiente.",
+          readingTime: "8 min de lectura",
+          body: <>
+            <p>Un video descargado sin sonido no siempre es un archivo defectuoso. Puede no contener pista de audio, o puede contenerla y estar enviándola a una salida que no escuchas o en un códec que el reproductor no interpreta. Antes de repetir la descarga, reproduce otro video local conocido y abre el archivo problemático con un segundo reproductor. El contraste vale más que varios intentos idénticos.</p>
+            <div className="content-callout"><strong>Tres resultados, tres caminos</strong><p>Si ningún video suena, revisa el dispositivo. Si solo este archivo permanece mudo en varios reproductores, comprueba sus pistas. Si cambia al usar otra aplicación, el audio existe y el problema está en la reproducción o compatibilidad.</p></div>
+
+            <h2>El síntoma no dice todavía dónde está el fallo</h2>
+            <p>Ajusta el volumen multimedia mientras el video está en marcha. Comprueba auriculares Bluetooth, AirPlay, una pantalla HDMI sin altavoces y el control de silencio dentro de la aplicación. En móvil, el volumen de llamada y el multimedia no son lo mismo; en ordenador, la imagen puede estar en una pantalla mientras el sonido sigue asignado a otra salida.</p>
+            <p>Después utiliza un archivo local que ya hayas escuchado antes. Si también está mudo, no tiene sentido volver a descargar. Si funciona, prueba el archivo nuevo en otra aplicación actualizada. Que suene en una y no en otra es una señal bastante clara de incompatibilidad o de selección de pista.</p>
+
+            <h2>MP4 es un contenedor, no una garantía de audio</h2>
+            <p>La extensión describe el contenedor, pero no confirma qué pistas hay dentro. Un MP4 puede reunir video, audio, subtítulos y metadatos, o puede contener solo imagen. La guía de MDN sobre <a href="https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Containers">formatos contenedores multimedia</a> muestra que MP4 admite distintas combinaciones de códecs. Cambiar el nombre del archivo no modifica ninguna de ellas.</p>
+            <p>Tampoco basta mirar el tamaño. Un MP4 de alta resolución puede ocupar cientos de megabytes y seguir sin audio. Para dejar de adivinar, un usuario con FFmpeg puede preguntar directamente por las pistas de tipo audio:</p>
+            <pre><code>ffprobe -v error -select_streams a -show_entries stream=codec_name,channels,sample_rate -of default=noprint_wrappers=1 tu-video.mp4</code></pre>
+            <p>Sin salida de audio, el archivo no tiene una pista que el reproductor pueda emitir. Si aparecen códec, canales y frecuencia, la pista existe. La referencia oficial de <a href="https://www.ffmpeg.org/ffprobe-all.html">ffprobe</a> documenta el selector <code>-select_streams a</code>.</p>
+
+            <h2>La separación de pistas explica muchos archivos mudos en alta resolución</h2>
+            <p>Una plataforma de streaming puede preparar el video y el audio por separado. Así el reproductor combina la imagen apropiada para la conexión con una pista de sonido compatible. Si un proceso conserva únicamente la variante de video, el resultado tiene imagen fluida y silencio absoluto.</p>
+            <p>La situación aparece con más frecuencia al buscar resoluciones altas porque la variante grande no siempre viene empaquetada con audio. La guía de Pullvio sobre <Link href="/es/blog/why-4k-video-needs-separate-audio">video 4K y pistas separadas</Link> desarrolla esa arquitectura. Para resolver el síntoma, basta comprobar que el archivo final contenga ambas pistas.</p>
+
+            <h2>Una comprobación útil dentro de Pullvio</h2>
+            <p>En YouTube, Pullvio ofrece modo Video y modo Audio. Si el MP4 de una fuente pública autorizada queda mudo, prueba una sola vez el mismo enlace en el <Link href="/es/youtube-video-downloader">modo Audio</Link>. Un MP3 correcto confirma que la fuente pública sí tiene sonido; conviene entonces revisar el resultado de video o su reproductor. Si Audio también falla, repetir el MP4 no aclara nada.</p>
+            <p>Las demás plataformas compatibles entregan actualmente el video disponible de la fuente, sin un MP3 separado en Pullvio. Utiliza otro reproductor y, si trabajas en ordenador, inspecciona la pista con ffprobe. No cambies parámetros al azar ni esperes que una etiqueta de mayor resolución cree audio ausente.</p>
+            <p>Tras dos resultados iguales, anota URL pública, hora, formato, dispositivo y reproductor. Envía esos datos desde la página de <Link href="/es/contact">contacto</Link>. Una descripción reproducible permite distinguir un archivo concreto de un cambio del proveedor.</p>
+
+            <h2>Convertir sirve para compatibilidad, no para inventar sonido</h2>
+            <p>Si la pista está presente pero no se decodifica, convertirla a una combinación más común puede ayudar. En su documentación de <a href="https://support.google.com/youtube/answer/58134?hl=es">problemas de audio y video</a>, YouTube recomienda habitualmente H.264 para imagen y AAC-LC para sonido, y reconoce que ciertos problemas se manifiestan de forma distinta en ordenador y móvil. Probar otro reproductor antes de convertir evita trabajo y pérdida de calidad innecesarios.</p>
+            <p>Una conversión no recupera una pista inexistente, una grabación que ya era silenciosa ni información eliminada por compresión. Conserva el original antes de cualquier cambio y evita varias conversiones sucesivas.</p>
+
+            <h2>Hay límites que no son técnicos</h2>
+            <p>Un post eliminado, una cuenta privada, contenido para miembros, una obra de pago, DRM o una restricción regional no se arreglan con otro códec. Pullvio no importa sesiones ni elimina controles de acceso. Para material propio, vuelve al archivo original o a la exportación oficial; para material ajeno, solicita al titular una copia y permiso.</p>
+            <p>La secuencia razonable termina pronto: comprobar otra reproducción, cambiar de reproductor, verificar la pista y hacer una única prueba de Audio cuando esté disponible. Después de identificar la capa que falla, aplica una solución concreta en lugar de descargar otra vez el mismo archivo.</p>
           </>,
         },
       },
