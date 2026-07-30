@@ -4,6 +4,7 @@ import type { Locale } from "./i18n";
 import { technicalBlogPosts } from "./blog-posts-technical";
 import { approvedEditorialPosts } from "./blog-editorial";
 import { platformHelpCandidates } from "./blog-posts-platform-help";
+import { fileTroubleshootingCandidates } from "./blog-posts-file-troubleshooting";
 
 export type BlogPostCopy = {
   eyebrow: string;
@@ -46,6 +47,8 @@ export const blogIndexCopy = {
 } satisfies Record<Locale, Record<string, string>>;
 
 const platformHelpOrder = [
+  "downloaded-mp4-wont-play",
+  "downloaded-video-is-blurry",
   "downloaded-video-has-no-sound",
   "youtube-video-download-not-working",
   "instagram-reel-link-not-working",
@@ -55,7 +58,10 @@ const platformHelpOrder = [
   "youtube-shorts-link-and-quality",
 ];
 
-const approvedPlatformHelpPosts = approvedEditorialPosts(platformHelpCandidates)
+const approvedPlatformHelpPosts = approvedEditorialPosts([
+  ...fileTroubleshootingCandidates,
+  ...platformHelpCandidates,
+])
   .sort((a, b) => platformHelpOrder.indexOf(a.slug) - platformHelpOrder.indexOf(b.slug));
 
 export const blogPosts: BlogPost[] = [

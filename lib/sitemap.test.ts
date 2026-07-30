@@ -50,6 +50,15 @@ describe("buildSitemap", () => {
     expect(urls.has(`https://pullvio.com/es/blog/${slug}`)).toBe(false);
   });
 
+  it("publishes every approved downloaded-file troubleshooting localization", () => {
+    const urls = new Set(sitemap.map(({ url }) => url));
+    for (const slug of ["downloaded-video-is-blurry", "downloaded-mp4-wont-play"]) {
+      expect(urls.has(`https://pullvio.com/blog/${slug}`)).toBe(true);
+      expect(urls.has(`https://pullvio.com/zh-cn/blog/${slug}`)).toBe(true);
+      expect(urls.has(`https://pullvio.com/es/blog/${slug}`)).toBe(true);
+    }
+  });
+
   it("does not emit ignored priority or change-frequency hints", () => {
     expect(sitemap.every((entry) => entry.priority === undefined)).toBe(true);
     expect(sitemap.every((entry) => entry.changeFrequency === undefined)).toBe(true);
