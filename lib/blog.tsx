@@ -5,6 +5,7 @@ import { technicalBlogPosts } from "./blog-posts-technical";
 import { approvedEditorialPosts } from "./blog-editorial";
 import { platformHelpCandidates } from "./blog-posts-platform-help";
 import { fileTroubleshootingCandidates } from "./blog-posts-file-troubleshooting";
+import { playbackDiagnosticCandidates } from "./blog-posts-playback-diagnostics";
 
 export type BlogPostCopy = {
   eyebrow: string;
@@ -47,6 +48,8 @@ export const blogIndexCopy = {
 } satisfies Record<Locale, Record<string, string>>;
 
 const platformHelpOrder = [
+  "downloaded-video-ends-early",
+  "subtitles-missing-from-downloaded-video",
   "downloaded-mp4-wont-play",
   "downloaded-video-is-blurry",
   "downloaded-video-has-no-sound",
@@ -59,6 +62,7 @@ const platformHelpOrder = [
 ];
 
 const approvedPlatformHelpPosts = approvedEditorialPosts([
+  ...playbackDiagnosticCandidates,
   ...fileTroubleshootingCandidates,
   ...platformHelpCandidates,
 ])

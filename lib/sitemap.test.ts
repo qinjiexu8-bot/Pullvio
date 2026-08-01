@@ -59,6 +59,18 @@ describe("buildSitemap", () => {
     }
   });
 
+  it("publishes every approved playback-diagnostic localization", () => {
+    const urls = new Set(sitemap.map(({ url }) => url));
+    for (const slug of [
+      "subtitles-missing-from-downloaded-video",
+      "downloaded-video-ends-early",
+    ]) {
+      expect(urls.has(`https://pullvio.com/blog/${slug}`)).toBe(true);
+      expect(urls.has(`https://pullvio.com/zh-cn/blog/${slug}`)).toBe(true);
+      expect(urls.has(`https://pullvio.com/es/blog/${slug}`)).toBe(true);
+    }
+  });
+
   it("does not emit ignored priority or change-frequency hints", () => {
     expect(sitemap.every((entry) => entry.priority === undefined)).toBe(true);
     expect(sitemap.every((entry) => entry.changeFrequency === undefined)).toBe(true);
