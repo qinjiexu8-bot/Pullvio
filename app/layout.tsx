@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { esES, zhCN } from "@clerk/localizations";
+import { Analytics } from "@vercel/analytics/next";
 import { Manrope, Syne } from "next/font/google";
 import { headers } from "next/headers";
 import { htmlLang, isLocale } from "@/lib/i18n";
@@ -102,6 +103,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <ClerkProvider localization={locale === "zh-cn" ? zhClerkLocalization : locale === "es" ? esClerkLocalization : undefined}>
           {children}
         </ClerkProvider>
+        <Analytics />
       </body>
     </html>
   );
